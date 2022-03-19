@@ -8,7 +8,7 @@ setup(
     packages=find_packages(),
     package_data={},
     scripts=[],
-    install_requires=[],
+    install_requires=["scikit-learn", "pickle"],
     extras_require={
         "test": ["pytest", "pylint!=2.5.0"],
     },
