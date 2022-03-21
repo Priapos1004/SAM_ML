@@ -3,11 +3,11 @@ from sklearn.model_selection import RandomizedSearchCV
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from sam_ml.models.main_classifier import classifier
+from .main_classifier import Classifier
 from typing import Union
 
 
-class rfc(classifier):
+class RFC(Classifier):
     def __init__(
         self,
         n_estimators: int=100,
