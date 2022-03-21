@@ -8,7 +8,7 @@ setup(
     packages=find_packages(),
     package_data={},
     scripts=[],
-    install_requires=["scikit-learn", "pandas"],
+    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy"],
     extras_require={
         "test": ["pytest", "pylint!=2.5.0"],
     },

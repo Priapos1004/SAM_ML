@@ -11,9 +11,10 @@ class classifier:
     def train(self, x_train: pd.DataFrame, y_train: pd.DataFrame):
         logging.debug("training started...")
         self.model.fit(x_train, y_train)
+        self.feature_names = x_train.columns
         logging.debug("... training finished")
 
-    def evaluate(self, x_test: pd.DataFrame, y_test: pd.DataFrame, console_out: bool = True):
+    def evaluate(self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True):
         logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
 
