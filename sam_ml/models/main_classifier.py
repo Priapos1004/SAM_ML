@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, classification_report, precision_sco
 
 class classifier:
 
-    def __init__(self, model_object):
+    def __init__(self, model_object = None):
         self.model = model_object
 
     def train(self, x_train: pd.DataFrame, y_train: pd.Series):
