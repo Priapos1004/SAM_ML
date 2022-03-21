@@ -11,24 +11,38 @@ class rfc(classifier):
     def __init__(
         self,
         n_estimators: int=100,
-        criterion="gini", # “gini” or “entropy”
-        max_depth=None,
-        min_samples_split=2,
-        min_samples_leaf=1,
-        min_weight_fraction_leaf=0.0,
-        max_features="auto",
-        max_leaf_nodes=None,
-        min_impurity_decrease=0.0,
+        criterion: str="gini", # “gini” or “entropy”
+        max_depth: int=None,
+        min_samples_split: Union[int, float]=2,
+        min_samples_leaf: Union[int, float]=1,
+        min_weight_fraction_leaf: float=0.0,
+        max_features: Union[str, int, float]="auto",
+        max_leaf_nodes: int=None,
+        min_impurity_decrease: float=0.0,
         bootstrap: bool=True,
-        oob_score=False,
-        n_jobs=None,
-        random_state=None,
-        verbose=0,
-        warm_start=False,
-        class_weight=None,
-        ccp_alpha=0.0,
-        max_samples=None,
+        oob_score: bool=False,
+        n_jobs: int=None, # how many cores shall be used
+        random_state: int=None,
+        verbose: int=0,
+        warm_start: bool=False, # True --> work wih the previous fit and add more estimators
+        class_weight: Union[dict, list[dict]]=None,
+        ccp_alpha: float=0.0,
+        max_samples: Union[int, float]=None,
     ):
+        '''
+        @param (important one):
+            n_estimators - Number of trees in random forest
+            max_depth - Maximum number of levels in tree
+            n_jobs - how many cores shall be used (-1 means all)
+            random_state - random_state for model
+            verbose - log level (higher number --> more logs)
+            warm_start - work with previous fit and add more estimator
+
+            max_features - Number of features to consider at every split
+            min_samples_split - Minimum number of samples required to split a node
+            min_samples_leaf - Minimum number of samples required at each leaf node
+            bootstrap - Method of selecting samples for training each tree
+        '''
         self.model = RandomForestClassifier(
             n_estimators=n_estimators,
             criterion=criterion,
@@ -70,7 +84,7 @@ class rfc(classifier):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_estimators: list[int] =[int(x) for x in range(200, 2000, 200)],
-        max_features: list[str]=["auto", "sqrt"],
+        max_features: list[Union[str, int, float]]=["auto", "sqrt"],
         max_depth: list[int]=[int(x) for x in np.linspace(10, 110, num=11)] + [None],
         min_samples_split: list[int]=[2, 5, 10],
         min_samples_leaf: list[int]=[1, 2, 4],
