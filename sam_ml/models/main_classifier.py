@@ -8,7 +8,7 @@ class classifier:
     def __init__(self, model_object):
         self.model = model_object
 
-    def train(self, x_train: pd.DataFrame, y_train: pd.DataFrame):
+    def train(self, x_train: pd.DataFrame, y_train: pd.Series):
         logging.debug("training started...")
         self.model.fit(x_train, y_train)
         self.feature_names = x_train.columns
