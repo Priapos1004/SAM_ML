@@ -3,11 +3,12 @@ from sklearn.model_selection import RandomizedSearchCV
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from sam_ml.models.main_classifier import classifier
+import logging
+from .main_classifier import Classifier
 from typing import Union
 
 
-class rfc(classifier):
+class RFC(Classifier):
     def __init__(
         self,
         n_estimators: int=100,
@@ -21,7 +22,7 @@ class rfc(classifier):
         min_impurity_decrease: float=0.0,
         bootstrap: bool=True,
         oob_score: bool=False,
-        n_jobs: int=None, # how many cores shall be used
+        n_jobs: int=-1, # how many cores shall be used
         random_state: int=None,
         verbose: int=0,
         warm_start: bool=False, # True --> work wih the previous fit and add more estimators
@@ -75,7 +76,7 @@ class rfc(classifier):
 
         fig, ax = plt.subplots()
         forest_importances.plot.bar(yerr=std, ax=ax)
-        ax.set_title("Feature importances using MDI")
+        ax.set_title("Feature importances using MDI of RandomForestClassifier")
         ax.set_ylabel("Mean decrease in impurity")
         fig.tight_layout()
         plt.show()
@@ -89,8 +90,12 @@ class rfc(classifier):
         min_samples_split: list[int]=[2, 5, 10],
         min_samples_leaf: list[int]=[1, 2, 4],
         bootstrap: list[bool]=[True, False],
+        criterion: list[str] = ["gini", "entropy"],
         n_iter_num: int = 75,
         cv_num: int = 3,
+        scoring:str = "accuracy",
+        console_out: bool = False,
+        train_afterwards: bool = False
         ):
         '''
         @param:
@@ -103,39 +108,61 @@ class rfc(classifier):
             min_samples_split - Minimum number of samples required to split a node
             min_samples_leaf - Minimum number of samples required at each leaf node
             bootstrap - Method of selecting samples for training each tree
+            criterion - function to measure the quality of a split
 
             Random search of parameters, using "cv_num" fold cross validation,
             search across "n_iter_num" different combinations, and use all available cores
+
+            scoring - metrics to evaluate the models
+            console_out - output the the results of the different iterations
+            train_afterwards - train the best model after finding it
 
         @return:
             set self.model = best model from search
         '''
         # Create the random grid
-        self.random_grid = {
+        random_grid = {
             "n_estimators": n_estimators,
             "max_features": max_features,
             "max_depth": max_depth,
             "min_samples_split": min_samples_split,
             "min_samples_leaf": min_samples_leaf,
             "bootstrap": bootstrap,
+            "criterion": criterion,
         }
+
+        if console_out:
+            print("grid: ", random_grid)
 
         # random search
         rf_random = RandomizedSearchCV(
             estimator=self.model,
-            param_distributions=self.random_grid,
+            param_distributions=random_grid,
             n_iter=n_iter_num,
             cv=cv_num,
             verbose=2,
             random_state=42,
             n_jobs=-1,
+            scoring=scoring
         )
+
+        logging.debug("starting hyperparameter tuning...")
         # Fit the random search model
         rf_random.fit(x_train, y_train)
 
-        print("rf_random.best_params_:")
-        print(rf_random.best_params_)
+        logging.debug("... finished hyperparameter tuning")
+
+        if console_out:
+            print("rf_random.best_params_:")
+            print(rf_random.best_params_)
 
         print("rf_random.best_estimator_:")
         print(rf_random.best_estimator_)
+
+        logging.debug("set self.model to best estimator")
         self.model = rf_random.best_estimator_
+
+        if train_afterwards:
+            logging.debug("starting to train best estimator...")
+            self.train(x_train, y_train)
+            logging.debug("... best estimator trained")

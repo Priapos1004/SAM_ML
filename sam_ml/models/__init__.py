@@ -1,7 +1,11 @@
-from .main_classifier import classifier
-from .RandomForestClassifier import rfc
+from .main_classifier import Classifier
+from .RandomForestClassifier import RFC
+from .LogisticRegression import LR
+from .DecisionTreeClassifier import DTC
 
 __all__ = {
-    "main_classifier": "classifier",
-    "RandomForestClassifier": "rfc",
+    "main_classifier": "Classifier",
+    "RandomForestClassifier": "RFC",
+    "LogisticRegression": "LR",
+    "DecisionTreeClassifier": "DCT",
 }
