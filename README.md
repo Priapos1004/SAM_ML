@@ -20,7 +20,7 @@ pip install -e .
 4. now you can import the package, e.g.:
 
 ```
-from sam_ml.models import rfc
+from sam_ml.models import RFC
 
-RandomForstClassifier = rfc()
+RandomForstClassifier = RFC()
 ```
