@@ -90,6 +90,7 @@ class RFC(Classifier):
         min_samples_split: list[int]=[2, 5, 10],
         min_samples_leaf: list[int]=[1, 2, 4],
         bootstrap: list[bool]=[True, False],
+        criterion: list[str] = ["gini", "entropy"],
         n_iter_num: int = 75,
         cv_num: int = 3,
         scoring:str = "accuracy",
@@ -107,6 +108,7 @@ class RFC(Classifier):
             min_samples_split - Minimum number of samples required to split a node
             min_samples_leaf - Minimum number of samples required at each leaf node
             bootstrap - Method of selecting samples for training each tree
+            criterion - function to measure the quality of a split
 
             Random search of parameters, using "cv_num" fold cross validation,
             search across "n_iter_num" different combinations, and use all available cores
@@ -126,6 +128,7 @@ class RFC(Classifier):
             "min_samples_split": min_samples_split,
             "min_samples_leaf": min_samples_leaf,
             "bootstrap": bootstrap,
+            "criterion": criterion,
         }
 
         if console_out:
@@ -153,8 +156,8 @@ class RFC(Classifier):
             print("rf_random.best_params_:")
             print(rf_random.best_params_)
 
-            print("rf_random.best_estimator_:")
-            print(rf_random.best_estimator_)
+        print("rf_random.best_estimator_:")
+        print(rf_random.best_estimator_)
 
         logging.debug("set self.model to best estimator")
         self.model = rf_random.best_estimator_

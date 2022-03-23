@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 from typing import Union
 import logging
 import pandas as pd
-import numpy as np
 from .main_classifier import Classifier
 
 
@@ -24,12 +23,12 @@ class LR(Classifier):
         multi_class: str = "auto",
         verbose: int = 0,
         warm_start: bool = False,
-        n_jobs: int = -1,
+        n_jobs: int = None,
         l1_ratio: float = None,
     ):
         '''
         @param (important one):
-            n_jobs - how many cores shall be used (-1 means all)
+            n_jobs - how many cores shall be used (-1 means all) (n_jobs > 1 does not have any effect when 'solver' is set to 'liblinear)
             random_state - random_state for model
             verbose - log level (higher number --> more logs)
             warm_start - work with previous fit and add more estimator
@@ -74,12 +73,13 @@ class LR(Classifier):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        solvers: list[str]=["newton-cg", "lbfgs", "liblinear"],
+        solvers: list[str]=["newton-cg", "lbfgs", "liblinear", "sag"],
         penalty: list[str]=["l2"],
         c_values: list[int]=[100, 10, 1.0, 0.1, 0.01],
         scoring: str = "accuracy",
         n_split_num: int = 10,
         n_repeats_num: int = 3,
+        verbose: int=1,
         console_out: bool = False,
         train_afterwards: bool = False,
     ):
@@ -96,6 +96,7 @@ class LR(Classifier):
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split
 
+            verbose - log level (higher number --> more logs)
             console_out - output the the results of the different iterations
             train_afterwards - train the best model after finding it
 
@@ -114,6 +115,7 @@ class LR(Classifier):
             param_grid=grid,
             n_jobs=-1,
             cv=cv,
+            verbose = verbose,
             scoring=scoring,
             error_score=0,
         )
@@ -123,12 +125,13 @@ class LR(Classifier):
         logging.debug("... hyperparameter tuning finished")
 
         self.model = grid_result.best_estimator_
+        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
         if console_out:
-            print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
             means = grid_result.cv_results_['mean_test_score']
             stds = grid_result.cv_results_['std_test_score']
             params = grid_result.cv_results_['params']
+            print()
             for mean, stdev, param in zip(means, stds, params):
                 print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
 
