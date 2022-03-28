@@ -3,6 +3,7 @@ from .RandomForestClassifier import RFC
 from .LogisticRegression import LR
 from .DecisionTreeClassifier import DTC
 from .SupportVectorClassifier import SVC
+from .MLPClassifier import MLPC
 
 __all__ = {
     "main_classifier": "Classifier",
@@ -10,4 +11,5 @@ __all__ = {
     "LogisticRegression": "LR",
     "DecisionTreeClassifier": "DCT",
     "SupportVectorClassifier": "SVC",
+    "MLP Classifier": "MLPC",
 }
