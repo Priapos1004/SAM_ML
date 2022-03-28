@@ -1,6 +1,8 @@
-import pickle
-import pandas as pd
 import logging
+import pickle
+
+import pandas as pd
+
 
 class Model:
 
