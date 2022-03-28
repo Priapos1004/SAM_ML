@@ -11,7 +11,7 @@ from .main_model import Model
 
 
 class Classifier(Model):
-    def __init__(self, model_object=None, model_name="model"):
+    def __init__(self, model_object=None, model_name="Classifier"):
         self.model_name = model_name
         self.model_type = "Classifier"
         self.model = model_object
@@ -33,6 +33,7 @@ class Classifier(Model):
         recall = recall_score(y_test, pred, average=avg)
 
         if console_out:
+            print("Test score: ", self.model.score(x_test, y_test))
             print("accuracy: ", accuracy)
             print("precision: ", precision)
             print("recall: ", recall)
