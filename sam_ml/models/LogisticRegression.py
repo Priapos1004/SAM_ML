@@ -1,6 +1,8 @@
-from sklearn.linear_model import LogisticRegression
 from typing import Union
+
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
+
 from .main_classifier import Classifier
 
 

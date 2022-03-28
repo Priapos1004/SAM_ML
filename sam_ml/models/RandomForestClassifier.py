@@ -1,11 +1,13 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from matplotlib import pyplot as plt
+import logging
+from typing import Union
+
 import numpy as np
 import pandas as pd
-import logging
+from matplotlib import pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RandomizedSearchCV
+
 from .main_classifier import Classifier
-from typing import Union
 
 
 class RFC(Classifier):

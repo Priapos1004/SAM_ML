@@ -1,6 +1,8 @@
-from sklearn.svm import SVC as svc
 from typing import Union
+
 import pandas as pd
+from sklearn.svm import SVC as svc
+
 from .main_classifier import Classifier
 
 

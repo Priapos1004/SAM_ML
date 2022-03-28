@@ -1,14 +1,12 @@
-import pandas as pd
-import numpy as np
 import logging
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    precision_score,
-    recall_score,
-)
+
+import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.model_selection import RepeatedStratifiedKFold, GridSearchCV
+from sklearn.metrics import (accuracy_score, classification_report,
+                             precision_score, recall_score)
+from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold
+
 from .main_model import Model
 
 

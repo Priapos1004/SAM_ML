@@ -1,9 +1,9 @@
-from .main_classifier import Classifier
-from .RandomForestClassifier import RFC
-from .LogisticRegression import LR
 from .DecisionTreeClassifier import DTC
-from .SupportVectorClassifier import SVC
+from .LogisticRegression import LR
+from .main_classifier import Classifier
 from .MLPClassifier import MLPC
+from .RandomForestClassifier import RFC
+from .SupportVectorClassifier import SVC
 
 __all__ = {
     "main_classifier": "Classifier",

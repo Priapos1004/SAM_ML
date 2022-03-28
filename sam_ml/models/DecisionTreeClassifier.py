@@ -1,7 +1,9 @@
-from sklearn.tree import DecisionTreeClassifier
-import pandas as pd
-from .main_classifier import Classifier
 from typing import Union
+
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+
+from .main_classifier import Classifier
 
 
 class DTC(Classifier):

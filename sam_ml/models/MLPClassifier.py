@@ -1,6 +1,8 @@
 from typing import Union
-from sklearn.neural_network import MLPClassifier
+
 import pandas as pd
+from sklearn.neural_network import MLPClassifier
+
 from .main_classifier import Classifier
 
 
