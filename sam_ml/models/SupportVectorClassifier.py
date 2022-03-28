@@ -1,8 +1,5 @@
 from sklearn.svm import SVC as svc
-from sklearn.model_selection import RepeatedStratifiedKFold, GridSearchCV
-from matplotlib import pyplot as plt
 from typing import Union
-import logging
 import pandas as pd
 from .main_classifier import Classifier
 
@@ -10,6 +7,7 @@ from .main_classifier import Classifier
 class SVC(Classifier):
     def __init__(
         self,
+        model_name: str = "SupportVectorClassifier",
         C: float=1.0,
         kernel: str="linear",
         degree: int=3,
@@ -39,6 +37,8 @@ class SVC(Classifier):
 
             cache_size - Specify the size of the kernel cache (in MB)
         """
+        self.model_name = model_name
+        self.model_type = "SVC"
         self.model = svc(
             C=C,
             kernel=kernel,
@@ -59,16 +59,7 @@ class SVC(Classifier):
 
     def feature_importance(self):
         if self.model.kernel == "linear":
-            importances = self.model.coef_[0]
-
-            feature_importances = pd.Series(importances, index=self.feature_names)
-
-            fig, ax = plt.subplots()
-            feature_importances.plot.bar(ax=ax)
-            ax.set_title("Feature importances of SupportVectorClassifier")
-            ax.set_ylabel("use of coefficients as importance scores")
-            fig.tight_layout()
-            plt.show()
+            super(SVC, self).feature_importance()
         else:
             print("feature importance is only available for a linear kernel. You are currently using: ", self.model.kernel)
 
@@ -110,38 +101,4 @@ class SVC(Classifier):
         # define grid search
         grid = dict(kernel=kernel, gamma=gamma, C=c_values)
 
-        if console_out:
-            print("grid: ", grid)
-
-        cv = RepeatedStratifiedKFold(
-            n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
-        )
-        grid_search = GridSearchCV(
-            estimator=self.model,
-            param_grid=grid,
-            n_jobs=-1,
-            cv=cv,
-            verbose=verbose,
-            scoring=scoring,
-            error_score=0,
-        )
-
-        logging.debug("starting hyperparameter tuning...")
-        grid_result = grid_search.fit(x_train, y_train)
-        logging.debug("... hyperparameter tuning finished")
-
-        self.model = grid_result.best_estimator_
-        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-
-        if console_out:
-            means = grid_result.cv_results_["mean_test_score"]
-            stds = grid_result.cv_results_["std_test_score"]
-            params = grid_result.cv_results_["params"]
-            print()
-            for mean, stdev, param in zip(means, stds, params):
-                print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
-
-        if train_afterwards:
-            logging.debug("starting to train best model...")
-            self.train(x_train, y_train)
-            logging.debug("... best model trained")
+        self.gridsearch(x_train, y_train, grid, scoring, n_split_num, n_repeats_num, verbose, console_out, train_afterwards)

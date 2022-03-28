@@ -11,6 +11,7 @@ from typing import Union
 class RFC(Classifier):
     def __init__(
         self,
+        model_name: str = "RandomForestClassifier",
         n_estimators: int=100,
         criterion: str="gini", # “gini” or “entropy”
         max_depth: int=None,
@@ -44,6 +45,8 @@ class RFC(Classifier):
             min_samples_leaf - Minimum number of samples required at each leaf node
             bootstrap - Method of selecting samples for training each tree
         '''
+        self.model_name = model_name
+        self.model_type = "RFC"
         self.model = RandomForestClassifier(
             n_estimators=n_estimators,
             criterion=criterion,
