@@ -11,14 +11,15 @@ class Model:
         self.model_name = model_name
         self.model_type = "Model"
 
-    def train(self, x_train: pd.DataFrame, y_train: pd.Series):
+    def train(self, x_train: pd.DataFrame, y_train: pd.Series,  console_out: bool = True):
         logging.debug("training started...")
         self.model.fit(x_train, y_train)
         self.feature_names = x_train.columns
-        print("Train score: ", self.model.score(x_train, y_train))
+        if console_out:
+            print("Train score: ", self.model.score(x_train, y_train))
         logging.debug("... training finished")
 
-    def evaluate(self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True):
+    def evaluate(self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True) -> float:
         score = self.model.score(x_test, y_test)
         if console_out:
             print("Test score: ", score)

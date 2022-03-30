@@ -82,7 +82,7 @@ class MLPC(Classifier):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        hidden_layer_sizes: list[tuple] = [(10,30,10),(20,)],
+        hidden_layer_sizes: list[tuple] = [(10,30,10),(20,),(100,)],
         activation: list[str] = ['tanh', 'relu'],
         solver: list[str] = ['sgd', 'adam'],
         alpha: list[float] = [0.0001, 0.05],
@@ -90,7 +90,7 @@ class MLPC(Classifier):
         scoring: str = "accuracy",
         n_split_num: int = 10,
         n_repeats_num: int = 3,
-        verbose: int = 1,
+        verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = False,
     ):

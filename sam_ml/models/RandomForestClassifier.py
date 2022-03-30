@@ -89,10 +89,10 @@ class RFC(Classifier):
     def hyperparameter_tuning(self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        n_estimators: list[int] =[int(x) for x in range(200, 2000, 200)],
+        n_estimators: list[int] =[int(x) for x in range(200, 2000, 200)]+[int(x) for x in range(20, 180, 20)],
         max_features: list[Union[str, int, float]]=["auto", "sqrt"],
-        max_depth: list[int]=[int(x) for x in np.linspace(10, 110, num=11)] + [None],
-        min_samples_split: list[int]=[2, 5, 10],
+        max_depth: list[int]=[int(x) for x in np.linspace(10, 80, num=11)] + [None],
+        min_samples_split: list[int]=[2, 3, 5, 10],
         min_samples_leaf: list[int]=[1, 2, 4],
         bootstrap: list[bool]=[True, False],
         criterion: list[str] = ["gini", "entropy"],
@@ -169,5 +169,5 @@ class RFC(Classifier):
 
         if train_afterwards:
             logging.debug("starting to train best estimator...")
-            self.train(x_train, y_train)
+            self.train(x_train, y_train, console_out=False)
             logging.debug("... best estimator trained")

@@ -69,7 +69,7 @@ class LR(Classifier):
         scoring: str = "accuracy",
         n_split_num: int = 10,
         n_repeats_num: int = 3,
-        verbose: int=1,
+        verbose: int=0,
         console_out: bool = False,
         train_afterwards: bool = False,
     ):

@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+from typing import Union
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              precision_score, recall_score)
@@ -17,23 +18,24 @@ class Classifier(Model):
         self.model = model_object
 
     def evaluate(
-        self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True
-    ):
+        self, x_test: pd.DataFrame, y_test: pd.Series, avg: str = None, pos_label: Union[int,str]=1, console_out: bool = True
+    ) -> dict:
+        '''
+        @param:
+            x_test, y_test - Data to evaluate model
+            avg - average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            console_out - shall the result be printed into the console
+        '''
         logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
 
-        if len(y_test.unique()) == 2:
-            avg = None
-        else:
-            avg = "micro"
-
         # Calculate Accuracy, Precision and Recall Metrics
         accuracy = accuracy_score(y_test, pred)
-        precision = precision_score(y_test, pred, average=avg)
-        recall = recall_score(y_test, pred, average=avg)
+        precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
 
         if console_out:
-            print("Test score: ", self.model.score(x_test, y_test))
             print("accuracy: ", accuracy)
             print("precision: ", precision)
             print("recall: ", recall)
@@ -50,7 +52,7 @@ class Classifier(Model):
         logging.debug("... evaluation finished")
         return score
 
-    def feature_importance(self):
+    def feature_importance(self) -> plt.show:
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]] # MLP Classifier
         elif self.model_type == "DTC":
@@ -112,5 +114,5 @@ class Classifier(Model):
 
         if train_afterwards:
             logging.debug("starting to train best model...")
-            self.train(x_train, y_train)
+            self.train(x_train, y_train, console_out=False)
             logging.debug("... best model trained")
