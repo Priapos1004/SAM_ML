@@ -4,10 +4,19 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.metrics import (accuracy_score, classification_report,
-                             make_scorer, precision_score, recall_score)
-from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
-                                     RepeatedStratifiedKFold)
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    make_scorer,
+    precision_score,
+    recall_score,
+)
+from sklearn.model_selection import (
+    GridSearchCV,
+    RandomizedSearchCV,
+    RepeatedStratifiedKFold,
+    cross_validate,
+)
 
 from .main_model import Model
 
@@ -17,6 +26,7 @@ class Classifier(Model):
         self.model_name = model_name
         self.model_type = "Classifier"
         self.model = model_object
+        self.cv_scores = {}
 
     def evaluate(
         self,
@@ -29,8 +39,10 @@ class Classifier(Model):
         """
         @param:
             x_test, y_test - Data to evaluate model
+            
             avg - average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
             console_out - shall the result be printed into the console
         """
         logging.debug("evaluation started...")
@@ -58,10 +70,79 @@ class Classifier(Model):
         logging.debug("... evaluation finished")
         return score
 
+    def cross_validation(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        cv_num: int = 3,
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
+        return_estimator: bool = False,
+        console_out: bool = True,
+        return_as_dict: bool = False,
+    ) -> Union[dict[list], pd.DataFrame]:
+        """
+        @param:
+            X, y - data to cross validate on
+            cv_num - number of different splits
+
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
+            return_estimator - if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
+
+            console_out - shall the result be printed into the console
+            return_as_dict - True: return scores as a dict, False: return scores as a pandas DataFrame
+
+        @return:
+            depending on "return_as_dict"
+            the scores will be saved in self.cv_scores as dict (WARNING: return_estimator=True increases object size)
+        """
+
+        precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
+        recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
+
+        if avg == "binary":
+            scorer = {
+                f"precision ({avg}, label={pos_label})": precision_scorer,
+                f"recall ({avg}, label={pos_label})": recall_scorer,
+                "accuracy": "accuracy",
+            }
+        else:
+            scorer = {
+                f"precision ({avg})": precision_scorer,
+                f"recall ({avg})": recall_scorer,
+                "accuracy": "accuracy",
+            }
+
+        logging.debug("starting to cross validate...")
+        self.cv_scores = cross_validate(
+            self.model,
+            X,
+            y,
+            scoring=scorer,
+            cv=cv_num,
+            return_train_score=True,
+            return_estimator=return_estimator,
+            n_jobs=-1,
+        )
+        logging.debug("... cross validation completed")
+
+        pd_scores = pd.DataFrame(self.cv_scores).transpose()
+        pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
+
+        if console_out:
+            print(pd_scores)
+
+        if return_as_dict:
+            return self.cv_scores
+        else:
+            return pd_scores
+
     def feature_importance(self) -> plt.show:
-        '''
+        """
         feature_importance() generates a matplotlib plot of the feature importance from self.model
-        '''
+        """
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
         elif self.model_type == "DTC":
@@ -148,7 +229,6 @@ class Classifier(Model):
                 n_jobs=-1,
                 cv=cv,
                 verbose=verbose,
-                random_state=42,
                 scoring=scoring,
                 error_score=0,
             )
