@@ -51,6 +51,38 @@ class CTest:
 
         return self.scores
 
+    def eval_models_cv(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        cv_num: int = 3,
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
+    ) -> dict[dict]:
+        """
+        @param:
+            X, y - Data to train and evaluate models on
+            cv_num - number of different splits
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
+        @return:
+            saves metrics in dict self.scores and also outputs them
+        """
+        logging.debug("starting to evaluate models...")
+        for key in tqdm(self.models.keys()):
+            self.models[key].cross_validation(X,y,cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False)
+            score = self.models[key].cv_scores["average"]
+            self.scores[key] = {
+                "accuracy": score["test_accuracy"],
+                "precision": score[list(score.keys())[2]],
+                "recall": score[list(score.keys())[4]],
+            }
+
+        logging.debug("... models evaluated")
+
+        return self.scores
+
     def output_scores_as_pd(self, console_out: bool = True) -> pd.DataFrame:
         scores = pd.DataFrame(self.scores).transpose()
 
@@ -70,6 +102,8 @@ class CTest:
         pos_label: Union[int, str] = 1,
         rand_search: bool = True,
         n_iter_num: int = 75,
+        n_split_num: int = 10,
+        n_repeats_num: int = 3,
     ) -> Classifier:
         """
         @param:
@@ -80,12 +114,16 @@ class CTest:
             rand_search - True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num - Combinations to try out if rand_search=True
 
+            n_split_num - number of different splits
+            n_repeats_num - number of repetition of one split
+
         @return:
             prints parameters and metrics of best model
             saves best model in self.best_model
             returns best model
         """
         if self.scores == {}:
+            print("no scores are already created -> creating scores using 'eval_models()'")
             self.eval_models(
                 x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
             )
@@ -93,7 +131,7 @@ class CTest:
             print()
         else:
             print(
-                "-> using already created scores for the models. Please run 'eval_models()' again if something changed with the data"
+                "-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data"
             )
 
         sorted_scores = sorted(
@@ -111,6 +149,7 @@ class CTest:
             rand_search,
             ")...",
         )
+        print()
         self.models[best_model_type].hyperparameter_tuning(
             x_train,
             y_train,
@@ -120,7 +159,10 @@ class CTest:
             pos_label=pos_label,
             rand_search=rand_search,
             n_iter_num=n_iter_num,
+            n_repeats_num=n_repeats_num,
+            n_split_num=n_split_num
         )
+        print()
         print("... hyperparameter tuning finished")
         print()
 

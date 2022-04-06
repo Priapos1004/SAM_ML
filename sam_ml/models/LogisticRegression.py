@@ -69,7 +69,7 @@ class LR(Classifier):
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
-        rand_search: bool = True,
+        rand_search: bool = False,
         n_iter_num: int = 75,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
