@@ -97,11 +97,14 @@ class RFC(Classifier):
         min_samples_leaf: list[int]=[1, 2, 4],
         bootstrap: list[bool]=[True, False],
         criterion: list[str] = ["gini", "entropy"],
+        rand_search: bool = True,
         n_iter_num: int = 75,
-        cv_num: int = 3,
         scoring:str = "accuracy",
         avg: str = "macro", 
         pos_label: Union[int,str] = 1,
+        n_split_num: int = 10,
+        n_repeats_num: int = 3,
+        verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = False
         ):
@@ -118,12 +121,17 @@ class RFC(Classifier):
             bootstrap - Method of selecting samples for training each tree
             criterion - function to measure the quality of a split
 
-            Random search of parameters, using "cv_num" fold cross validation,
-            search across "n_iter_num" different combinations, and use all available cores
+            rand_search - True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num - Combinations to try out if rand_search=True
 
+            n_split_num - number of different splits
+            n_repeats_num - number of repetition of one split
+            
             scoring - metrics to evaluate the models
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            
+            verbose - log level (higher number --> more logs)
             console_out - output the the results of the different iterations
             train_afterwards - train the best model after finding it
 
@@ -131,7 +139,7 @@ class RFC(Classifier):
             set self.model = best model from search
         '''
         # Create the random grid
-        random_grid = {
+        grid = {
             "n_estimators": n_estimators,
             "max_features": max_features,
             "max_depth": max_depth,
@@ -141,43 +149,4 @@ class RFC(Classifier):
             "criterion": criterion,
         }
 
-        if console_out:
-            print("grid: ", random_grid)
-
-        if scoring=="precision":
-            scoring=make_scorer(precision_score, average=avg, pos_label=pos_label)
-        elif scoring=="recall":
-            scoring=make_scorer(recall_score, average=avg, pos_label=pos_label)
-
-        # random search
-        rf_random = RandomizedSearchCV(
-            estimator=self.model,
-            param_distributions=random_grid,
-            n_iter=n_iter_num,
-            cv=cv_num,
-            verbose=2,
-            random_state=42,
-            n_jobs=-1,
-            scoring=scoring
-        )
-
-        logging.debug("starting hyperparameter tuning...")
-        # Fit the random search model
-        rf_random.fit(x_train, y_train)
-
-        logging.debug("... finished hyperparameter tuning")
-
-        if console_out:
-            print("rf_random.best_params_:")
-            print(rf_random.best_params_)
-
-        print("rf_random.best_estimator_:")
-        print(rf_random.best_estimator_)
-
-        logging.debug("set self.model to best estimator")
-        self.model = rf_random.best_estimator_
-
-        if train_afterwards:
-            logging.debug("starting to train best estimator...")
-            self.train(x_train, y_train, console_out=False)
-            logging.debug("... best estimator trained")
+        self.gridsearch(x_train=x_train, y_train=y_train, grid=grid, scoring=scoring, avg=avg, pos_label=pos_label, rand_search=rand_search, n_iter_num=n_iter_num, n_split_num=n_split_num, n_repeats_num=n_repeats_num, verbose=verbose, console_out=console_out, train_afterwards=train_afterwards)

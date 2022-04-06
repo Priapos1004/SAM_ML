@@ -6,7 +6,7 @@ from typing import Union
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              precision_score, recall_score, make_scorer)
-from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold
+from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold, RandomizedSearchCV
 
 from .main_model import Model
 
@@ -80,6 +80,8 @@ class Classifier(Model):
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int = 0,
+        rand_search: bool = True,
+        n_iter_num: int = 75,
         console_out: bool = False,
         train_afterwards: bool = True,
     ):
@@ -94,15 +96,29 @@ class Classifier(Model):
         cv = RepeatedStratifiedKFold(
             n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
         )
-        grid_search = GridSearchCV(
-            estimator=self.model,
-            param_grid=grid,
-            n_jobs=-1,
-            cv=cv,
-            verbose=verbose,
-            scoring=scoring,
-            error_score=0,
-        )
+        
+        if rand_search:
+            grid_search = RandomizedSearchCV(
+                estimator=self.model,
+                param_distributions=grid,
+                n_iter=n_iter_num,
+                cv=cv,
+                verbose=verbose,
+                random_state=42,
+                n_jobs=-1,
+                scoring=scoring
+            )
+        else:
+            grid_search = GridSearchCV(
+                estimator=self.model,
+                param_grid=grid,
+                n_jobs=-1,
+                cv=cv,
+                verbose=verbose,
+                random_state=42,
+                scoring=scoring,
+                error_score=0,
+            )
 
         logging.debug("starting hyperparameter tuning...")
         grid_result = grid_search.fit(x_train, y_train)

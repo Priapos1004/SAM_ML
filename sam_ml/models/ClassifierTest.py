@@ -40,12 +40,15 @@ class CTest:
         logging.debug("... models evaluated")
         return self.scores
 
-     def find_best_model(self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series, scoring: str = "accuracy", avg: str = "macro", pos_label: Union[int,str] = 1) -> Classifier:
+     def find_best_model(self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series, scoring: str = "accuracy", avg: str = "macro", pos_label: Union[int,str] = 1, rand_search: bool = True, n_iter_num: int = 75,) -> Classifier:
         '''
         @param:
             scoring - "accuracy" / "precision" / "recall"
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
+            rand_search - True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num - Combinations to try out if rand_search=True
 
         @return:
             prints parameters and metrics of best model
@@ -65,7 +68,7 @@ class CTest:
         print(f"best model type ({scoring}): ", best_model_type, " - ", best_model_value)
 
         print("starting to hyperparametertune best model type...")
-        self.models[best_model_type].hyperparameter_tuning(x_train, y_train, scoring=scoring, train_afterwards=True, avg=avg, pos_label=pos_label)
+        self.models[best_model_type].hyperparameter_tuning(x_train, y_train, scoring=scoring, train_afterwards=True, avg=avg, pos_label=pos_label, rand_search=rand_search, n_iter_num=n_iter_num)
         print("... hyperparameter tuning finished")
         print()
 

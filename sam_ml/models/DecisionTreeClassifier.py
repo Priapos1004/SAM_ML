@@ -62,6 +62,8 @@ class DTC(Classifier):
         scoring: str = "accuracy",
         avg: str = "macro", 
         pos_label: Union[int,str] = 1,
+        rand_search: bool = True,
+        n_iter_num: int = 75,
         console_out: bool = False,
         train_afterwards: bool = False,
     ):
@@ -78,10 +80,13 @@ class DTC(Classifier):
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split
 
-            verbose - log level (higher number --> more logs)
             scoring - metrics to evaluate the models
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            rand_search - True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num - Combinations to try out if rand_search=True
+
+            verbose - log level (higher number --> more logs)
             console_out - output the the results of the different iterations
             train_afterwards - train the best model after finding it
 
@@ -91,4 +96,4 @@ class DTC(Classifier):
         # Create the random grid
         grid = dict(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf, min_samples_split=min_samples_split)
 
-        self.gridsearch(x_train, y_train, grid, scoring, n_split_num, n_repeats_num, verbose, console_out, train_afterwards)
+        self.gridsearch(x_train=x_train, y_train=y_train, grid=grid, scoring=scoring, avg=avg, pos_label=pos_label, rand_search=rand_search, n_iter_num=n_iter_num, n_split_num=n_split_num, n_repeats_num=n_repeats_num, verbose=verbose, console_out=console_out, train_afterwards=train_afterwards)
