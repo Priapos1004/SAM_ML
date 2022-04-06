@@ -4,19 +4,10 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    make_scorer,
-    precision_score,
-    recall_score,
-)
-from sklearn.model_selection import (
-    GridSearchCV,
-    RandomizedSearchCV,
-    RepeatedStratifiedKFold,
-    cross_validate,
-)
+from sklearn.metrics import (accuracy_score, classification_report,
+                             make_scorer, precision_score, recall_score)
+from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
+                                     RepeatedStratifiedKFold, cross_validate)
 
 from .main_model import Model
 
@@ -116,7 +107,7 @@ class Classifier(Model):
             }
 
         logging.debug("starting to cross validate...")
-        self.cv_scores = cross_validate(
+        cv_scores = cross_validate(
             self.model,
             X,
             y,
@@ -128,8 +119,10 @@ class Classifier(Model):
         )
         logging.debug("... cross validation completed")
 
-        pd_scores = pd.DataFrame(self.cv_scores).transpose()
+        pd_scores = pd.DataFrame(cv_scores).transpose()
         pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
+
+        self.cv_scores = pd_scores.to_dict()
 
         if console_out:
             print(pd_scores)
