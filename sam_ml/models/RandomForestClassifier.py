@@ -1,12 +1,9 @@
-import logging
 from typing import Union
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import make_scorer, precision_score, recall_score
 
 from .main_classifier import Classifier
 
@@ -15,26 +12,26 @@ class RFC(Classifier):
     def __init__(
         self,
         model_name: str = "RandomForestClassifier",
-        n_estimators: int=100,
-        criterion: str="gini", # “gini” or “entropy”
-        max_depth: int=None,
-        min_samples_split: Union[int, float]=2,
-        min_samples_leaf: Union[int, float]=1,
-        min_weight_fraction_leaf: float=0.0,
-        max_features: Union[str, int, float]="auto",
-        max_leaf_nodes: int=None,
-        min_impurity_decrease: float=0.0,
-        bootstrap: bool=True,
-        oob_score: bool=False,
-        n_jobs: int=-1, # how many cores shall be used
-        random_state: int=None,
-        verbose: int=0,
-        warm_start: bool=False, # True --> work wih the previous fit and add more estimators
-        class_weight: Union[dict, list[dict]]=None,
-        ccp_alpha: float=0.0,
-        max_samples: Union[int, float]=None,
+        n_estimators: int = 100,
+        criterion: str = "gini",  # “gini” or “entropy”
+        max_depth: int = None,
+        min_samples_split: Union[int, float] = 2,
+        min_samples_leaf: Union[int, float] = 1,
+        min_weight_fraction_leaf: float = 0.0,
+        max_features: Union[str, int, float] = "auto",
+        max_leaf_nodes: int = None,
+        min_impurity_decrease: float = 0.0,
+        bootstrap: bool = True,
+        oob_score: bool = False,
+        n_jobs: int = -1,  # how many cores shall be used
+        random_state: int = None,
+        verbose: int = 0,
+        warm_start: bool = False,  # True --> work wih the previous fit and add more estimators
+        class_weight: Union[dict, list[dict]] = None,
+        ccp_alpha: float = 0.0,
+        max_samples: Union[int, float] = None,
     ):
-        '''
+        """
         @param (important one):
             n_estimators - Number of trees in random forest
             max_depth - Maximum number of levels in tree
@@ -47,7 +44,7 @@ class RFC(Classifier):
             min_samples_split - Minimum number of samples required to split a node
             min_samples_leaf - Minimum number of samples required at each leaf node
             bootstrap - Method of selecting samples for training each tree
-        '''
+        """
         self.model_name = model_name
         self.model_type = "RFC"
         self.model = RandomForestClassifier(
@@ -75,8 +72,7 @@ class RFC(Classifier):
         importances = self.model.feature_importances_
 
         std = np.std(
-            [tree.feature_importances_ for tree in self.model.estimators_],
-            axis=0,
+            [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
         )
         forest_importances = pd.Series(importances, index=self.feature_names)
 
@@ -87,28 +83,30 @@ class RFC(Classifier):
         fig.tight_layout()
         plt.show()
 
-    def hyperparameter_tuning(self,
+    def hyperparameter_tuning(
+        self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        n_estimators: list[int] =[int(x) for x in range(200, 2000, 200)]+[int(x) for x in range(20, 180, 20)],
-        max_features: list[Union[str, int, float]]=["auto", "sqrt"],
-        max_depth: list[int]=[int(x) for x in np.linspace(10, 80, num=11)] + [None],
-        min_samples_split: list[int]=[2, 3, 5, 10],
-        min_samples_leaf: list[int]=[1, 2, 4],
-        bootstrap: list[bool]=[True, False],
+        n_estimators: list[int] = [int(x) for x in range(200, 2000, 200)]
+        + [int(x) for x in range(20, 180, 20)],
+        max_features: list[Union[str, int, float]] = ["auto", "sqrt"],
+        max_depth: list[int] = [int(x) for x in np.linspace(10, 80, num=11)] + [None],
+        min_samples_split: list[int] = [2, 3, 5, 10],
+        min_samples_leaf: list[int] = [1, 2, 4],
+        bootstrap: list[bool] = [True, False],
         criterion: list[str] = ["gini", "entropy"],
         rand_search: bool = True,
         n_iter_num: int = 75,
-        scoring:str = "accuracy",
-        avg: str = "macro", 
-        pos_label: Union[int,str] = 1,
+        scoring: str = "accuracy",
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int = 0,
         console_out: bool = False,
-        train_afterwards: bool = False
-        ):
-        '''
+        train_afterwards: bool = False,
+    ):
+        """
         @param:
             x_train - DataFrame with train features
             y_train - Series with labels
@@ -137,7 +135,7 @@ class RFC(Classifier):
 
         @return:
             set self.model = best model from search
-        '''
+        """
         # Create the random grid
         grid = {
             "n_estimators": n_estimators,
@@ -149,4 +147,18 @@ class RFC(Classifier):
             "criterion": criterion,
         }
 
-        self.gridsearch(x_train=x_train, y_train=y_train, grid=grid, scoring=scoring, avg=avg, pos_label=pos_label, rand_search=rand_search, n_iter_num=n_iter_num, n_split_num=n_split_num, n_repeats_num=n_repeats_num, verbose=verbose, console_out=console_out, train_afterwards=train_afterwards)
+        self.gridsearch(
+            x_train=x_train,
+            y_train=y_train,
+            grid=grid,
+            scoring=scoring,
+            avg=avg,
+            pos_label=pos_label,
+            rand_search=rand_search,
+            n_iter_num=n_iter_num,
+            n_split_num=n_split_num,
+            n_repeats_num=n_repeats_num,
+            verbose=verbose,
+            console_out=console_out,
+            train_afterwards=train_afterwards,
+        )

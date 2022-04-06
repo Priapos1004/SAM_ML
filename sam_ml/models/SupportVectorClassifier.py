@@ -10,21 +10,21 @@ class SVC(Classifier):
     def __init__(
         self,
         model_name: str = "SupportVectorClassifier",
-        C: float=1.0,
-        kernel: str="linear",
-        degree: int=3,
-        gamma: Union[str, float]="scale",
-        coef0: float=0.0,
-        shrinking: bool=True,
-        probability: bool=False,
-        tol: float=0.001,
-        cache_size: float=200,
-        class_weight: Union[dict, str]=None,
-        verbose: bool=False,
-        max_iter: int=-1,
-        decision_function_shape: str="ovr",
-        break_ties: float=False,
-        random_state: int=None,
+        C: float = 1.0,
+        kernel: str = "linear",
+        degree: int = 3,
+        gamma: Union[str, float] = "scale",
+        coef0: float = 0.0,
+        shrinking: bool = True,
+        probability: bool = False,
+        tol: float = 0.001,
+        cache_size: float = 200,
+        class_weight: Union[dict, str] = None,
+        verbose: bool = False,
+        max_iter: int = -1,
+        decision_function_shape: str = "ovr",
+        break_ties: float = False,
+        random_state: int = None,
     ):
         """
         @param (important one):
@@ -63,7 +63,10 @@ class SVC(Classifier):
         if self.model.kernel == "linear":
             super(SVC, self).feature_importance()
         else:
-            print("feature importance is only available for a linear kernel. You are currently using: ", self.model.kernel)
+            print(
+                "feature importance is only available for a linear kernel. You are currently using: ",
+                self.model.kernel,
+            )
 
     def hyperparameter_tuning(
         self,
@@ -73,8 +76,8 @@ class SVC(Classifier):
         gamma: list[Union[float, str]] = [1, 0.1, 0.01, 0.001, 0.0001, "scale", "auto"],
         c_values: list[int] = [0.1, 1, 10, 100, 1000],
         scoring: str = "accuracy",
-        avg: str = "macro", 
-        pos_label: Union[int,str] = 1,
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
         rand_search: bool = True,
         n_iter_num: int = 75,
         n_split_num: int = 10,
@@ -112,4 +115,18 @@ class SVC(Classifier):
         # define grid search
         grid = dict(kernel=kernel, gamma=gamma, C=c_values)
 
-        self.gridsearch(x_train=x_train, y_train=y_train, grid=grid, scoring=scoring, avg=avg, pos_label=pos_label, rand_search=rand_search, n_iter_num=n_iter_num, n_split_num=n_split_num, n_repeats_num=n_repeats_num, verbose=verbose, console_out=console_out, train_afterwards=train_afterwards)
+        self.gridsearch(
+            x_train=x_train,
+            y_train=y_train,
+            grid=grid,
+            scoring=scoring,
+            avg=avg,
+            pos_label=pos_label,
+            rand_search=rand_search,
+            n_iter_num=n_iter_num,
+            n_split_num=n_split_num,
+            n_repeats_num=n_repeats_num,
+            verbose=verbose,
+            console_out=console_out,
+            train_afterwards=train_afterwards,
+        )

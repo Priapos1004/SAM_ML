@@ -1,12 +1,13 @@
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd
-from typing import Union
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
-                             precision_score, recall_score, make_scorer)
-from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold, RandomizedSearchCV
+                             make_scorer, precision_score, recall_score)
+from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
+                                     RepeatedStratifiedKFold)
 
 from .main_model import Model
 
@@ -18,15 +19,20 @@ class Classifier(Model):
         self.model = model_object
 
     def evaluate(
-        self, x_test: pd.DataFrame, y_test: pd.Series, avg: str = None, pos_label: Union[int,str]=1, console_out: bool = True
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        avg: str = None,
+        pos_label: Union[int, str] = 1,
+        console_out: bool = True,
     ) -> dict:
-        '''
+        """
         @param:
             x_test, y_test - Data to evaluate model
             avg - average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
             console_out - shall the result be printed into the console
-        '''
+        """
         logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
 
@@ -53,18 +59,21 @@ class Classifier(Model):
         return score
 
     def feature_importance(self) -> plt.show:
+        '''
+        feature_importance() generates a matplotlib plot of the feature importance from self.model
+        '''
         if self.model_type == "MLPC":
-            importances = [np.mean(i) for i in self.model.coefs_[0]] # MLP Classifier
+            importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
         elif self.model_type == "DTC":
-            importances = self.model.feature_importances_ # DecisionTree
+            importances = self.model.feature_importances_  # DecisionTree
         else:
-            importances = self.model.coef_[0] # "normal"
+            importances = self.model.coef_[0]  # "normal"
 
         feature_importances = pd.Series(importances, index=self.feature_names)
 
         fig, ax = plt.subplots()
         feature_importances.plot.bar(ax=ax)
-        ax.set_title("Feature importances of "+self.model_name)
+        ax.set_title("Feature importances of " + self.model_name)
         ax.set_ylabel("use of coefficients as importance scores")
         fig.tight_layout()
         plt.show()
@@ -75,8 +84,8 @@ class Classifier(Model):
         y_train: pd.Series,
         grid: dict,
         scoring: str = "accuracy",
-        avg: str = "macro", 
-        pos_label: Union[int,str] = 1,
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int = 0,
@@ -85,18 +94,42 @@ class Classifier(Model):
         console_out: bool = False,
         train_afterwards: bool = True,
     ):
+        """
+        @param:
+            x_train - DataFrame with train features
+            y_train - Series with labels
+
+            grid - dictonary of parameters to tune
+
+            scoring - metrics to evaluate the models
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
+            rand_search - True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num - Combinations to try out if rand_search=True
+
+            n_split_num - number of different splits
+            n_repeats_num - number of repetition of one split
+
+            verbose - log level (higher number --> more logs)
+            console_out - output the the results of the different iterations
+            train_afterwards - train the best model after finding it
+
+        @return:
+            set self.model = best model from search
+        """
         if console_out:
             print("grid: ", grid)
 
-        if scoring=="precision":
-            scoring=make_scorer(precision_score, average=avg, pos_label=pos_label)
-        elif scoring=="recall":
-            scoring=make_scorer(recall_score, average=avg, pos_label=pos_label)
+        if scoring == "precision":
+            scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
+        elif scoring == "recall":
+            scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
 
         cv = RepeatedStratifiedKFold(
             n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
         )
-        
+
         if rand_search:
             grid_search = RandomizedSearchCV(
                 estimator=self.model,
@@ -106,7 +139,7 @@ class Classifier(Model):
                 verbose=verbose,
                 random_state=42,
                 n_jobs=-1,
-                scoring=scoring
+                scoring=scoring,
             )
         else:
             grid_search = GridSearchCV(
