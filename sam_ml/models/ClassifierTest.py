@@ -48,7 +48,16 @@ class CTest:
             self.scores[key] = score
 
         logging.debug("... models evaluated")
+
         return self.scores
+
+    def output_scores_as_pd(self, console_out: bool = True) -> pd.DataFrame:
+        scores = pd.DataFrame(self.scores).transpose()
+
+        if console_out:
+            print(scores)
+
+        return scores
 
     def find_best_model(
         self,
@@ -80,7 +89,8 @@ class CTest:
             self.eval_models(
                 x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
             )
-            print(self.scores)
+            self.output_scores_as_pd()
+            print()
         else:
             print(
                 "-> using already created scores for the models. Please run 'eval_models()' again if something changed with the data"
@@ -96,7 +106,11 @@ class CTest:
             f"best model type ({scoring}): ", best_model_type, " - ", best_model_value
         )
 
-        print("starting to hyperparametertune best model type (rand_search = ", rand_search,")...")
+        print(
+            "starting to hyperparametertune best model type (rand_search = ",
+            rand_search,
+            ")...",
+        )
         self.models[best_model_type].hyperparameter_tuning(
             x_train,
             y_train,
