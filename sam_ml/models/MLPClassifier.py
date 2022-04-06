@@ -88,6 +88,8 @@ class MLPC(Classifier):
         alpha: list[float] = [0.0001, 0.05],
         learning_rate: list[str] = ['constant','adaptive'],
         scoring: str = "accuracy",
+        avg: str = "macro", 
+        pos_label: Union[int,str] = 1,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int = 0,
@@ -106,6 +108,8 @@ class MLPC(Classifier):
             learning_rate - learning rate schedule for weight updates
 
             scoring - metrics to evaluate the models
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split

@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Union
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
-                             precision_score, recall_score)
+                             precision_score, recall_score, make_scorer)
 from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold
 
 from .main_model import Model
@@ -75,6 +75,8 @@ class Classifier(Model):
         y_train: pd.Series,
         grid: dict,
         scoring: str = "accuracy",
+        avg: str = "macro", 
+        pos_label: Union[int,str] = 1,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int = 0,
@@ -83,6 +85,11 @@ class Classifier(Model):
     ):
         if console_out:
             print("grid: ", grid)
+
+        if scoring=="precision":
+            scoring=make_scorer(precision_score, average=avg, pos_label=pos_label)
+        elif scoring=="recall":
+            scoring=make_scorer(recall_score, average=avg, pos_label=pos_label)
 
         cv = RepeatedStratifiedKFold(
             n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42

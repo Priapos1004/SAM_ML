@@ -60,6 +60,8 @@ class DTC(Classifier):
         n_repeats_num: int = 3,
         verbose: int = 1,
         scoring: str = "accuracy",
+        avg: str = "macro", 
+        pos_label: Union[int,str] = 1,
         console_out: bool = False,
         train_afterwards: bool = False,
     ):
@@ -78,6 +80,8 @@ class DTC(Classifier):
 
             verbose - log level (higher number --> more logs)
             scoring - metrics to evaluate the models
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
             console_out - output the the results of the different iterations
             train_afterwards - train the best model after finding it
 

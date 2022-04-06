@@ -67,6 +67,8 @@ class LR(Classifier):
         penalty: list[str]=["l2"],
         c_values: list[int]=[100, 10, 1.0, 0.1, 0.01],
         scoring: str = "accuracy",
+        avg: str = "macro", 
+        pos_label: Union[int,str] = 1,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int=0,
@@ -81,7 +83,10 @@ class LR(Classifier):
             solver - Algorithm to use in the optimization problem
             penalty - Specify the norm of the penalty
             c_values - Inverse of regularization strength
+            
             scoring - metrics to evaluate the models
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split

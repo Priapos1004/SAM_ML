@@ -2,7 +2,6 @@ from tqdm.notebook import tqdm
 import pandas as pd
 import logging
 from typing import Union
-from sklearn.metrics import make_scorer, precision_score, recall_score
 
 from .DecisionTreeClassifier import DTC
 from .LogisticRegression import LR
@@ -65,13 +64,8 @@ class CTest:
 
         print(f"best model type ({scoring}): ", best_model_type, " - ", best_model_value)
 
-        if scoring=="precision":
-            scoring=make_scorer(precision_score, average=avg, pos_label=pos_label)
-        elif scoring=="recall":
-            scoring=make_scorer(recall_score, average=avg, pos_label=pos_label)
-
         print("starting to hyperparametertune best model type...")
-        self.models[best_model_type].hyperparameter_tuning(x_train, y_train, scoring=scoring, train_afterwards=True)
+        self.models[best_model_type].hyperparameter_tuning(x_train, y_train, scoring=scoring, train_afterwards=True, avg=avg, pos_label=pos_label)
         print("... hyperparameter tuning finished")
         print()
 

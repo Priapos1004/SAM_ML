@@ -6,6 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import make_scorer, precision_score, recall_score
 
 from .main_classifier import Classifier
 
@@ -99,6 +100,8 @@ class RFC(Classifier):
         n_iter_num: int = 75,
         cv_num: int = 3,
         scoring:str = "accuracy",
+        avg: str = "macro", 
+        pos_label: Union[int,str] = 1,
         console_out: bool = False,
         train_afterwards: bool = False
         ):
@@ -119,6 +122,8 @@ class RFC(Classifier):
             search across "n_iter_num" different combinations, and use all available cores
 
             scoring - metrics to evaluate the models
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
             console_out - output the the results of the different iterations
             train_afterwards - train the best model after finding it
 
@@ -138,6 +143,11 @@ class RFC(Classifier):
 
         if console_out:
             print("grid: ", random_grid)
+
+        if scoring=="precision":
+            scoring=make_scorer(precision_score, average=avg, pos_label=pos_label)
+        elif scoring=="recall":
+            scoring=make_scorer(recall_score, average=avg, pos_label=pos_label)
 
         # random search
         rf_random = RandomizedSearchCV(
