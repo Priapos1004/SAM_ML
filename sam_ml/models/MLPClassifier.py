@@ -10,29 +10,29 @@ class MLPC(Classifier):
     def __init__(
         self,
         model_name: str = "MLP Classifier",
-        hidden_layer_sizes: tuple=(100,),
-        activation: str="relu",
-        solver: str="adam",
-        alpha: float=0.0001,
-        batch_size: Union[str, int]="auto",
-        learning_rate: str="constant",
-        learning_rate_init: float=0.001,
-        power_t: float=0.5,
-        max_iter: int=200,
-        shuffle: bool=True,
-        random_state: int=None,
-        tol: float=0.0001,
-        verbose: bool=False,
-        warm_start: bool=False,
-        momentum: float=0.9,
-        nesterovs_momentum: bool=True,
-        early_stopping: bool=False,
-        validation_fraction: float=0.1,
-        beta_1: float=0.9,
-        beta_2: float=0.999,
-        epsilon: float=1e-08,
-        n_iter_no_change: int=10,
-        max_fun: int=15000,
+        hidden_layer_sizes: tuple = (100,),
+        activation: str = "relu",
+        solver: str = "adam",
+        alpha: float = 0.0001,
+        batch_size: Union[str, int] = "auto",
+        learning_rate: str = "constant",
+        learning_rate_init: float = 0.001,
+        power_t: float = 0.5,
+        max_iter: int = 200,
+        shuffle: bool = True,
+        random_state: int = None,
+        tol: float = 0.0001,
+        verbose: bool = False,
+        warm_start: bool = False,
+        momentum: float = 0.9,
+        nesterovs_momentum: bool = True,
+        early_stopping: bool = False,
+        validation_fraction: float = 0.1,
+        beta_1: float = 0.9,
+        beta_2: float = 0.999,
+        epsilon: float = 1e-08,
+        n_iter_no_change: int = 10,
+        max_fun: int = 15000,
     ):
         """
         @param (important one):
@@ -82,15 +82,19 @@ class MLPC(Classifier):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        hidden_layer_sizes: list[tuple] = [(10,30,10),(20,)],
-        activation: list[str] = ['tanh', 'relu'],
-        solver: list[str] = ['sgd', 'adam'],
+        hidden_layer_sizes: list[tuple] = [(10, 30, 10), (20,), (100,)],
+        activation: list[str] = ["tanh", "relu"],
+        solver: list[str] = ["sgd", "adam"],
         alpha: list[float] = [0.0001, 0.05],
-        learning_rate: list[str] = ['constant','adaptive'],
+        learning_rate: list[str] = ["constant", "adaptive"],
         scoring: str = "accuracy",
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
+        rand_search: bool = True,
+        n_iter_num: int = 75,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
-        verbose: int = 1,
+        verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = False,
     ):
@@ -106,6 +110,11 @@ class MLPC(Classifier):
             learning_rate - learning rate schedule for weight updates
 
             scoring - metrics to evaluate the models
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
+            rand_search - True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num - Combinations to try out if rand_search=True
 
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split
@@ -118,6 +127,26 @@ class MLPC(Classifier):
             set self.model = best model from search
         """
         # define grid search
-        grid = dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation, solver=solver, alpha=alpha, learning_rate=learning_rate)
+        grid = dict(
+            hidden_layer_sizes=hidden_layer_sizes,
+            activation=activation,
+            solver=solver,
+            alpha=alpha,
+            learning_rate=learning_rate,
+        )
 
-        self.gridsearch(x_train, y_train, grid, scoring, n_split_num, n_repeats_num, verbose, console_out, train_afterwards)
+        self.gridsearch(
+            x_train=x_train,
+            y_train=y_train,
+            grid=grid,
+            scoring=scoring,
+            avg=avg,
+            pos_label=pos_label,
+            rand_search=rand_search,
+            n_iter_num=n_iter_num,
+            n_split_num=n_split_num,
+            n_repeats_num=n_repeats_num,
+            verbose=verbose,
+            console_out=console_out,
+            train_afterwards=train_afterwards,
+        )
