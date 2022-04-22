@@ -18,3 +18,7 @@ jobs:
         run: |
           pip install pytest
           pytest .
+      - name: Run isort
+        run: |
+          pip install isort
+          isort --check-only --diff .
