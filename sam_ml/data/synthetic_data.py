@@ -1,6 +1,8 @@
 import random
+
 import pandas as pd
 from sklearn.datasets import make_classification
+
 
 def rescale(col: pd.Series, range_low: int, range_high: int) -> pd.Series:
     """

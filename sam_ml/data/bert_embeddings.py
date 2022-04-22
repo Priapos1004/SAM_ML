@@ -1,10 +1,11 @@
 '''
 WARNING: This script does not work on M1 (state 22.04.2022) because sentence transformers is not supported
 '''
-from sentence_transformers import SentenceTransformer
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sentence_transformers import SentenceTransformer
 from tqdm.notebook import tqdm
+
 
 def build_embeddings(data: pd.DataFrame) -> pd.DataFrame:
     '''
