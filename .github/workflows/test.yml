@@ -16,6 +16,4 @@ jobs:
           pip install -e .
       - name: Run linters
         run: |
-          pip install isort flake8 pytest
-          isort --check-only --diff .
-          flake8
+          pytest .
