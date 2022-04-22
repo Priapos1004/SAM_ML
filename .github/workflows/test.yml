@@ -1,0 +1,21 @@
+name: Test
+
+on: 
+  pull_request: {}
+  push:
+    branches: "*"
+    tags: "*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test environment
+        run: |
+          pip install -e .
+      - name: Run linters
+        run: |
+          pip install isort flake8 pytest
+          isort --check-only --diff .
+          flake8
