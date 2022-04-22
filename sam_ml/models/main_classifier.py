@@ -243,5 +243,5 @@ class Classifier(Model):
 
         if train_afterwards:
             logging.debug("starting to train best model...")
-            self.train(x_train, y_train, console_out=False)
+            self.train(x_train, y_train, console_out=console_out)
             logging.debug("... best model trained")

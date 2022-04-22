@@ -87,10 +87,9 @@ class RFC(Classifier):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        n_estimators: list[int] = [int(x) for x in range(200, 2000, 200)]
-        + [int(x) for x in range(20, 180, 20)],
+        n_estimators: list[int] = [1, 2, 4, 8, 16, 32, 64, 100, 200, 500, 1000],
         max_features: list[Union[str, int, float]] = ["auto", "sqrt"],
-        max_depth: list[int] = [int(x) for x in np.linspace(10, 80, num=11)] + [None],
+        max_depth: list[int] = [5,6,7,8,10,15],
         min_samples_split: list[int] = [2, 3, 5, 10],
         min_samples_leaf: list[int] = [1, 2, 4],
         bootstrap: list[bool] = [True, False],
@@ -104,7 +103,7 @@ class RFC(Classifier):
         n_repeats_num: int = 3,
         verbose: int = 0,
         console_out: bool = False,
-        train_afterwards: bool = False,
+        train_afterwards: bool = True,
     ):
         """
         @param:

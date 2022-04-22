@@ -1,5 +1,4 @@
-from setuptools import setup, find_packages
-
+from setuptools import find_packages, setup
 
 setup(
     name="sam_ml",
@@ -8,7 +7,7 @@ setup(
     packages=find_packages(),
     package_data={},
     scripts=[],
-    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy"],
+    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy"], # M1 problems with tensorflow, sentence-transformers, xgboost
     extras_require={
         "test": ["pytest", "pylint!=2.5.0"],
     },

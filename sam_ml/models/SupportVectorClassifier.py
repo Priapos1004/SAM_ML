@@ -84,7 +84,7 @@ class SVC(Classifier):
         n_repeats_num: int = 3,
         verbose: int = 1,
         console_out: bool = False,
-        train_afterwards: bool = False,
+        train_afterwards: bool = True,
     ):
         """
         @param:
