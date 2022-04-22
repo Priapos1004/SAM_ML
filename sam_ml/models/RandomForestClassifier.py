@@ -104,7 +104,7 @@ class RFC(Classifier):
         n_repeats_num: int = 3,
         verbose: int = 0,
         console_out: bool = False,
-        train_afterwards: bool = False,
+        train_afterwards: bool = True,
     ):
         """
         @param:

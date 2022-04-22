@@ -65,7 +65,7 @@ class DTC(Classifier):
         rand_search: bool = True,
         n_iter_num: int = 75,
         console_out: bool = False,
-        train_afterwards: bool = False,
+        train_afterwards: bool = True,
     ):
         """
         @param:
