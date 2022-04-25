@@ -44,10 +44,12 @@ class CTest:
         """
         logging.debug("starting to evaluate models...")
         for key in tqdm(self.models.keys()):
-            self.models[key].train(x_train, y_train, console_out=False)
+            tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
             score = self.models[key].evaluate(
                 x_test, y_test, avg=avg, pos_label=pos_label, console_out=False
             )
+            score["Train score"] = tscore
+            score["Train time"] = ttime
             self.scores[key] = score
 
         logging.debug("... models evaluated")
@@ -136,6 +138,7 @@ class CTest:
             print(
                 "-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data"
             )
+            print()
 
         sorted_scores = sorted(
             self.scores.items(), key=lambda x: x[1][scoring], reverse=True

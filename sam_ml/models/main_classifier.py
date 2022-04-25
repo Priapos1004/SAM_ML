@@ -52,14 +52,14 @@ class Classifier(Model):
             print("classification report: ")
             print(classification_report(y_test, pred))
 
-        score = {
+        self.test_score = {
             "accuracy": accuracy,
             "precision": precision,
             "recall": recall,
         }
 
         logging.debug("... evaluation finished")
-        return score
+        return self.test_score
 
     def cross_validation(
         self,
