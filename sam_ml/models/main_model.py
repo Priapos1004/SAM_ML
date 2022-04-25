@@ -1,5 +1,7 @@
 import logging
 import pickle
+import time
+from datetime import timedelta
 
 import pandas as pd
 
@@ -14,10 +16,12 @@ class Model:
         self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True
     ):
         logging.debug("training started...")
+        start_time = time.time()
         self.model.fit(x_train, y_train)
+        end_time = time.time()
         self.feature_names = x_train.columns
         if console_out:
-            print("Train score: ", self.model.score(x_train, y_train))
+            print("Train score: ", self.model.score(x_train, y_train), " - Train time: ", str(timedelta(seconds=int(end_time-start_time))))
         logging.debug("... training finished")
 
     def evaluate(
