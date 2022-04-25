@@ -2,12 +2,12 @@ from setuptools import find_packages, setup
 
 setup(
     name="sam_ml",
-    version="0.1.0",
+    version="0.1.1",
     description="a library for ML programing created by Samuel Brinkmann",
     packages=find_packages(),
     package_data={},
     scripts=[],
-    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy"], # M1 problems with tensorflow, sentence-transformers, xgboost
+    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy", "catboost"], # M1 problems with tensorflow, sentence-transformers, xgboost
     extras_require={
         "test": ["pytest", "pylint!=2.5.0"],
     },

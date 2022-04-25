@@ -1,3 +1,4 @@
+from .CatBoostClassifier import CBC
 from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
 from .GradientBoostingMachine import GBM
@@ -16,4 +17,5 @@ __all__ = {
     "SupportVectorClassifier": "SVC",
     "MLP Classifier": "MLPC",
     "GradientBoostingMachine": "GBM",
+    "CatBoostClassifier": "CBC",
 }

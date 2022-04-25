@@ -4,6 +4,7 @@ from typing import Union
 import pandas as pd
 from tqdm.notebook import tqdm
 
+from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
 from .GradientBoostingMachine import GBM
 from .LogisticRegression import LR
@@ -14,7 +15,7 @@ from .SupportVectorClassifier import SVC
 
 
 class CTest:
-    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(), GBM()]):
+    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(), GBM(), CBC()]):
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
