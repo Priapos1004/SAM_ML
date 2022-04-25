@@ -138,7 +138,7 @@ class Classifier(Model):
         """
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type == "DTC":
+        elif self.model_type in ["DTC","RFC","GBM"]:
             importances = self.model.feature_importances_  # DecisionTree
         else:
             importances = self.model.coef_[0]  # "normal"
@@ -146,7 +146,18 @@ class Classifier(Model):
         feature_importances = pd.Series(importances, index=self.feature_names)
 
         fig, ax = plt.subplots()
-        feature_importances.plot.bar(ax=ax)
+        if self.model_type in ["RFC", "GBM"]:
+            if self.model_type == "RFC":
+                std = np.std(
+                    [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
+                )
+            elif self.model_type == "GBM":
+                std = np.std(
+                    [tree[0].feature_importances_ for tree in self.model.estimators_], axis=0,
+                )
+            feature_importances.plot.bar(yerr=std, ax=ax)
+        else:
+            feature_importances.plot.bar(ax=ax)
         ax.set_title("Feature importances of " + self.model_name)
         ax.set_ylabel("use of coefficients as importance scores")
         fig.tight_layout()
@@ -194,6 +205,7 @@ class Classifier(Model):
         """
         if console_out:
             print("grid: ", grid)
+            print()
 
         if scoring == "precision":
             scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
@@ -230,9 +242,6 @@ class Classifier(Model):
         grid_result = grid_search.fit(x_train, y_train)
         logging.debug("... hyperparameter tuning finished")
 
-        self.model = grid_result.best_estimator_
-        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-
         if console_out:
             means = grid_result.cv_results_["mean_test_score"]
             stds = grid_result.cv_results_["std_test_score"]
@@ -240,6 +249,9 @@ class Classifier(Model):
             print()
             for mean, stdev, param in zip(means, stds, params):
                 print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
+
+        self.model = grid_result.best_estimator_
+        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
         if train_afterwards:
             logging.debug("starting to train best model...")

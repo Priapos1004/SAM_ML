@@ -7,13 +7,14 @@ from tqdm.notebook import tqdm
 from .DecisionTreeClassifier import DTC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
+from .GradientBoostingMachine import GBM
 from .MLPClassifier import MLPC
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
 
 class CTest:
-    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC()]):
+    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(), GBM()]):
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
