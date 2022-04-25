@@ -1,4 +1,5 @@
 import logging
+from pyexpat import model
 from typing import Union
 
 import pandas as pd
@@ -15,7 +16,7 @@ from .SupportVectorClassifier import SVC
 
 
 class CTest:
-    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(), GBM(), CBC()]):
+    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(model_name="SupportVectorMachine (linear-kernel)"), SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"), GBM(), CBC()]):
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
