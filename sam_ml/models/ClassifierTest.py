@@ -5,9 +5,9 @@ import pandas as pd
 from tqdm.notebook import tqdm
 
 from .DecisionTreeClassifier import DTC
+from .GradientBoostingMachine import GBM
 from .LogisticRegression import LR
 from .main_classifier import Classifier
-from .GradientBoostingMachine import GBM
 from .MLPClassifier import MLPC
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
