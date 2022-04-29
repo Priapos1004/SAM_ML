@@ -1,8 +1,6 @@
 from typing import Union
 
-import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 
 from .main_classifier import Classifier

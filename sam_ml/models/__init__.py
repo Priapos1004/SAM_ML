@@ -1,3 +1,4 @@
+from .AdaBoostClassifier import ABC
 from .CatBoostClassifier import CBC
 from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
@@ -18,4 +19,5 @@ __all__ = {
     "MLP Classifier": "MLPC",
     "GradientBoostingMachine": "GBM",
     "CatBoostClassifier": "CBC",
+    "AdaBoostClassifier": "ABC",
 }

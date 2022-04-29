@@ -138,7 +138,7 @@ class Classifier(Model):
         """
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ["DTC","RFC","GBM", "CBC"]:
+        elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC"]:
             importances = self.model.feature_importances_
         else:
             importances = self.model.coef_[0]  # "normal"
@@ -253,6 +253,7 @@ class Classifier(Model):
         self.model = grid_result.best_estimator_
         print()
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+        print()
 
         if train_afterwards:
             logging.debug("starting to train best model...")
