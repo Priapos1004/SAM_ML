@@ -1,5 +1,8 @@
+from .AdaBoostClassifier import ABC
+from .CatBoostClassifier import CBC
 from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
+from .GradientBoostingMachine import GBM
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -14,4 +17,7 @@ __all__ = {
     "DecisionTreeClassifier": "DCT",
     "SupportVectorClassifier": "SVC",
     "MLP Classifier": "MLPC",
+    "GradientBoostingMachine": "GBM",
+    "CatBoostClassifier": "CBC",
+    "AdaBoostClassifier": "ABC",
 }

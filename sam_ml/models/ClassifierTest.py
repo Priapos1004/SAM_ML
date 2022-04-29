@@ -2,9 +2,13 @@ import logging
 from typing import Union
 
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from tqdm.notebook import tqdm
 
+from .AdaBoostClassifier import ABC
+from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
+from .GradientBoostingMachine import GBM
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -13,7 +17,7 @@ from .SupportVectorClassifier import SVC
 
 
 class CTest:
-    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC()]):
+    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(model_name="SupportVectorMachine (linear-kernel)"), SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"), GBM(), CBC(), ABC(model_name="AdaBoostClassifier (DTC based)"), ABC(base_estimator=RandomForestClassifier(max_depth=5), model_name="AdaBoostClassifier (RFC based)")]):
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
@@ -41,10 +45,12 @@ class CTest:
         """
         logging.debug("starting to evaluate models...")
         for key in tqdm(self.models.keys()):
-            self.models[key].train(x_train, y_train, console_out=False)
+            tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
             score = self.models[key].evaluate(
                 x_test, y_test, avg=avg, pos_label=pos_label, console_out=False
             )
+            score["Train score"] = tscore
+            score["Train time"] = ttime
             self.scores[key] = score
 
         logging.debug("... models evaluated")
@@ -104,6 +110,7 @@ class CTest:
         n_iter_num: int = 75,
         n_split_num: int = 10,
         n_repeats_num: int = 3,
+        console_out: bool = False,
     ) -> Classifier:
         """
         @param:
@@ -116,6 +123,8 @@ class CTest:
 
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split
+
+            console_out - outputs intermidiate results into the console
 
         @return:
             prints parameters and metrics of best model
@@ -133,6 +142,7 @@ class CTest:
             print(
                 "-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data"
             )
+            print()
 
         sorted_scores = sorted(
             self.scores.items(), key=lambda x: x[1][scoring], reverse=True
@@ -160,7 +170,8 @@ class CTest:
             rand_search=rand_search,
             n_iter_num=n_iter_num,
             n_repeats_num=n_repeats_num,
-            n_split_num=n_split_num
+            n_split_num=n_split_num,
+            console_out=console_out
         )
         print()
         print("... hyperparameter tuning finished")

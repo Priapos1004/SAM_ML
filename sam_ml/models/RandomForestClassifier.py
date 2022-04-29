@@ -1,8 +1,6 @@
 from typing import Union
 
-import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 
 from .main_classifier import Classifier
@@ -67,21 +65,6 @@ class RFC(Classifier):
             ccp_alpha=ccp_alpha,
             max_samples=max_samples,
         )
-
-    def feature_importance(self):
-        importances = self.model.feature_importances_
-
-        std = np.std(
-            [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
-        )
-        forest_importances = pd.Series(importances, index=self.feature_names)
-
-        fig, ax = plt.subplots()
-        forest_importances.plot.bar(yerr=std, ax=ax)
-        ax.set_title("Feature importances using MDI of RandomForestClassifier")
-        ax.set_ylabel("Mean decrease in impurity")
-        fig.tight_layout()
-        plt.show()
 
     def hyperparameter_tuning(
         self,
