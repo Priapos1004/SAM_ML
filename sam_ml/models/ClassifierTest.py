@@ -6,8 +6,11 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm.notebook import tqdm
 
 from .AdaBoostClassifier import ABC
+from .BernoulliNB import BNB
 from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
+from .ExtraTreesClassifier import ETC
+from .GaussianNB import GNB
 from .GradientBoostingMachine import GBM
 from .KNeighborsClassifier import KNC
 from .LogisticRegression import LR
@@ -15,11 +18,31 @@ from .main_classifier import Classifier
 from .MLPClassifier import MLPC
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
-from .ExtraTreesClassifier import ETC
 
 
 class CTest:
-    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(model_name="SupportVectorMachine (linear-kernel)"), SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"), GBM(), CBC(), ABC(model_name="AdaBoostClassifier (DTC based)"), ABC(base_estimator=RandomForestClassifier(max_depth=5), model_name="AdaBoostClassifier (RFC based)"), KNC(), ETC()]):
+    def __init__(
+        self,
+        models: list[Classifier] = [
+            DTC(),
+            LR(),
+            MLPC(),
+            RFC(),
+            SVC(model_name="SupportVectorMachine (linear-kernel)"),
+            SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"),
+            GBM(),
+            CBC(),
+            ABC(model_name="AdaBoostClassifier (DTC based)"),
+            ABC(
+                base_estimator=RandomForestClassifier(max_depth=5),
+                model_name="AdaBoostClassifier (RFC based)",
+            ),
+            KNC(),
+            ETC(),
+            GNB(),
+            BNB(),
+        ],
+    ):
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
@@ -79,7 +102,9 @@ class CTest:
         """
         logging.debug("starting to evaluate models...")
         for key in tqdm(self.models.keys()):
-            self.models[key].cross_validation(X,y,cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False)
+            self.models[key].cross_validation(
+                X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False
+            )
             score = self.models[key].cv_scores["average"]
             self.scores[key] = {
                 "accuracy": score["test_accuracy"],
@@ -91,7 +116,9 @@ class CTest:
 
         return self.scores
 
-    def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
+    def output_scores_as_pd(
+        self, sort_by: Union[str, list[str]] = "index", console_out: bool = True
+    ) -> pd.DataFrame:
         """
         @param:
             sorted_by:
@@ -102,7 +129,11 @@ class CTest:
         if sort_by == "index":
             scores = pd.DataFrame(self.scores).transpose().sort_index(ascending=True)
         else:
-            scores = pd.DataFrame(self.scores).transpose().sort_values(by=sort_by, ascending=False)
+            scores = (
+                pd.DataFrame(self.scores)
+                .transpose()
+                .sort_values(by=sort_by, ascending=False)
+            )
 
         if console_out:
             print(scores)
@@ -144,7 +175,9 @@ class CTest:
             returns best model
         """
         if self.scores == {}:
-            print("no scores are already created -> creating scores using 'eval_models()'")
+            print(
+                "no scores are already created -> creating scores using 'eval_models()'"
+            )
             self.eval_models(
                 x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
             )
@@ -183,7 +216,7 @@ class CTest:
             n_iter_num=n_iter_num,
             n_repeats_num=n_repeats_num,
             n_split_num=n_split_num,
-            console_out=console_out
+            console_out=console_out,
         )
         print()
         print("... hyperparameter tuning finished")

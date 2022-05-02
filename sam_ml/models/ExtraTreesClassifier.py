@@ -19,7 +19,7 @@ class ETC(Classifier):
         max_features: Union[str, int, float] = "auto",
         max_leaf_nodes: int = None,
         min_impurity_decrease: float = 0.0,
-        bootstrap: bool = True,
+        bootstrap: bool = False,
         oob_score: bool = False,
         n_jobs: int = -1,
         random_state: int = 42,
