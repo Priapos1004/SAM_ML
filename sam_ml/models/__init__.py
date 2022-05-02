@@ -3,6 +3,7 @@ from .CatBoostClassifier import CBC
 from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
 from .GradientBoostingMachine import GBM
+from .KNeighborsClassifier import KNC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -20,4 +21,5 @@ __all__ = {
     "GradientBoostingMachine": "GBM",
     "CatBoostClassifier": "CBC",
     "AdaBoostClassifier": "ABC",
+    "KNeighborsClassifier": "KNC",
 }

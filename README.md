@@ -11,6 +11,10 @@ git clone https://github.com/Priapos1004/SAM_ML
 
 2. go into the `SAM_ML` folder
 
+```
+cd SAM_ML/
+```
+
 3. install the package to your activated virtual environment
 
 ```

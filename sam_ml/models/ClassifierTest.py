@@ -9,6 +9,7 @@ from .AdaBoostClassifier import ABC
 from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
 from .GradientBoostingMachine import GBM
+from .KNeighborsClassifier import KNC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -17,7 +18,7 @@ from .SupportVectorClassifier import SVC
 
 
 class CTest:
-    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(model_name="SupportVectorMachine (linear-kernel)"), SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"), GBM(), CBC(), ABC(model_name="AdaBoostClassifier (DTC based)"), ABC(base_estimator=RandomForestClassifier(max_depth=5), model_name="AdaBoostClassifier (RFC based)")]):
+    def __init__(self, models: list[Classifier] = [DTC(), LR(), MLPC(), RFC(), SVC(model_name="SupportVectorMachine (linear-kernel)"), SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"), GBM(), CBC(), ABC(model_name="AdaBoostClassifier (DTC based)"), ABC(base_estimator=RandomForestClassifier(max_depth=5), model_name="AdaBoostClassifier (RFC based)"), KNC()]):
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]

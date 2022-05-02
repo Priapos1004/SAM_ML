@@ -140,6 +140,8 @@ class Classifier(Model):
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
         elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC"]:
             importances = self.model.feature_importances_
+        elif self.model_type == "KNC":
+            return self.model_name+" does not have a feature importance"
         else:
             importances = self.model.coef_[0]  # "normal"
 
