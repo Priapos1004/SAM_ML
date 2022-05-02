@@ -1,17 +1,17 @@
 from typing import Union
 
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 
 from .main_classifier import Classifier
 
 
-class RFC(Classifier):
+class ETC(Classifier):
     def __init__(
         self,
-        model_name: str = "RandomForestClassifier",
+        model_name: str = "ExtraTreesClassifier",
         n_estimators: int = 100,
-        criterion: str = "gini",  # “gini” or “entropy”
+        criterion: str = "gini",
         max_depth: int = None,
         min_samples_split: Union[int, float] = 2,
         min_samples_leaf: Union[int, float] = 1,
@@ -21,17 +21,17 @@ class RFC(Classifier):
         min_impurity_decrease: float = 0.0,
         bootstrap: bool = True,
         oob_score: bool = False,
-        n_jobs: int = -1,  # how many cores shall be used
-        random_state: int = None,
+        n_jobs: int = -1,
+        random_state: int = 42,
         verbose: int = 0,
-        warm_start: bool = False,  # True --> work wih the previous fit and add more estimators
+        warm_start: bool = False, 
         class_weight: Union[dict, list[dict]] = None,
         ccp_alpha: float = 0.0,
         max_samples: Union[int, float] = None,
     ):
         """
         @param (important one):
-            n_estimators - Number of trees in random forest
+            n_estimators - Number of trees
             max_depth - Maximum number of levels in tree
             n_jobs - how many cores shall be used (-1 means all)
             random_state - random_state for model
@@ -44,8 +44,8 @@ class RFC(Classifier):
             bootstrap - Method of selecting samples for training each tree
         """
         self.model_name = model_name
-        self.model_type = "RFC"
-        self.model = RandomForestClassifier(
+        self.model_type = "ETC"
+        self.model = ExtraTreesClassifier(
             n_estimators=n_estimators,
             criterion=criterion,
             max_depth=max_depth,
@@ -74,7 +74,7 @@ class RFC(Classifier):
         max_features: list[Union[str, int, float]] = ["auto", "sqrt"],
         max_depth: list[int] = [2,3,4,5,6,7,8,10,15],
         min_samples_split: list[int] = [2, 3, 5, 10],
-        min_samples_leaf: list[int] = [1, 2, 4],
+        min_samples_leaf: list[int] = list(range(1, 15)),
         bootstrap: list[bool] = [True, False],
         criterion: list[str] = ["gini", "entropy"],
         rand_search: bool = True,
@@ -100,6 +100,7 @@ class RFC(Classifier):
             min_samples_leaf - Minimum number of samples required at each leaf node
             bootstrap - Method of selecting samples for training each tree
             criterion - function to measure the quality of a split
+            random_state - random_state for model
 
             rand_search - True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num - Combinations to try out if rand_search=True

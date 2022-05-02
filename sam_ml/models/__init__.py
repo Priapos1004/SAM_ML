@@ -10,6 +10,8 @@ from .MLPClassifier import MLPC
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
+from. ExtraTreesClassifier import ETC
+
 __all__ = {
     "main_classifier": "Classifier",
     "Classifier Testing": "CTest",
@@ -22,4 +24,5 @@ __all__ = {
     "CatBoostClassifier": "CBC",
     "AdaBoostClassifier": "ABC",
     "KNeighborsClassifier": "KNC",
+    "ExtraTreesClassifier": "ETC",
 }

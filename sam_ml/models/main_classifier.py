@@ -138,7 +138,7 @@ class Classifier(Model):
         """
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC"]:
+        elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC", "ETC"]:
             importances = self.model.feature_importances_
         elif self.model_type == "KNC":
             return self.model_name+" does not have a feature importance"
@@ -148,8 +148,8 @@ class Classifier(Model):
         feature_importances = pd.Series(importances, index=self.feature_names)
 
         fig, ax = plt.subplots()
-        if self.model_type in ["RFC", "GBM"]:
-            if self.model_type == "RFC":
+        if self.model_type in ["RFC", "GBM", "ETC"]:
+            if self.model_type in ["RFC", "ETC"]:
                 std = np.std(
                     [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
                 )
