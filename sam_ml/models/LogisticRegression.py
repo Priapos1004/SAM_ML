@@ -10,21 +10,8 @@ class LR(Classifier):
     def __init__(
         self,
         model_name: str = "LogisticRegression",
-        penalty: str = "l2",
-        dual: bool = False,
-        tol: float = 0.0001,
-        C: float = 1.0,
-        fit_intercept: bool = True,
-        intercept_scaling: float = 1,
-        class_weight: Union[str, dict] = None,
-        random_state: int = None,
-        solver: str = "lbfgs",
-        max_iter: int = 1000,
-        multi_class: str = "auto",
-        verbose: int = 0,
-        warm_start: bool = False,
-        n_jobs: int = None,
-        l1_ratio: float = None,
+        random_state: int = 42,
+        **kwargs,
     ):
         """
         @param (important one):
@@ -42,21 +29,8 @@ class LR(Classifier):
         self.model_name = model_name
         self.model_type = "LR"
         self.model = LogisticRegression(
-            penalty=penalty,
-            dual=dual,
-            tol=tol,
-            C=C,
-            fit_intercept=fit_intercept,
-            intercept_scaling=intercept_scaling,
-            class_weight=class_weight,
             random_state=random_state,
-            solver=solver,
-            max_iter=max_iter,
-            multi_class=multi_class,
-            verbose=verbose,
-            warm_start=warm_start,
-            n_jobs=n_jobs,
-            l1_ratio=l1_ratio,
+            **kwargs,
         )
 
     def hyperparameter_tuning(
@@ -65,7 +39,7 @@ class LR(Classifier):
         y_train: pd.Series,
         solvers: list[str] = ["newton-cg", "lbfgs", "liblinear", "sag"],
         penalty: list[str] = ["l2"],
-        c_values: list[int] = [100, 10, 1.0, 0.1, 0.01],
+        C: list[int] = [100, 10, 1.0, 0.1, 0.01],
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
@@ -76,6 +50,7 @@ class LR(Classifier):
         verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -104,7 +79,7 @@ class LR(Classifier):
             set self.model = best model from search
         """
         # define grid search
-        grid = dict(solver=solvers, penalty=penalty, C=c_values)
+        grid = dict(solver=solvers, penalty=penalty, C=C, **kwargs,)
 
         self.gridsearch(
             x_train=x_train,

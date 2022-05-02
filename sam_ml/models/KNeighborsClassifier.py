@@ -1,41 +1,38 @@
 from typing import Union
 
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 from .main_classifier import Classifier
 
 
-class DTC(Classifier):
+class KNC(Classifier):
     def __init__(
         self,
-        model_name: str = "DecisionTreeClassifier",
-        random_state: int = 42,
+        model_name: str = "KNeighborsClassifier",
         **kwargs,
     ):
         """
         @param (important one):
-            criterion - function to measure the quality of a split
-            max_depth - Maximum number of levels in tree
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            random_state - random_state for model
+            n_neighbors - Number of neighbors to use by default for kneighbors queries
+            weights - Weight function used in prediction
+            algorithm - Algorithm used to compute the nearest neighbors
+            leaf_size - Leaf size passed to BallTree or KDTree
+            p - number of metric that is used (manhattan, euclidean, minkowski)
+            n_jobs - the number of parallel jobs to run for neighbors search [problem with n_jobs = -1 --> kernel dies]
         """
         self.model_name = model_name
-        self.model_type = "DTC"
-        self.model = DecisionTreeClassifier(
-            random_state=random_state,
-            **kwargs,
-        )
+        self.model_type = "KNC"
+        self.model = KNeighborsClassifier(**kwargs,)
 
     def hyperparameter_tuning(
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        criterion: list[str] = ["gini", "entropy"],
-        max_depth: list[int] = range(1, 10),
-        min_samples_split: list[int] = range(2, 10),
-        min_samples_leaf: list[int] = range(1, 5),
+        n_neighbors: list[int] = list(range(1,30)),
+        p: list[int] = [1,2,3,4,5],
+        leaf_size: list[int] = list(range(1,50)),
+        weights: list[str] = ["uniform", "distance"],
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         verbose: int = 1,
@@ -53,10 +50,9 @@ class DTC(Classifier):
             x_train - DataFrame with train features
             y_train - Series with labels
 
-            criterion - function to measure the quality of a split
-            max_depth - Maximum number of levels in tree
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
+            n_neighbors - Number of neighbors to use by default for kneighbors queries
+            p - number of metric that is used (manhattan, euclidean, minkowski)
+            leaf_size - Leaf size passed to BallTree or KDTree
 
             n_split_num - number of different splits
             n_repeats_num - number of repetition of one split
@@ -76,10 +72,10 @@ class DTC(Classifier):
         """
         # Create the random grid
         grid = dict(
-            criterion=criterion,
-            max_depth=max_depth,
-            min_samples_leaf=min_samples_leaf,
-            min_samples_split=min_samples_split,
+            n_neighbors=n_neighbors,
+            p=p,
+            leaf_size=leaf_size,
+            weights=weights,
             **kwargs,
         )
 

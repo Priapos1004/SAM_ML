@@ -15,11 +15,8 @@ class ABC(Classifier):
     def __init__(
         self,
         model_name: str = "AdaBoostClassifier",
-        base_estimator=None,
-        n_estimators: int=50,
-        learning_rate: float=1.0,
-        algorithm: str="SAMME.R",
-        random_state: int=42,
+        random_state: int = 42,
+        **kwargs,
     ):
         """
         @param (important one):
@@ -32,11 +29,8 @@ class ABC(Classifier):
         self.model_name = model_name
         self.model_type = "ABC"
         self.model = AdaBoostClassifier(
-            base_estimator=base_estimator,
-            n_estimators=n_estimators,
-            learning_rate=learning_rate,
-            algorithm=algorithm,
             random_state=random_state,
+            **kwargs,
         )
 
     def hyperparameter_tuning(
@@ -57,6 +51,7 @@ class ABC(Classifier):
         n_iter_num: int = 100,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -90,6 +85,7 @@ class ABC(Classifier):
             n_estimators=n_estimators,
             learning_rate=learning_rate,
             algorithm=algorithm,
+            **kwargs,
         )
 
         self.gridsearch(
