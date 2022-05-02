@@ -8,6 +8,7 @@ from .GaussianNB import GNB
 from .GaussianProcessClassifier import GPC
 from .GradientBoostingMachine import GBM
 from .KNeighborsClassifier import KNC
+from .LinearDiscriminantAnalysis import LDA
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -32,4 +33,5 @@ __all__ = {
     "BernoulliNaiveBayes": "BNB",
     "GaussianProcessClassifier": "GPC",
     "QuadraticDiscriminantAnalysis": "QDA",
+    "LinearDiscriminantAnalysis": "LDA",
 }
