@@ -10,8 +10,7 @@ class GNB(Classifier):
     def __init__(
         self,
         model_name: str = "GaussianNB",
-        priors: list = None,
-        var_smoothing: float = 1e-09,
+        **kwargs,
     ):
         """
         @params:
@@ -20,7 +19,7 @@ class GNB(Classifier):
         """
         self.model_name = model_name
         self.model_type = "GNB"
-        self.model = GaussianNB(priors=priors, var_smoothing=var_smoothing)
+        self.model = GaussianNB(**kwargs,)
 
     def hyperparameter_tuning(
         self,
@@ -49,6 +48,7 @@ class GNB(Classifier):
         verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -75,7 +75,7 @@ class GNB(Classifier):
             set self.model = best model from search
         """
         # define grid search
-        grid = dict(var_smoothing=var_smoothing)
+        grid = dict(var_smoothing=var_smoothing, **kwargs,)
 
         self.gridsearch(
             x_train=x_train,

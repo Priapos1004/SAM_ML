@@ -10,14 +10,7 @@ class KNC(Classifier):
     def __init__(
         self,
         model_name: str = "KNeighborsClassifier",
-        n_neighbors: int = 5,
-        weights: str = "uniform",
-        algorithm: str = "auto",
-        leaf_size: int = 30,
-        p: int = 2,
-        metric: str = "minkowski",
-        metric_params: dict = None,
-        n_jobs: int = None,
+        **kwargs,
     ):
         """
         @param (important one):
@@ -30,16 +23,7 @@ class KNC(Classifier):
         """
         self.model_name = model_name
         self.model_type = "KNC"
-        self.model = KNeighborsClassifier(
-            n_neighbors=n_neighbors,
-            weights=weights,
-            algorithm=algorithm,
-            leaf_size=leaf_size,
-            p=p,
-            metric=metric,
-            metric_params=metric_params,
-            n_jobs=n_jobs,
-        )
+        self.model = KNeighborsClassifier(**kwargs,)
 
     def hyperparameter_tuning(
         self,
@@ -59,6 +43,7 @@ class KNC(Classifier):
         n_iter_num: int = 75,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -91,6 +76,7 @@ class KNC(Classifier):
             p=p,
             leaf_size=leaf_size,
             weights=weights,
+            **kwargs,
         )
 
         self.gridsearch(

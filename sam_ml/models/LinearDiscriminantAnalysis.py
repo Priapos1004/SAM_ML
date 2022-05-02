@@ -67,7 +67,7 @@ class LDA(Classifier):
         """
         # Create the random grid
         grid = dict(
-            solver=solver, shrinkage=shrinkage, **kwargs
+            solver=solver, shrinkage=shrinkage, **kwargs,
         )
 
         self.gridsearch(

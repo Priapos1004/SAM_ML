@@ -10,24 +10,9 @@ class RFC(Classifier):
     def __init__(
         self,
         model_name: str = "RandomForestClassifier",
-        n_estimators: int = 100,
-        criterion: str = "gini", 
-        max_depth: int = None,
-        min_samples_split: Union[int, float] = 2,
-        min_samples_leaf: Union[int, float] = 1,
-        min_weight_fraction_leaf: float = 0.0,
-        max_features: Union[str, int, float] = "auto",
-        max_leaf_nodes: int = None,
-        min_impurity_decrease: float = 0.0,
-        bootstrap: bool = True,
-        oob_score: bool = False,
         n_jobs: int = -1, 
-        random_state: int = None,
-        verbose: int = 0,
-        warm_start: bool = False,
-        class_weight: Union[dict, list[dict]] = None,
-        ccp_alpha: float = 0.0,
-        max_samples: Union[int, float] = None,
+        random_state: int = 42,
+        **kwargs,
     ):
         """
         @param (important one):
@@ -46,24 +31,9 @@ class RFC(Classifier):
         self.model_name = model_name
         self.model_type = "RFC"
         self.model = RandomForestClassifier(
-            n_estimators=n_estimators,
-            criterion=criterion,
-            max_depth=max_depth,
-            min_samples_split=min_samples_split,
-            min_samples_leaf=min_samples_leaf,
-            min_weight_fraction_leaf=min_weight_fraction_leaf,
-            max_features=max_features,
-            max_leaf_nodes=max_leaf_nodes,
-            min_impurity_decrease=min_impurity_decrease,
-            bootstrap=bootstrap,
-            oob_score=oob_score,
             n_jobs=n_jobs,
             random_state=random_state,
-            verbose=verbose,
-            warm_start=warm_start,
-            class_weight=class_weight,
-            ccp_alpha=ccp_alpha,
-            max_samples=max_samples,
+            **kwargs,
         )
 
     def hyperparameter_tuning(
@@ -87,6 +57,7 @@ class RFC(Classifier):
         verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -119,15 +90,16 @@ class RFC(Classifier):
             set self.model = best model from search
         """
         # Create the random grid
-        grid = {
-            "n_estimators": n_estimators,
-            "max_features": max_features,
-            "max_depth": max_depth,
-            "min_samples_split": min_samples_split,
-            "min_samples_leaf": min_samples_leaf,
-            "bootstrap": bootstrap,
-            "criterion": criterion,
-        }
+        grid = dict(
+            n_estimators=n_estimators,
+            max_features=max_features,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            bootstrap=bootstrap,
+            criterion=criterion,
+            **kwargs,
+        )
 
         self.gridsearch(
             x_train=x_train,

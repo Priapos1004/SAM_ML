@@ -10,10 +10,7 @@ class BNB(Classifier):
     def __init__(
         self,
         model_name: str = "BernoulliNB",
-        alpha: float = 1.0,
-        binarize: float = 0.0,
-        fit_prior: bool = True,
-        class_prior: list = None,
+        **kwargs,
     ):
         """
         @params (important one):
@@ -22,9 +19,7 @@ class BNB(Classifier):
         """
         self.model_name = model_name
         self.model_type = "BNB"
-        self.model = BernoulliNB(
-            alpha=alpha, binarize=binarize, fit_prior=fit_prior, class_prior=class_prior
-        )
+        self.model = BernoulliNB(**kwargs,)
 
     def hyperparameter_tuning(
         self,
@@ -42,6 +37,7 @@ class BNB(Classifier):
         verbose: int = 0,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -69,7 +65,7 @@ class BNB(Classifier):
             set self.model = best model from search
         """
         # define grid search
-        grid = dict(fit_prior=fit_prior, binarize=binarize)
+        grid = dict(fit_prior=fit_prior, binarize=binarize, **kwargs,)
 
         self.gridsearch(
             x_train=x_train,

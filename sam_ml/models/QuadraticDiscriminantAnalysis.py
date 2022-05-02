@@ -66,7 +66,7 @@ class QDA(Classifier):
         """
         # Create the random grid
         grid = dict(
-            reg_param=reg_param, **kwargs
+            reg_param=reg_param, **kwargs,
         )
 
         self.gridsearch(

@@ -10,18 +10,8 @@ class DTC(Classifier):
     def __init__(
         self,
         model_name: str = "DecisionTreeClassifier",
-        criterion: str = "gini",
-        splitter: str = "best",
-        max_depth: int = None,
-        min_samples_split: Union[int, float] = 2,
-        min_samples_leaf: Union[int, float] = 1,
-        min_weight_fraction_leaf: float = 0.0,
-        max_features: Union[str, int, float] = None,
-        random_state: int = None,
-        max_leaf_nodes: int = None,
-        min_impurity_decrease: float = 0.0,
-        class_weight: Union[dict, list[dict], str] = None,
-        ccp_alpha: float = 0.0,
+        random_state: int = 42,
+        **kwargs,
     ):
         """
         @param (important one):
@@ -34,18 +24,8 @@ class DTC(Classifier):
         self.model_name = model_name
         self.model_type = "DTC"
         self.model = DecisionTreeClassifier(
-            criterion=criterion,
-            splitter=splitter,
-            max_depth=max_depth,
-            min_samples_split=min_samples_split,
-            min_samples_leaf=min_samples_leaf,
-            min_weight_fraction_leaf=min_weight_fraction_leaf,
-            max_features=max_features,
             random_state=random_state,
-            max_leaf_nodes=max_leaf_nodes,
-            min_impurity_decrease=min_impurity_decrease,
-            class_weight=class_weight,
-            ccp_alpha=ccp_alpha,
+            **kwargs,
         )
 
     def hyperparameter_tuning(
@@ -66,6 +46,7 @@ class DTC(Classifier):
         n_iter_num: int = 75,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -99,6 +80,7 @@ class DTC(Classifier):
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
             min_samples_split=min_samples_split,
+            **kwargs,
         )
 
         self.gridsearch(

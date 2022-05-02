@@ -10,26 +10,8 @@ class GBM(Classifier):
     def __init__(
         self,
         model_name: str = "GradientBoostingMachine",
-        loss: str = "deviance",
-        learning_rate: float = 0.1,
-        n_estimators: int = 100,
-        subsample: float = 1.0,
-        criterion: str = "friedman_mse",
-        min_samples_split: Union[int, float] = 2,
-        min_samples_leaf: Union[int, float] = 1,
-        min_weight_fraction_leaf: float = 0.0,
-        max_depth: int = 3,
-        min_impurity_decrease: float = 0.0,
-        init: str = None,
         random_state: int = 42,
-        max_features: Union[str, int, float] = None,
-        verbose: int = 0,
-        max_leaf_nodes: int = None,
-        warm_start: bool = False,
-        validation_fraction: float = 0.1,
-        n_iter_no_change: int = None,
-        tol: float = 0.0001,
-        ccp_alpha: float = 0.0,
+        **kwargs,
     ):
         """
         @param (important one):
@@ -49,26 +31,8 @@ class GBM(Classifier):
         self.model_name = model_name
         self.model_type = "GBM"
         self.model = GradientBoostingClassifier(
-            loss=loss,
-            learning_rate=learning_rate,
-            n_estimators=n_estimators,
-            subsample=subsample,
-            criterion=criterion,
-            min_samples_split=min_samples_split,
-            min_samples_leaf=min_samples_leaf,
-            min_weight_fraction_leaf=min_weight_fraction_leaf,
-            max_depth=max_depth,
-            min_impurity_decrease=min_impurity_decrease,
-            init=init,
             random_state=random_state,
-            max_features=max_features,
-            verbose=verbose,
-            max_leaf_nodes=max_leaf_nodes,
-            warm_start=warm_start,
-            validation_fraction=validation_fraction,
-            n_iter_no_change=n_iter_no_change,
-            tol=tol,
-            ccp_alpha=ccp_alpha,
+            **kwargs,
         )
 
     def hyperparameter_tuning(
@@ -94,6 +58,7 @@ class GBM(Classifier):
         n_iter_num: int = 75,
         console_out: bool = False,
         train_afterwards: bool = True,
+        **kwargs,
     ):
         """
         @param:
@@ -137,6 +102,7 @@ class GBM(Classifier):
             subsample=subsample,
             loss=loss,
             learning_rate=learning_rate,
+            **kwargs,
         )
 
         self.gridsearch(
