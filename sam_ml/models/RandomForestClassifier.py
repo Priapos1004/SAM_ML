@@ -11,7 +11,7 @@ class RFC(Classifier):
         self,
         model_name: str = "RandomForestClassifier",
         n_estimators: int = 100,
-        criterion: str = "gini",  # “gini” or “entropy”
+        criterion: str = "gini", 
         max_depth: int = None,
         min_samples_split: Union[int, float] = 2,
         min_samples_leaf: Union[int, float] = 1,
@@ -21,10 +21,10 @@ class RFC(Classifier):
         min_impurity_decrease: float = 0.0,
         bootstrap: bool = True,
         oob_score: bool = False,
-        n_jobs: int = -1,  # how many cores shall be used
+        n_jobs: int = -1, 
         random_state: int = None,
         verbose: int = 0,
-        warm_start: bool = False,  # True --> work wih the previous fit and add more estimators
+        warm_start: bool = False,
         class_weight: Union[dict, list[dict]] = None,
         ccp_alpha: float = 0.0,
         max_samples: Union[int, float] = None,
@@ -71,7 +71,7 @@ class RFC(Classifier):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_estimators: list[int] = [1, 2, 4, 8, 16, 32, 64, 100, 200, 500, 1000],
-        max_features: list[Union[str, int, float]] = ["auto", "sqrt"],
+        max_features: list[Union[str, int, float]] = ["auto", "sqrt", 1],
         max_depth: list[int] = [2,3,4,5,6,7,8,10,15],
         min_samples_split: list[int] = [2, 3, 5, 10],
         min_samples_leaf: list[int] = [1, 2, 4],

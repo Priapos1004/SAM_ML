@@ -5,11 +5,13 @@ from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
 from .ExtraTreesClassifier import ETC
 from .GaussianNB import GNB
+from .GaussianProcessClassifier import GPC
 from .GradientBoostingMachine import GBM
 from .KNeighborsClassifier import KNC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
+from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
@@ -28,4 +30,6 @@ __all__ = {
     "ExtraTreesClassifier": "ETC",
     "GaussianNaiveBayes": "GNB",
     "BernoulliNaiveBayes": "BNB",
+    "GaussianProcessClassifier": "GPC",
+    "QuadraticDiscriminantAnalysis": "QDA",
 }
