@@ -1,4 +1,5 @@
 from .AdaBoostClassifier import ABC
+from .BaggingClassifier import BC
 from .BernoulliNB import BNB
 from .CatBoostClassifier import CBC
 from .ClassifierTest import CTest
@@ -34,4 +35,5 @@ __all__ = {
     "GaussianProcessClassifier": "GPC",
     "QuadraticDiscriminantAnalysis": "QDA",
     "LinearDiscriminantAnalysis": "LDA",
+    "BaggingClassifier": "BC",
 }

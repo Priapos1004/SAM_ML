@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm.notebook import tqdm
 
 from .AdaBoostClassifier import ABC
+from .BaggingClassifier import BC
 from .BernoulliNB import BNB
 from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
@@ -47,6 +48,11 @@ class CTest:
             GPC(),
             QDA(),
             LDA(),
+            BC(model_name="BaggingClassifier (DTC based)"),
+            BC(
+                base_estimator=RandomForestClassifier(max_depth=5),
+                model_name="BaggingClassifier (RFC based)",
+            ),
         ],
     ):
         self.models: dict = {}
