@@ -16,6 +16,7 @@ from .GaussianProcessClassifier import GPC
 from .GradientBoostingMachine import GBM
 from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
+from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -32,8 +33,8 @@ class CTest:
             LR(),
             MLPC(),
             RFC(),
-            SVC(model_name="SupportVectorMachine (linear-kernel)"),
-            SVC(kernel="rbf", model_name="SupportVectorMachine (rbf-kernel)"),
+            LSVC(),
+            SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
             GBM(),
             CBC(),
             ABC(model_name="AdaBoostClassifier (DTC based)"),

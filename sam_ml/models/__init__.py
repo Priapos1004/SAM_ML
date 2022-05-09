@@ -10,6 +10,7 @@ from .GaussianProcessClassifier import GPC
 from .GradientBoostingMachine import GBM
 from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
+from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .MLPClassifier import MLPC
@@ -36,4 +37,5 @@ __all__ = {
     "QuadraticDiscriminantAnalysis": "QDA",
     "LinearDiscriminantAnalysis": "LDA",
     "BaggingClassifier": "BC",
+    "LinearSupportVectorClassifier": "LSVC",
 }
