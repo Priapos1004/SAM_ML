@@ -10,6 +10,7 @@ from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
                                      RepeatedStratifiedKFold, cross_validate)
 
 from .main_model import Model
+from .scorer import l_scoring, s_scoring
 
 
 class Classifier(Model):
@@ -43,6 +44,8 @@ class Classifier(Model):
         accuracy = accuracy_score(y_test, pred)
         precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
         recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        s_score = s_scoring(y_test, pred)
+        l_score = l_scoring(y_test, pred)
 
         if console_out:
             print("accuracy: ", accuracy)
@@ -56,6 +59,8 @@ class Classifier(Model):
             "accuracy": accuracy,
             "precision": precision,
             "recall": recall,
+            "s_score": s_score,
+            "l_score": l_score,
         }
 
         logging.debug("... evaluation finished")
@@ -213,6 +218,10 @@ class Classifier(Model):
             scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
         elif scoring == "recall":
             scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
+        elif scoring == "s_score":
+            scoring = make_scorer(s_scoring)
+        elif scoring == "l_score":
+            scoring = make_scorer(l_scoring)
 
         cv = RepeatedStratifiedKFold(
             n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
