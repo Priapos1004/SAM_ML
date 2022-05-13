@@ -10,8 +10,9 @@ class CBC(Classifier):
     def __init__(
         self,
         model_name: str = "CatBoostClassifier",
-        verbose=0,
-        random_state=42,
+        verbose: Union[bool, int] = False,
+        random_state: int = 42,
+        allow_writing_files: bool = False,
         **kwargs,
     ):
         """
@@ -31,6 +32,7 @@ class CBC(Classifier):
         self.model = CatBoostClassifier(
             verbose=verbose,
             random_state=random_state,
+            allow_writing_files=allow_writing_files,
             **kwargs,
         )
 
