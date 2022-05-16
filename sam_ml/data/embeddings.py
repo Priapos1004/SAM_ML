@@ -16,7 +16,7 @@ from tqdm.notebook import tqdm
 
 
 class Embeddings_builder:
-    def __init__(self, vec: str = "count", max_features: int = None):
+    def __init__(self, vec: str = "count", **kwargs):
         """
         @param:
             vec:
@@ -24,7 +24,7 @@ class Embeddings_builder:
                 'tfidf' - TfidfVectorizer
                 'bert' - SentenceTransformer("quora-distilbert-multilingual")
 
-            max_features - max_features of CountVectorizer or TfidfVectorizer
+            You can change all parameters from CountVectorizer and TfidfVectorizer
         """
 
         if bert_active and vec == "bert":
@@ -34,22 +34,23 @@ class Embeddings_builder:
 
         elif vec == "count":
             print("using CountVectorizer as vectorizer")
-            self.vectorizer = CountVectorizer(max_features=max_features)
+            self.vectorizer = CountVectorizer(**kwargs)
             self.vec_type = vec
 
         elif vec == "tfidf":
             print("using TfidfVectorizer as vectorizer")
-            self.vectorizer = TfidfVectorizer(max_features=max_features)
+            self.vectorizer = TfidfVectorizer(**kwargs)
             self.vec_type = vec
 
         else:
             print(
                 f"the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer"
             )
-            self.vectorizer = CountVectorizer(max_features=max_features)
+            self.vectorizer = CountVectorizer(**kwargs)
             self.vec_type = "count"
 
     def vectorize(self, data: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
+        indices = data.index
         print("starting to create embeddings...")
         if self.vec_type == "bert":
             message_embeddings = [self.vectorizer.encode(str(i)) for i in tqdm(data)]
@@ -61,7 +62,7 @@ class Embeddings_builder:
             else:
                 emb_ar = self.vectorizer.transform(data).toarray()
 
-        emb_df = pd.DataFrame(emb_ar)
+        emb_df = pd.DataFrame(emb_ar, index=indices)
         print("... embeddings created")
 
         return emb_df
