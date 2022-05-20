@@ -22,6 +22,9 @@ class SVC(Classifier):
             kernel - kernel type to be used in the algorithm
             gamma - Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
 
+            class_weight - set class_weight="balanced" to deal with imbalanced data
+            probability - probability=True enables probability estimates for SVM algorithms
+
             cache_size - Specify the size of the kernel cache (in MB)
         """
         self.model_name = model_name
@@ -48,6 +51,7 @@ class SVC(Classifier):
         kernel: list[str] = ["rbf"],
         gamma: list[Union[float, str]] = [1, 0.1, 0.01, 0.001, 0.0001, "scale", "auto"],
         C: list[int] = [0.1, 1, 10, 100, 1000],
+        probability: list[bool] = [True, False],
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
@@ -87,7 +91,7 @@ class SVC(Classifier):
             set self.model = best model from search
         """
         # define grid search
-        grid = dict(kernel=kernel, gamma=gamma, C=C, **kwargs,)
+        grid = dict(kernel=kernel, gamma=gamma, C=C, probability=probability, **kwargs,)
 
         self.gridsearch(
             x_train=x_train,
