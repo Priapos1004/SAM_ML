@@ -43,7 +43,7 @@ class GBM(Classifier):
         max_depth: list[int] = list(range(1,8))+[10,12,15],
         min_samples_split: list[Union[int, float]] = [2,4,6,8,10,20,40,60,100],
         min_samples_leaf: list[Union[int, float]] = [2,4,6,8,10,20,40,60,100],
-        max_features: list[Union[str, int, float]] = ['auto', 'sqrt', 'log2', None],
+        max_features: list[Union[str, int, float, None]] = ['auto', 'sqrt', 'log2', None],
         subsample: list[float] = [0.7,0.75,0.8,0.85,0.9,0.95,1],
         criterion: list[str] = ['friedman_mse', 'mse'],
         loss: list[str] = ["deviance", "exponential"],

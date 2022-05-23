@@ -35,7 +35,7 @@ class LSVC(Classifier):
         y_train: pd.Series,
         penalty: list[str] = ["l1","l2"],
         dual: list[bool] = [True, False],
-        C: list[int] = [1e-5, 1e-4, 1e-3, 1e-2, 0.1, 1, 10, 100, 1000, 10000, 100000],
+        C: list[float] = [1e-5, 1e-4, 1e-3, 1e-2, 0.1, 1, 10, 100, 1000, 10000, 100000],
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,

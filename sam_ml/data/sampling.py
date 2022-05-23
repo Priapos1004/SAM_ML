@@ -6,7 +6,7 @@ from imblearn.under_sampling import NearMiss, RandomUnderSampler, TomekLinks
 from sklearn.utils import resample
 
 
-def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int, str] = 1) -> tuple[pd.DataFrame]:
+def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int, str] = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     function written by Sughu
 
@@ -48,7 +48,7 @@ def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int,
 
     return x_train, y_train
 
-def sample(x_train: pd.DataFrame, y_train: pd.Series, type: str = "ros", random_state: int = 42, **kwargs) -> tuple[pd.DataFrame]:
+def sample(x_train: pd.DataFrame, y_train: pd.Series, type: str = "ros", random_state: int = 42, **kwargs) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Function for up- and downsampling
 

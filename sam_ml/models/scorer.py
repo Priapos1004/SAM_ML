@@ -29,7 +29,7 @@ def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = 
     prec = precision_score(y_true, y_pred, average=None)
     rec = recall_score(y_true, y_pred, average=None)
 
-    score = 1
+    score = 1.0
     for i in range(len(prec)):
         if (scoring=='precision' and pos_label==i) or (scoring=='precision' and pos_label<=0) or (scoring==None and pos_label==i):
             score *= samuel_function(prec[i])**strength
@@ -48,7 +48,7 @@ def lewis_function(x: float) -> float:
     return 1-(0.5-0.5*math.cos((x-1)*math.pi))**4
 
 def comb_scoring(prec: list[float], rec: list[float], func) -> float:
-    total = 1
+    total = 1.0
     for i in prec:
         total *= func(i)
     for i in rec:

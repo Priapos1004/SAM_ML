@@ -39,7 +39,7 @@ class LR(Classifier):
         y_train: pd.Series,
         solvers: list[str] = ["newton-cg", "lbfgs", "liblinear", "sag"],
         penalty: list[str] = ["l2"],
-        C: list[int] = [100, 10, 1.0, 0.1, 0.01],
+        C: list[float] = [100, 10, 1.0, 0.1, 0.01],
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
