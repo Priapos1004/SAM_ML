@@ -30,7 +30,7 @@ class KNC(Classifier):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_neighbors: list[int] = list(range(1,30)),
-        p: list[int] = [1,2,3,4,5],
+        p: list[int] = [1, 2, 3, 4, 5],
         leaf_size: list[int] = list(range(1,50)),
         weights: list[str] = ["uniform", "distance"],
         n_split_num: int = 10,
