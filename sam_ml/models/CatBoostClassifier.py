@@ -10,8 +10,9 @@ class CBC(Classifier):
     def __init__(
         self,
         model_name: str = "CatBoostClassifier",
-        verbose=0,
-        random_state=42,
+        verbose: Union[bool, int] = False,
+        random_state: int = 42,
+        allow_writing_files: bool = False,
         **kwargs,
     ):
         """
@@ -31,6 +32,7 @@ class CBC(Classifier):
         self.model = CatBoostClassifier(
             verbose=verbose,
             random_state=random_state,
+            allow_writing_files=allow_writing_files,
             **kwargs,
         )
 
@@ -40,22 +42,8 @@ class CBC(Classifier):
         y_train: pd.Series,
         depth: list[int] = [4, 5, 6, 7, 8, 9, 10],
         learning_rate: list[float] = [0.1, 0.01, 0.02, 0.03, 0.04],
-        iterations: list[int] = [
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            70,
-            80,
-            90,
-            100,
-            200,
-            500,
-            1000,
-        ],
-        bagging_temperature: list[float] = [0.1,0.2,0.3,0.4,0.6,0.8,1.0],
+        iterations: list[int] = list(range(10, 101, 10)) + [200, 500, 1000],
+        bagging_temperature: list[float] = [0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0],
         random_strength: list[float] = [
             0.000000001,
             0.0000001,

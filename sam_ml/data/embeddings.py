@@ -4,50 +4,69 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 try:
     from sentence_transformers import SentenceTransformer
+
     bert_active = True
 except:
-    print("build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function")
+    print(
+        "build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function"
+    )
     bert_active = False
 
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 
 
-def build_embeddings(data: pd.DataFrame, vec: str = "count") -> pd.DataFrame:
-    '''
-    @param:
-        data - DataFrame with columns that shall be encoded
-        vec:
-            'count' - CountVectorizer (default)
-            'tfidf' - TfidfVectorizer
-            'bert' - SentenceTransformer("quora-distilbert-multilingual")
+class Embeddings_builder:
+    def __init__(self, vec: str = "count", console_out: bool = True, **kwargs):
+        """
+        @param:
+            vec:
+                'count' - CountVectorizer (default)
+                'tfidf' - TfidfVectorizer
+                'bert' - SentenceTransformer("quora-distilbert-multilingual")
 
-    @return:
-        DataFrame with encoded columns
-    '''
-    if bert_active and vec=='bert':
-        print("- creating embeddings - using bert...")
-        language_model = SentenceTransformer("quora-distilbert-multilingual")
-        # Embedding creation
-        message_embeddings = [language_model.encode(str(i)) for i in tqdm(data)]
-        emb_ar = np.asarray(message_embeddings)
+            You can change all parameters from CountVectorizer and TfidfVectorizer
+        """
+        self.console_out = console_out
+        if bert_active and vec == "bert":
+            if self.console_out:
+                print("using quora-distilbert-multilingual model as vectorizer")
+            self.vectorizer = SentenceTransformer("quora-distilbert-multilingual")
+            self.vec_type = vec
 
-    elif vec=='count':
-        print("- creating embeddings - using CountVectorizer...")
-        cv=CountVectorizer(max_features=3000)
-        emb_ar=cv.fit_transform(data).toarray()
+        elif vec == "count":
+            if self.console_out:
+                print("using CountVectorizer as vectorizer")
+            self.vectorizer = CountVectorizer(**kwargs)
+            self.vec_type = vec
 
-    elif vec=='tfidf':
-        print("- creating embeddings - using TfidfVectorizer...")
-        tv=TfidfVectorizer(max_features=3000)
-        emb_ar=tv.fit_transform(data).toarray()
+        elif vec == "tfidf":
+            if self.console_out:
+                print("using TfidfVectorizer as vectorizer")
+            self.vectorizer = TfidfVectorizer(**kwargs)
+            self.vec_type = vec
 
-    else:
-        print(f"the entered vectorizer '{vec}' cannot be used --> using 'count' instead")
-        print("- creating embeddings - using CountVectorizer...")
-        cv=CountVectorizer(max_features=3000)
-        emb_ar=cv.fit_transform(data).toarray()
-        
-    emb_df = pd.DataFrame(emb_ar)
-    print("... embeddings created")
+        else:
+            if self.console_out:
+                print(f"the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
+            self.vectorizer = CountVectorizer(**kwargs)
+            self.vec_type = "count"
 
-    return emb_df
+    def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
+        indices = data.index
+        if self.console_out:
+            print("starting to create embeddings...")
+        if self.vec_type == "bert":
+            message_embeddings = [self.vectorizer.encode(str(i)) for i in tqdm(data)]
+            emb_ar = np.asarray(message_embeddings)
+
+        else:
+            if train_on:
+                emb_ar = self.vectorizer.fit_transform(data).toarray()
+            else:
+                emb_ar = self.vectorizer.transform(data).toarray()
+
+        emb_df = pd.DataFrame(emb_ar, index=indices).add_suffix("_"+data.name)
+        if self.console_out:
+            print("... embeddings created")
+
+        return emb_df

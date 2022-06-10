@@ -10,7 +10,7 @@ class SVC(Classifier):
     def __init__(
         self,
         model_name: str = "SupportVectorClassifier",
-        kernel: str = "linear",
+        kernel: str = "rbf",
         random_state: int = 42,
         **kwargs,
     ):
@@ -19,11 +19,11 @@ class SVC(Classifier):
             random_state - random_state for model
             verbose - logging (True/False)
             C - Inverse of regularization strength
-
             kernel - kernel type to be used in the algorithm
             gamma - Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
-            c_values - Inverse of regularization strength
-            max_iter - Maximum number of iterations taken for the solvers to converge
+
+            class_weight - set class_weight="balanced" to deal with imbalanced data
+            probability - probability=True enables probability estimates for SVM algorithms
 
             cache_size - Specify the size of the kernel cache (in MB)
         """
@@ -48,9 +48,10 @@ class SVC(Classifier):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        kernel: list[str] = ["rbf"],
+        kernel: list[str] = ["rbf", "poly", "sigmoid"],
         gamma: list[Union[float, str]] = [1, 0.1, 0.01, 0.001, 0.0001, "scale", "auto"],
-        C: list[int] = [0.1, 1, 10, 100, 1000],
+        C: list[float] = [0.1, 1, 10, 100, 1000],
+        probability: list[bool] = [True, False],
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
@@ -70,7 +71,7 @@ class SVC(Classifier):
 
             kernel - kernel type to be used in the algorithm
             gamma - Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
-            c_values - Inverse of regularization strength
+            C - Inverse of regularization strength
 
             scoring - metrics to evaluate the models
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
@@ -90,7 +91,7 @@ class SVC(Classifier):
             set self.model = best model from search
         """
         # define grid search
-        grid = dict(kernel=kernel, gamma=gamma, C=C, **kwargs,)
+        grid = dict(kernel=kernel, gamma=gamma, C=C, probability=probability, **kwargs,)
 
         self.gridsearch(
             x_train=x_train,

@@ -17,7 +17,7 @@ class Model:
 
     def train(
         self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True
-    ) -> tuple[float]:
+    ) -> tuple[float, str]:
         logging.debug("training started...")
         start_time = time.time()
         self.model.fit(x_train, y_train)
@@ -28,7 +28,7 @@ class Model:
         if console_out:
             print("Train score: ", self.train_score, " - Train time: ", self.train_time)
         logging.debug("... training finished")
-        return (self.train_score, self.train_time)
+        return self.train_score, self.train_time
 
     def evaluate(
         self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True
