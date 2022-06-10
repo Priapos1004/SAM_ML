@@ -1,4 +1,6 @@
 import logging
+from datetime import timedelta
+from statistics import mean
 from typing import Union
 
 import numpy as np
@@ -8,6 +10,10 @@ from sklearn.metrics import (accuracy_score, classification_report,
                              make_scorer, precision_score, recall_score)
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
                                      RepeatedStratifiedKFold, cross_validate)
+from tqdm.auto import tqdm
+
+from sam_ml.data.embeddings import Embeddings_builder
+from sam_ml.data.sampling import sample
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
@@ -76,7 +82,7 @@ class Classifier(Model):
         return_estimator: bool = False,
         console_out: bool = True,
         return_as_dict: bool = False,
-    ) -> Union[dict[list], pd.DataFrame]:
+    ) -> Union[dict[str, list], pd.DataFrame]:
         """
         @param:
             X, y - data to cross validate on
@@ -94,24 +100,30 @@ class Classifier(Model):
             depending on "return_as_dict"
             the scores will be saved in self.cv_scores as dict (WARNING: return_estimator=True increases object size)
         """
+        logging.debug("starting to cross validate...")
 
         precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
         recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
+        s_scorer = make_scorer(s_scoring)
+        l_scorer = make_scorer(l_scoring)
 
         if avg == "binary":
             scorer = {
                 f"precision ({avg}, label={pos_label})": precision_scorer,
                 f"recall ({avg}, label={pos_label})": recall_scorer,
                 "accuracy": "accuracy",
+                "s_score": s_scorer,
+                "l_score": l_scorer,
             }
         else:
             scorer = {
                 f"precision ({avg})": precision_scorer,
                 f"recall ({avg})": recall_scorer,
                 "accuracy": "accuracy",
+                "s_score": s_scorer,
+                "l_score": l_scorer,
             }
 
-        logging.debug("starting to cross validate...")
         cv_scores = cross_validate(
             self.model,
             X,
@@ -122,6 +134,7 @@ class Classifier(Model):
             return_estimator=return_estimator,
             n_jobs=-1,
         )
+
         logging.debug("... cross validation completed")
 
         pd_scores = pd.DataFrame(cv_scores).transpose()
@@ -136,6 +149,103 @@ class Classifier(Model):
             return self.cv_scores
         else:
             return pd_scores
+
+    def cross_validation_small_data(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        upsampling: str = "ros",
+        vectorizer: str = "tfidf",
+        avg: str = "macro",
+        pos_label: Union[int, str] = 1,
+        console_out: bool = True,
+    ) -> dict[str, list]:
+        """
+        Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
+
+        @param:
+            X, y - data to cross validate on
+            upsampling - type of "data.sampling.sample" function or None for no upsampling
+            vectorizer - type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
+
+            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+
+            console_out - shall the result be printed into the console
+
+        @return:
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
+        """
+        logging.debug("starting to cross validate...")
+
+        predictions = []
+        true_values = []
+        t_scores = []
+        t_times = []
+
+        # auto-detect data types
+        X = X.convert_dtypes()
+        string_columns = X.select_dtypes(include="string").columns
+
+        upsampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
+
+        if upsampling == "SMOTE" and self.model_type in upsampling_problems:
+            print(self.model_type+" does not work with upsampling='SMOTE' --> going on with upsampling='ros'")
+            upsampling = "ros"
+
+        elif upsampling in ["nm","tl"] and self.model_type in upsampling_problems:
+            print(self.model_type+" does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
+            upsampling = "rus"
+
+        eb = Embeddings_builder(vec=vectorizer, console_out=False)
+        
+        for idx in tqdm(X.index, desc=self.model_name, leave=False):
+            x_train = X.drop(idx)
+            y_train = y.drop(idx)
+            x_test = X.loc[[idx]]
+            y_test = y.loc[idx]
+
+            for col in string_columns:
+                x_train = pd.concat([x_train, eb.vectorize(x_train[col], train_on=True)], axis=1)
+                x_test = pd.concat([x_test, eb.vectorize(x_test[col], train_on=False)], axis=1)
+
+            x_train = x_train.drop(columns=string_columns)
+            x_test = x_test.drop(columns=string_columns)
+
+            if upsampling != None:
+                    x_train, y_train = sample(x_train, y_train, type=upsampling)
+
+            train_score, train_time = self.train(x_train, y_train, console_out=False)
+            prediction = self.model.predict(x_test)
+
+            predictions.append(prediction)
+            true_values.append(y_test)
+            t_scores.append(train_score)
+            t_times.append(train_time)
+
+        accuracy = accuracy_score(true_values, predictions)
+        precision = precision_score(true_values, predictions, average=avg, pos_label=pos_label)
+        recall = recall_score(true_values, predictions, average=avg, pos_label=pos_label)
+        s_score = s_scoring(true_values, predictions)
+        l_score = l_scoring(true_values, predictions)
+        avg_train_score = mean(t_scores)
+        avg_train_time = str(timedelta(seconds=sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times)))
+
+        self.cv_scores = {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "s_score": s_score,
+            "l_score": l_score,
+            "avg train score": avg_train_score,
+            "avg train time": avg_train_time,
+        }
+
+        if console_out:
+            print("classification report:")
+            print(classification_report(true_values, predictions))
+
+        return self.cv_scores
 
     def feature_importance(self) -> plt.show:
         """
