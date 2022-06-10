@@ -51,7 +51,7 @@ class Embeddings_builder:
             self.vectorizer = CountVectorizer(**kwargs)
             self.vec_type = "count"
 
-    def vectorize(self, data: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
+    def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
         indices = data.index
         if self.console_out:
             print("starting to create embeddings...")
@@ -65,7 +65,7 @@ class Embeddings_builder:
             else:
                 emb_ar = self.vectorizer.transform(data).toarray()
 
-        emb_df = pd.DataFrame(emb_ar, index=indices)
+        emb_df = pd.DataFrame(emb_ar, index=indices).add_suffix("_"+data.name)
         if self.console_out:
             print("... embeddings created")
 
