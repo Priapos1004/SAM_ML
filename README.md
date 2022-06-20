@@ -28,3 +28,5 @@ from sam_ml.models import RFC
 
 RandomForestClassifier = RFC()
 ```
+
+--> in the "examples" folder you can find notebooks with code snippets that explains the usage of the package
