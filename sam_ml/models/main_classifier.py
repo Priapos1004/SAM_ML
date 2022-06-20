@@ -192,11 +192,13 @@ class Classifier(Model):
         upsampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
 
         if upsampling == "SMOTE" and self.model_type in upsampling_problems:
-            print(self.model_type+" does not work with upsampling='SMOTE' --> going on with upsampling='ros'")
+            if console_out:
+                print(self.model_type+" does not work with upsampling='SMOTE' --> going on with upsampling='ros'")
             upsampling = "ros"
 
         elif upsampling in ["nm","tl"] and self.model_type in upsampling_problems:
-            print(self.model_type+" does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
+            if console_out:
+                print(self.model_type+" does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
             upsampling = "rus"
 
         eb = Embeddings_builder(vec=vectorizer, console_out=False)
@@ -215,7 +217,7 @@ class Classifier(Model):
             x_test = x_test.drop(columns=string_columns)
 
             if upsampling != None:
-                    x_train, y_train = sample(x_train, y_train, type=upsampling)
+                x_train, y_train = sample(x_train, y_train, type=upsampling)
 
             train_score, train_time = self.train(x_train, y_train, console_out=False)
             prediction = self.model.predict(x_test)

@@ -1,4 +1,7 @@
 import logging
+import os
+import sys
+import warnings
 from typing import Union
 
 import pandas as pd
@@ -24,6 +27,10 @@ from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+
 
 class CTest:
     def __init__(
@@ -35,10 +42,11 @@ class CTest:
             MLPC(),
             LSVC(),
             DTC(),
+            #CBC(),
             RFC(),
             SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
             GBM(),
-            CBC(),
+            
             ABC(model_name="AdaBoostClassifier (DTC based)"),
             ABC(
                 base_estimator=RandomForestClassifier(max_depth=5),
@@ -75,7 +83,9 @@ class CTest:
         """
         @param:
             x_train, y_train, x_test, y_test - Data to train and evaluate models
+            
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
         @return:
@@ -114,18 +124,29 @@ class CTest:
         """
         @param:
             X, y - Data to train and evaluate models on
+
             cv_num - number of different splits (ignored if small_data_eval=True)
+
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
             small_data_eval - if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+            
             upsampling - type of "data.sampling.sample" function or None for no upsampling (only for small_data_eval=True)
+            
             vectorizer - type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
 
         @return:
             saves metrics in dict self.scores and also outputs them
         """
         logging.debug("starting to evaluate models...")
+
+        if small_data_eval and upsampling in ["nm","tl"]:
+            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
+        elif small_data_eval and upsampling == "SMOTE":
+            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='ros'")
+
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
@@ -164,7 +185,9 @@ class CTest:
         @param:
             sorted_by:
                 'index' - sort index ascending=True
+
                 'precision'/'recall'/'accuracy'/'train_score'/'train_time' - sort by these columns ascending=False
+
                 e.g. ['precision', 'recall'] - sort first by 'precision' and then by 'recall'
         """
         if sort_by == "index":
@@ -199,20 +222,26 @@ class CTest:
         """
         @param:
             scoring - "accuracy" / "precision" / "recall"
+
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
             rand_search - True: RandomizedSearchCV, False: GridSearchCV
+
             n_iter_num - Combinations to try out if rand_search=True
 
             n_split_num - number of different splits
+
             n_repeats_num - number of repetition of one split
 
             console_out - outputs intermidiate results into the console
 
         @return:
             prints parameters and metrics of best model
+
             saves best model in self.best_model
+
             returns best model
         """
         if self.scores == {}:
