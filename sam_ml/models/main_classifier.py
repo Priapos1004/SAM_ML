@@ -158,6 +158,7 @@ class Classifier(Model):
         vectorizer: str = "tfidf",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
+        leave_loadbar: bool = True,
         console_out: bool = True,
     ) -> dict[str, list]:
         """
@@ -171,6 +172,7 @@ class Classifier(Model):
             avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
             pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
+            leave_loadbar - shall the loading bar of the training be visible after training (True - load bar will still be visible)
             console_out - shall the result be printed into the console
 
         @return:
@@ -199,7 +201,7 @@ class Classifier(Model):
 
         eb = Embeddings_builder(vec=vectorizer, console_out=False)
         
-        for idx in tqdm(X.index, desc=self.model_name, leave=False):
+        for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
             x_train = X.drop(idx)
             y_train = y.drop(idx)
             x_test = X.loc[[idx]]

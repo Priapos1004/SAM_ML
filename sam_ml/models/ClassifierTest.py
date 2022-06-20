@@ -83,7 +83,7 @@ class CTest:
         """
         logging.debug("starting to evaluate models...")
         try:
-            for key in tqdm(self.models.keys()):
+            for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
                 score = self.models[key].evaluate(
                     x_test, y_test, avg=avg, pos_label=pos_label, console_out=False
@@ -130,7 +130,7 @@ class CTest:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, upsampling=upsampling, vectorizer=vectorizer,
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, upsampling=upsampling, vectorizer=vectorizer, leave_loadbar=False
                     )
                     self.scores[key] = self.models[key].cv_scores
                 else:

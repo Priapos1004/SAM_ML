@@ -41,7 +41,6 @@ class RFC(Classifier):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_estimators: list[int] = [1, 2, 4, 8, 16, 32, 64, 100, 200, 500, 1000],
-        max_features: list[Union[str, int, float]] = ["auto", "sqrt", 1],
         max_depth: list[int] = [2, 3, 4, 5, 6, 7, 8, 10, 15],
         min_samples_split: list[int] = [2, 3, 5, 10],
         min_samples_leaf: list[int] = [1, 2, 4],
@@ -92,7 +91,6 @@ class RFC(Classifier):
         # Create the random grid
         grid = dict(
             n_estimators=n_estimators,
-            max_features=max_features,
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
