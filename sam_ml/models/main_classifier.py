@@ -14,6 +14,7 @@ from tqdm.auto import tqdm
 
 from sam_ml.data.embeddings import Embeddings_builder
 from sam_ml.data.sampling import sample
+from sam_ml.data.scaler import Scaler
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
@@ -156,6 +157,7 @@ class Classifier(Model):
         y: pd.Series,
         upsampling: str = "ros",
         vectorizer: str = "tfidf",
+        scaler: str = "standard",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
         leave_loadbar: bool = True,
@@ -168,6 +170,7 @@ class Classifier(Model):
             X, y: data to cross validate on
             upsampling: type of "data.sampling.sample" function or None for no upsampling
             vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
+            scaler: type of "data.scaler.Scaler" for scaling the data
 
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
@@ -215,6 +218,11 @@ class Classifier(Model):
 
             x_train = x_train.drop(columns=string_columns)
             x_test = x_test.drop(columns=string_columns)
+
+            if scaler != None:
+                sc = Scaler(scaler=scaler, console_out=False)
+                x_train = sc.scale(x_train, train_on=True)
+                x_test = sc.scale(x_test, train_on=False)
 
             if upsampling != None:
                 x_train, y_train = sample(x_train, y_train, type=upsampling)

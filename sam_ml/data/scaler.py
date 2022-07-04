@@ -70,6 +70,9 @@ class Scaler:
         """
         @param:
             train_on: if True, the scaler will fit_transform. Otherwise just transform
+
+        @return:
+            Dataframe with scaled data
         """
         columns = data.columns
         if self.console_out:

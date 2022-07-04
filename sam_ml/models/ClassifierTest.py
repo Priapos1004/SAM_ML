@@ -119,6 +119,7 @@ class CTest:
         small_data_eval: bool = False,
         upsampling: str = None,
         vectorizer: str = "tfidf",
+        scaler: str = None,
     ) -> dict[str, dict]:
         """
         @param:
@@ -131,6 +132,7 @@ class CTest:
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             upsampling: type of "data.sampling.sample" function or None for no upsampling (only for small_data_eval=True)
             vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
+            scaler: type of "data.scaler.Scaler" for scaling the data (only for small_data_eval=True)
 
         @return:
             saves metrics in dict self.scores and also outputs them
@@ -146,7 +148,7 @@ class CTest:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, upsampling=upsampling, vectorizer=vectorizer, leave_loadbar=False
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, upsampling=upsampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False
                     )
                     self.scores[key] = self.models[key].cv_scores
                 else:
