@@ -19,13 +19,13 @@ class CBC(Classifier):
         @info:
             no type hints due to documentation of CatBoost library
         @param (important one):
-            depth - depth of the tree
-            learning_rate - learning rate
-            iterations - maximum number of trees that can be built when solving machine learning problems
-            bagging_temperature - defines the settings of the Bayesian bootstrap
-            random_strength - the amount of randomness to use for scoring splits when the tree structure is selected
-            l2_leaf_reg - coefficient at the L2 regularization term of the cost function
-            border_count - the number of splits for numerical features
+            depth: depth of the tree
+            learning_rate: learning rate
+            iterations: maximum number of trees that can be built when solving machine learning problems
+            bagging_temperature: defines the settings of the Bayesian bootstrap
+            random_strength: the amount of randomness to use for scoring splits when the tree structure is selected
+            l2_leaf_reg: coefficient at the L2 regularization term of the cost function
+            border_count: the number of splits for numerical features
         """
         self.model_name = model_name
         self.model_type = "CBC"
@@ -69,29 +69,29 @@ class CBC(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            depth - depth of the tree
-            learning_rate - learning rate
-            iterations - maximum number of trees that can be built when solving machine learning problems
-            bagging_temperature - defines the settings of the Bayesian bootstrap
-            random_strength - the amount of randomness to use for scoring splits when the tree structure is selected
-            l2_leaf_reg - coefficient at the L2 regularization term of the cost function
-            border_count - the number of splits for numerical features
+            depth: depth of the tree
+            learning_rate: learning rate
+            iterations: maximum number of trees that can be built when solving machine learning problems
+            bagging_temperature: defines the settings of the Bayesian bootstrap
+            random_strength: the amount of randomness to use for scoring splits when the tree structure is selected
+            l2_leaf_reg: coefficient at the L2 regularization term of the cost function
+            border_count: the number of splits for numerical features
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

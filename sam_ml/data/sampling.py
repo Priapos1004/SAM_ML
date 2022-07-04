@@ -11,8 +11,8 @@ def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int,
     function written by Sughu
 
     @param:
-        x_train, y_train - trainings data for upsamling
-        label - label that shall be upsampled
+        x_train, y_train: trainings data for upsamling
+        label: label that shall be upsampled
     
     @return:
         tuple x_train, y_train
@@ -53,14 +53,14 @@ def sample(x_train: pd.DataFrame, y_train: pd.Series, type: str = "ros", random_
     Function for up- and downsampling
 
     @param:
-        type - which sampling algorithm to use:
-            SMOTE - Synthetic Minority Oversampling Technique (upsampling)
-            rus - RandomUnderSampler (downsampling)
-            ros - RandomOverSampler (upsampling) (default)
-            tl - TomekLinks (downsampling)
-            nm - NearMiss (downsampling)
+        type: which sampling algorithm to use:
+            SMOTE: Synthetic Minority Oversampling Technique (upsampling)
+            rus: RandomUnderSampler (downsampling)
+            ros: RandomOverSampler (upsampling) (default)
+            tl: TomekLinks (downsampling)
+            nm: NearMiss (downsampling)
         
-        random_state - seed for Random...Sampler
+        random_state: seed for Random...Sampler
 
     @return:
         tuple x_train, y_train

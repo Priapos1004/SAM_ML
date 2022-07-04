@@ -10,21 +10,18 @@ def samuel_function(x: float) -> float:
 def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = -1, strength: int = 2) -> float:
     """
     @param:
-        y_true, y_pred - data to evaluate on
-
+        y_true, y_pred: data to evaluate on
+        
         scoring:
-            None - no preference between precision and recall
-
-            'precision' - take precision more into account
-
-            'recall' - take recall more into account
+            None: no preference between precision and recall
+            'precision': take precision more into account
+            'recall': take recall more into account
         
         pos_label:
-            pos_label > 0 - take <scoring> in class <pos_label> more into account
-            
-            pos_label = -1 - handle all classes the same
+            pos_label > 0: take <scoring> in class <pos_label> more into account
+            pos_label = -1: handle all classes the same
 
-        strength - higher strength means a higher weight for the prefered scoring/pos_label
+        strength: higher strength means a higher weight for the prefered scoring/pos_label
 
     @return:
         score as float between 0 and 1

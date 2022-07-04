@@ -16,17 +16,17 @@ class ETC(Classifier):
     ):
         """
         @param (important one):
-            n_estimators - Number of trees
-            max_depth - Maximum number of levels in tree
-            n_jobs - how many cores shall be used (-1 means all)
-            random_state - random_state for model
-            verbose - log level (higher number --> more logs)
-            warm_start - work with previous fit and add more estimator
+            n_estimators: Number of trees
+            max_depth: Maximum number of levels in tree
+            n_jobs: how many cores shall be used (-1 means all)
+            random_state: random_state for model
+            verbose: log level (higher number --> more logs)
+            warm_start: work with previous fit and add more estimator
 
-            max_features - Number of features to consider at every split
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            bootstrap - Method of selecting samples for training each tree
+            max_features: Number of features to consider at every split
+            min_samples_split: Minimum number of samples required to split a node
+            min_samples_leaf: Minimum number of samples required at each leaf node
+            bootstrap: Method of selecting samples for training each tree
         """
         self.model_name = model_name
         self.model_type = "ETC"
@@ -60,31 +60,31 @@ class ETC(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            n_estimators - Number of trees in random forest
-            max_features - Number of features to consider at every split
-            max_depth - Maximum number of levels in tree
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            bootstrap - Method of selecting samples for training each tree
-            criterion - function to measure the quality of a split
-            random_state - random_state for model
+            n_estimators: Number of trees in random forest
+            max_features: Number of features to consider at every split
+            max_depth: Maximum number of levels in tree
+            min_samples_split: Minimum number of samples required to split a node
+            min_samples_leaf: Minimum number of samples required at each leaf node
+            bootstrap: Method of selecting samples for training each tree
+            criterion: function to measure the quality of a split
+            random_state: random_state for model
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
             
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
             
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

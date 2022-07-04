@@ -14,12 +14,12 @@ class KNC(Classifier):
     ):
         """
         @param (important one):
-            n_neighbors - Number of neighbors to use by default for kneighbors queries
-            weights - Weight function used in prediction
-            algorithm - Algorithm used to compute the nearest neighbors
-            leaf_size - Leaf size passed to BallTree or KDTree
-            p - number of metric that is used (manhattan, euclidean, minkowski)
-            n_jobs - the number of parallel jobs to run for neighbors search [problem with n_jobs = -1 --> kernel dies]
+            n_neighbors: Number of neighbors to use by default for kneighbors queries
+            weights: Weight function used in prediction
+            algorithm: Algorithm used to compute the nearest neighbors
+            leaf_size: Leaf size passed to BallTree or KDTree
+            p: number of metric that is used (manhattan, euclidean, minkowski)
+            n_jobs: the number of parallel jobs to run for neighbors search [problem with n_jobs = -1 --> kernel dies]
         """
         self.model_name = model_name
         self.model_type = "KNC"
@@ -47,25 +47,25 @@ class KNC(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            n_neighbors - Number of neighbors to use by default for kneighbors queries
-            p - number of metric that is used (manhattan, euclidean, minkowski)
-            leaf_size - Leaf size passed to BallTree or KDTree
+            n_neighbors: Number of neighbors to use by default for kneighbors queries
+            p: number of metric that is used (manhattan, euclidean, minkowski)
+            leaf_size: Leaf size passed to BallTree or KDTree
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

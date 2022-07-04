@@ -36,12 +36,12 @@ class Classifier(Model):
     ) -> dict:
         """
         @param:
-            x_test, y_test - Data to evaluate model
+            x_test, y_test: Data to evaluate model
             
-            avg - average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            console_out - shall the result be printed into the console
+            console_out: shall the result be printed into the console
         """
         logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
@@ -85,16 +85,16 @@ class Classifier(Model):
     ) -> Union[dict[str, list], pd.DataFrame]:
         """
         @param:
-            X, y - data to cross validate on
-            cv_num - number of different splits
+            X, y: data to cross validate on
+            cv_num: number of different splits
 
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            return_estimator - if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
+            return_estimator: if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
 
-            console_out - shall the result be printed into the console
-            return_as_dict - True: return scores as a dict, False: return scores as a pandas DataFrame
+            console_out: shall the result be printed into the console
+            return_as_dict: True: return scores as a dict, False: return scores as a pandas DataFrame
 
         @return:
             depending on "return_as_dict"
@@ -165,15 +165,15 @@ class Classifier(Model):
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
 
         @param:
-            X, y - data to cross validate on
-            upsampling - type of "data.sampling.sample" function or None for no upsampling
-            vectorizer - type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
+            X, y: data to cross validate on
+            upsampling: type of "data.sampling.sample" function or None for no upsampling
+            vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
 
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            leave_loadbar - shall the loading bar of the training be visible after training (True - load bar will still be visible)
-            console_out - shall the result be printed into the console
+            leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
+            console_out: shall the result be printed into the console
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
@@ -302,24 +302,24 @@ class Classifier(Model):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            grid - dictonary of parameters to tune
+            grid: dictonary of parameters to tune
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

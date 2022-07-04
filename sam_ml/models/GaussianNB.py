@@ -14,8 +14,8 @@ class GNB(Classifier):
     ):
         """
         @params:
-            priors - Prior probabilities of the classes. If specified the priors are not adjusted according to the data
-            var_smoothing - Portion of the largest variance of all features that is added to variances for calculation stability
+            priors: Prior probabilities of the classes. If specified the priors are not adjusted according to the data
+            var_smoothing: Portion of the largest variance of all features that is added to variances for calculation stability
         """
         self.model_name = model_name
         self.model_type = "GNB"
@@ -52,24 +52,24 @@ class GNB(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            var_smoothing - Portion of the largest variance of all features that is added to variances for calculation stability
+            var_smoothing: Portion of the largest variance of all features that is added to variances for calculation stability
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

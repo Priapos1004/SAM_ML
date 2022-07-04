@@ -15,18 +15,18 @@ class GBM(Classifier):
     ):
         """
         @param (important one):
-            n_estimator - number of boosting stages to perform
-            criterion - function to measure the quality of a split
-            max_depth - Maximum number of levels in tree
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            max_features - number of features to consider when looking for the best split
-            subsample - fraction of samples to be used for fitting the individual base learners
-            loss - The loss function to be optimized. 'deviance' refers to deviance (= logistic regression) for classification with probabilistic outputs. For loss 'exponential' gradient boosting recovers the AdaBoost algorithm
-            learning_rate - shrinks the contribution of each tree by learning rate
+            n_estimator: number of boosting stages to perform
+            criterion: function to measure the quality of a split
+            max_depth: Maximum number of levels in tree
+            min_samples_split: Minimum number of samples required to split a node
+            min_samples_leaf: Minimum number of samples required at each leaf node
+            max_features: number of features to consider when looking for the best split
+            subsample: fraction of samples to be used for fitting the individual base learners
+            loss: The loss function to be optimized. 'deviance' refers to deviance (= logistic regression) for classification with probabilistic outputs. For loss 'exponential' gradient boosting recovers the AdaBoost algorithm
+            learning_rate: shrinks the contribution of each tree by learning rate
 
-            warm_start - work with previous fit and add more estimator
-            random_state - random_state for model
+            warm_start: work with previous fit and add more estimator
+            random_state: random_state for model
         """
         self.model_name = model_name
         self.model_type = "GBM"
@@ -59,31 +59,31 @@ class GBM(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            n_estimator - number of boosting stages to perform
-            criterion - function to measure the quality of a split
-            max_depth - Maximum number of levels in tree
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            max_features - number of features to consider when looking for the best split
-            subsample - fraction of samples to be used for fitting the individual base learners
-            loss - The loss function to be optimized. 'deviance' refers to deviance (= logistic regression) for classification with probabilistic outputs. For loss 'exponential' gradient boosting recovers the AdaBoost algorithm
-            learning_rate - shrinks the contribution of each tree by learning rate
+            n_estimator: number of boosting stages to perform
+            criterion: function to measure the quality of a split
+            max_depth: Maximum number of levels in tree
+            min_samples_split: Minimum number of samples required to split a node
+            min_samples_leaf: Minimum number of samples required at each leaf node
+            max_features: number of features to consider when looking for the best split
+            subsample: fraction of samples to be used for fitting the individual base learners
+            loss: The loss function to be optimized. 'deviance' refers to deviance (= logistic regression) for classification with probabilistic outputs. For loss 'exponential' gradient boosting recovers the AdaBoost algorithm
+            learning_rate: shrinks the contribution of each tree by learning rate
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search
