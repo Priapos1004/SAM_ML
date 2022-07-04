@@ -17,9 +17,9 @@ class Embeddings_builder:
         """
         @param:
             vec:
-                'count' - CountVectorizer (default)
-                'tfidf' - TfidfVectorizer
-                'bert' - SentenceTransformer("quora-distilbert-multilingual")
+                'count': CountVectorizer (default)
+                'tfidf': TfidfVectorizer
+                'bert': SentenceTransformer("quora-distilbert-multilingual")
 
             You can change all parameters from CountVectorizer and TfidfVectorizer
         """
@@ -48,7 +48,7 @@ class Embeddings_builder:
         else:
             if self.console_out:
                 print(f"the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
-            self.vectorizer = CountVectorizer(**kwargs)
+            self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 
     def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
