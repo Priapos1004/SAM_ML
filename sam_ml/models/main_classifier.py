@@ -233,7 +233,7 @@ class Classifier(Model):
         s_score = s_scoring(true_values, predictions)
         l_score = l_scoring(true_values, predictions)
         avg_train_score = mean(t_scores)
-        avg_train_time = str(timedelta(seconds=sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times)))
+        avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
         self.cv_scores = {
             "accuracy": accuracy,
