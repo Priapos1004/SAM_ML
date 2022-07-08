@@ -33,43 +33,71 @@ if not sys.warnoptions:
 
 
 class CTest:
-    def __init__(
-        self,
-        models: list[Classifier] = [
-            LR(),
-            QDA(),
-            LDA(),
-            MLPC(),
-            LSVC(),
-            DTC(),
-            #CBC(),
-            RFC(),
-            SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
-            GBM(),
-            
-            ABC(model_name="AdaBoostClassifier (DTC based)"),
-            ABC(
-                base_estimator=RandomForestClassifier(max_depth=5),
-                model_name="AdaBoostClassifier (RFC based)",
-            ),
-            KNC(),
-            ETC(),
-            GNB(),
-            BNB(),
-            GPC(),
-            BC(model_name="BaggingClassifier (DTC based)"),
-            BC(
-                base_estimator=RandomForestClassifier(max_depth=5),
-                model_name="BaggingClassifier (RFC based)",
-            ),
-        ],
-    ):
+    def __init__(self, models: Union[str, list[Classifier]] = "all"):
+
+        if type(models) == str:
+            models = self.model_combs(models)
+
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
 
         self.best_model: Classifier
         self.scores: dict = {}
+
+    def model_combs(self, kind: str):
+        """
+        @params:
+            kind:
+                "all": use all models
+                "basic": use a 
+        """
+        if kind == "all":
+            models = [
+                LR(),
+                QDA(),
+                LDA(),
+                MLPC(),
+                LSVC(),
+                DTC(),
+                #CBC(),
+                RFC(),
+                SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
+                GBM(),
+                
+                ABC(model_name="AdaBoostClassifier (DTC based)"),
+                ABC(
+                    base_estimator=RandomForestClassifier(max_depth=5),
+                    model_name="AdaBoostClassifier (RFC based)",
+                ),
+                KNC(),
+                ETC(),
+                GNB(),
+                BNB(),
+                GPC(),
+                BC(model_name="BaggingClassifier (DTC based)"),
+                BC(
+                    base_estimator=RandomForestClassifier(max_depth=5),
+                    model_name="BaggingClassifier (RFC based)",
+                ),
+            ]
+        elif kind == "basic":
+            models = [
+                LR(),
+                MLPC(),
+                LSVC(),
+                DTC(),
+                RFC(),
+                SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
+                GBM(),
+                ABC(model_name="AdaBoostClassifier (DTC based)"),
+                KNC(),
+            ]
+        else:
+            print(f"Cannot find model combination '{kind}' --> using all models")
+            models = self.model_combs("all")
+
+        return models
 
     def eval_models(
         self,
@@ -140,9 +168,9 @@ class CTest:
         logging.debug("starting to evaluate models...")
 
         if small_data_eval and upsampling in ["nm","tl"]:
-            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
+            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus' for these models")
         elif small_data_eval and upsampling == "SMOTE":
-            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='ros'")
+            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='ros' for these models")
 
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
