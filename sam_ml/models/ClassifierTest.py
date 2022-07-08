@@ -145,7 +145,7 @@ class CTest:
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
         small_data_eval: bool = False,
-        upsampling: str = None,
+        sampling: str = None,
         vectorizer: str = "tfidf",
         scaler: str = None,
     ) -> dict[str, dict]:
@@ -158,7 +158,7 @@ class CTest:
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
             
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-            upsampling: type of "data.sampling.sample" function or None for no upsampling (only for small_data_eval=True)
+            sampling: type of "data.sampling.Sampler" class or None for no sampling (only for small_data_eval=True)
             vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
             scaler: type of "data.scaler.Scaler" for scaling the data (only for small_data_eval=True)
 
@@ -167,16 +167,16 @@ class CTest:
         """
         logging.debug("starting to evaluate models...")
 
-        if small_data_eval and upsampling in ["nm","tl"]:
-            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus' for these models")
-        elif small_data_eval and upsampling == "SMOTE":
-            print("QDA / LDA / LR / MLPC / LSVC does not work with upsampling='"+upsampling+"' --> going on with upsampling='ros' for these models")
+        if small_data_eval and sampling in ["nm","tl"]:
+            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='rus' for these models")
+        elif small_data_eval and sampling == "SMOTE":
+            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='ros' for these models")
 
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, upsampling=upsampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, sampling=sampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False
                     )
                     self.scores[key] = self.models[key].cv_scores
                 else:

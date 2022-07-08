@@ -66,6 +66,15 @@ class Scaler:
             print(f"Scaler '{scaler}' is no valid input -> using StandardScaler")
             self.scaler = StandardScaler()
 
+    @staticmethod
+    def params() -> dict:
+        """
+        @return:
+            possible values for the parameters
+        """
+        param = {"scaler": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
+        return param
+
     def scale(self, data: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         """
         @param:

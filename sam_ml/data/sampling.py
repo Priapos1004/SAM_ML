@@ -48,37 +48,50 @@ def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int,
 
     return x_train, y_train
 
-def sample(x_train: pd.DataFrame, y_train: pd.Series, type: str = "ros", random_state: int = 42, **kwargs) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Function for up- and downsampling
+class Sampler:
 
-    @param:
-        type: which sampling algorithm to use:
-            SMOTE: Synthetic Minority Oversampling Technique (upsampling)
-            rus: RandomUnderSampler (downsampling)
-            ros: RandomOverSampler (upsampling) (default)
-            tl: TomekLinks (downsampling)
-            nm: NearMiss (downsampling)
-        
-        random_state: seed for Random...Sampler
+    def __init__(self, algorithm: str = "ros", random_state: int = 42, **kwargs):
+        """
+        @param:
+            algorithm: which sampling algorithm to use:
+                SMOTE: Synthetic Minority Oversampling Technique (upsampling)
+                rus: RandomUnderSampler (downsampling)
+                ros: RandomOverSampler (upsampling) (default)
+                tl: TomekLinks (downsampling)
+                nm: NearMiss (downsampling)
+            
+            random_state: seed for Random...Sampler
+        """
+        if algorithm == "SMOTE":
+            self.sampler = SMOTE(**kwargs)
+        elif algorithm == "rus":
+            self.sampler = RandomUnderSampler(random_state=random_state, replacement=True, **kwargs)
+        elif algorithm == "ros":
+            self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
+        elif algorithm == "tl":
+            self.sampler = TomekLinks(sampling_strategy="majority", **kwargs)
+        elif algorithm == "nm":
+            self.sampler = NearMiss(**kwargs)
+        else:
+            print(f"type = '{algorithm}' does not exist --> using RandomOverSampler")
+            self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
 
-    @return:
-        tuple x_train, y_train
-    """
-    if type == "SMOTE":
-        sampler = SMOTE(**kwargs)
-    elif type == "rus":
-        sampler = RandomUnderSampler(random_state=random_state, replacement=True, **kwargs)
-    elif type == "ros":
-        sampler = RandomOverSampler(random_state=random_state, **kwargs)
-    elif type == "tl":
-        sampler = TomekLinks(sampling_strategy="majority", **kwargs)
-    elif type == "nm":
-        sampler = NearMiss(**kwargs)
-    else:
-        print("type = ",type, " does not exist --> using RandomOverSampler")
-        sampler = RandomOverSampler(random_state=random_state, **kwargs)
-    
-    x_train_sampled, y_train_sampled = sampler.fit_resample(x_train, y_train)
+    @staticmethod
+    def params() -> dict:
+        """
+        @return:
+            possible values for the parameters
+        """
+        param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
+        return param
 
-    return x_train_sampled, y_train_sampled
+    def sample(self, x_train: pd.DataFrame, y_train: pd.Series) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Function for up- and downsampling
+
+        @return:
+            tuple x_train_sampled, y_train_sampled
+        """
+        x_train_sampled, y_train_sampled = self.sampler.fit_resample(x_train, y_train)
+
+        return x_train_sampled, y_train_sampled

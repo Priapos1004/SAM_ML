@@ -13,7 +13,7 @@ from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
 from tqdm.auto import tqdm
 
 from sam_ml.data.embeddings import Embeddings_builder
-from sam_ml.data.sampling import sample
+from sam_ml.data.sampling import Sampler
 from sam_ml.data.scaler import Scaler
 
 from .main_model import Model
@@ -155,7 +155,7 @@ class Classifier(Model):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        upsampling: str = "ros",
+        sampling: str = "ros",
         vectorizer: str = "tfidf",
         scaler: str = "standard",
         avg: str = "macro",
@@ -168,7 +168,7 @@ class Classifier(Model):
 
         @param:
             X, y: data to cross validate on
-            upsampling: type of "data.sampling.sample" function or None for no upsampling
+            sampling: type of "data.sampling.Sampler" class or None for no sampling
             vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
             scaler: type of "data.scaler.Scaler" for scaling the data
 
@@ -192,17 +192,17 @@ class Classifier(Model):
         X = X.convert_dtypes()
         string_columns = X.select_dtypes(include="string").columns
 
-        upsampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
+        sampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
 
-        if upsampling == "SMOTE" and self.model_type in upsampling_problems:
+        if sampling == "SMOTE" and self.model_type in sampling_problems:
             if console_out:
-                print(self.model_type+" does not work with upsampling='SMOTE' --> going on with upsampling='ros'")
-            upsampling = "ros"
+                print(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
+            sampling = "ros"
 
-        elif upsampling in ["nm","tl"] and self.model_type in upsampling_problems:
+        elif sampling in ["nm","tl"] and self.model_type in sampling_problems:
             if console_out:
-                print(self.model_type+" does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
-            upsampling = "rus"
+                print(self.model_type+f" does not work with sampling='{sampling}' --> going on with sampling='rus'")
+            sampling = "rus"
 
         eb = Embeddings_builder(vec=vectorizer, console_out=False)
         
@@ -224,8 +224,9 @@ class Classifier(Model):
                 x_train = sc.scale(x_train, train_on=True)
                 x_test = sc.scale(x_test, train_on=False)
 
-            if upsampling != None:
-                x_train, y_train = sample(x_train, y_train, type=upsampling)
+            if sampling != None:
+                sampler = Sampler(algorithm=sampling)
+                x_train, y_train = sampler.sample(x_train, y_train)
 
             train_score, train_time = self.train(x_train, y_train, console_out=False)
             prediction = self.model.predict(x_test)

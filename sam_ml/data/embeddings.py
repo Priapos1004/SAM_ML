@@ -51,6 +51,15 @@ class Embeddings_builder:
             self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 
+    @staticmethod
+    def params() -> dict:
+        """
+        @return:
+            possible values for the parameters
+        """
+        param = {"vec": ["bert", "count", "tfidf"]}
+        return param
+
     def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
         indices = data.index
         if self.console_out:
