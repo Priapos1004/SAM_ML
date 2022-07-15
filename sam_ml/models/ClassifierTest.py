@@ -50,7 +50,7 @@ class CTest:
         @params:
             kind:
                 "all": use all models
-                "basic": use a 
+                "basic": use a simple combination (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
         """
         if kind == "all":
             models = [

@@ -1,0 +1,97 @@
+import pandas as pd
+import statsmodels.api as sm
+from sklearn.decomposition import PCA
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import (RFE, RFECV, SelectFromModel,
+                                       SelectKBest, SequentialFeatureSelector,
+                                       chi2)
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+
+
+class Selector:
+
+    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1"), **kwargs):
+        """
+        @params:
+            algorithm:
+                'kbest': SelectKBest
+                'kbest_chi2': SelectKBest with score_func=chi2 (only non-negative values)
+                'pca': PCA (new column names after transformation)
+                'wrapper': uses p-values of Ordinary Linear Model from statsmodels library (no num_features parameter -> problems with too many features)
+                'sequential': SequentialFeatureSelector
+                'select_model': SelectFromModel (meta-transformer for selecting features based on importance weights)
+                'rfe': RFE (recursive feature elimination)
+                'rfecv': RFECV (recursive feature elimination with cross-validation)
+            estimator:
+                parameter is needed for SequentialFeatureSelector, SelectFromModel, RFE, RFECV (default: LinearSVC)
+        """
+        self._algorithm = algorithm
+
+        if algorithm == "kbest":
+            self.selector = SelectKBest(k=num_features, **kwargs)
+        elif algorithm == "kbest_chi2":
+            self.selector = SelectKBest(k=num_features, score_func=chi2, **kwargs)
+        elif algorithm == "pca":
+            self.selector = PCA(n_components=num_features, random_state=42, **kwargs)
+        elif algorithm == "sequential":
+            self.selector = SequentialFeatureSelector(estimator, n_features_to_select=num_features, **kwargs)
+        elif algorithm == "select_model":
+            self.selector = SelectFromModel(estimator, max_features=num_features, **kwargs)
+        elif algorithm == "rfe":
+            self.selector = RFE(estimator, n_features_to_select=num_features, **kwargs)
+        elif algorithm == "rfecv":
+            self.selector = RFECV(estimator, min_features_to_select=num_features, **kwargs)
+        else:
+            print(f"INPUT ERROR: algorithm='{algorithm}' does not exist -> using SelectKBest algorithm instead")
+            self.selector = SelectKBest(k=num_features)
+
+    @staticmethod
+    def params() -> dict:
+        """
+        @return:
+            possible/recommended values for the parameters
+        """
+        param = {
+            "algorithm": ["kbest", "kbest_chi2", "pca", "wrapper", "sequential", "select_model", "rfe", "rfecv"], 
+            "estimator": [LinearSVC(penalty="l1"), LogisticRegression(), ExtraTreesClassifier(n_estimators=50)]
+        }
+        return param
+    
+    def select(self, X: pd.DataFrame, y: pd.DataFrame = None, train_on: bool = True) -> pd.DataFrame:
+        """
+        for training the y data is also needed
+        """
+        if train_on:
+            if self._algorithm == "wrapper":
+                self.selected_features = self.wrapper_select(X, y)
+            else:
+                self.selector.fit(X, y)
+                self.selected_features = self.selector.get_feature_names_out()
+        
+        if self._algorithm in ["wrapper"]:
+            X_selected = X[self.selected_features]
+        else:
+            X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
+
+        return X_selected
+
+    def wrapper_select(self, X, y) -> list:
+        selected_features = list(X.columns)
+        y = list(y)
+        pmax = 1
+        while (len(selected_features)>0):
+            p= []
+            X_new = X[selected_features]
+            X_new = sm.add_constant(X_new)
+            model = sm.OLS(y,X_new).fit()
+            p = pd.Series(model.pvalues.values[1:],index = selected_features)      
+            pmax = max(p)
+            feature_pmax = p.idxmax()
+            if(pmax>0.05):
+                selected_features.remove(feature_pmax)
+            else:
+                break
+        if len(selected_features) == len(X.columns):
+            print("WARNING: the wrapper algorithm selected all features")
+        return selected_features
