@@ -18,7 +18,8 @@ class Scaler:
                 'quantile': QuantileTransformer (default of QuantileTransformer)
                 'quantile_normal': QuantileTransformer with output_distribution="normal" (gaussian pdf)
 
-            You can change all parameters of the scaler
+            **kwargs:
+                additional parameters for scaler
         """
         self.console_out = console_out
 
@@ -63,7 +64,7 @@ class Scaler:
             self.scaler = QuantileTransformer(output_distribution="normal", **kwargs)
 
         else:
-            print(f"Scaler '{scaler}' is no valid input -> using StandardScaler")
+            print(f"INPUT ERROR: Scaler '{scaler}' is no valid input -> using StandardScaler")
             self.scaler = StandardScaler()
 
     @staticmethod

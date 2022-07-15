@@ -21,7 +21,8 @@ class Embeddings_builder:
                 'tfidf': TfidfVectorizer
                 'bert': SentenceTransformer("quora-distilbert-multilingual")
 
-            You can change all parameters from CountVectorizer and TfidfVectorizer
+            **kwargs:
+                additional parameters for CountVectorizer or TfidfVectorizer
         """
         self.console_out = console_out
         if bert_active and vec == "bert":
@@ -47,7 +48,7 @@ class Embeddings_builder:
 
         else:
             if self.console_out:
-                print(f"the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
+                print(f"INPUT ERROR: the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 

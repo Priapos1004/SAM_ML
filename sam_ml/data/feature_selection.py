@@ -11,7 +11,7 @@ from sklearn.svm import LinearSVC
 
 class Selector:
 
-    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1"), **kwargs):
+    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = True, **kwargs):
         """
         @params:
             algorithm:
@@ -23,10 +23,15 @@ class Selector:
                 'select_model': SelectFromModel (meta-transformer for selecting features based on importance weights)
                 'rfe': RFE (recursive feature elimination)
                 'rfecv': RFECV (recursive feature elimination with cross-validation)
+            
             estimator:
                 parameter is needed for SequentialFeatureSelector, SelectFromModel, RFE, RFECV (default: LinearSVC)
+            
+            **kwargs:
+                additional parameters for selector
         """
         self._algorithm = algorithm
+        self.console_out = console_out
 
         if algorithm == "kbest":
             self.selector = SelectKBest(k=num_features, **kwargs)
@@ -34,6 +39,8 @@ class Selector:
             self.selector = SelectKBest(k=num_features, score_func=chi2, **kwargs)
         elif algorithm == "pca":
             self.selector = PCA(n_components=num_features, random_state=42, **kwargs)
+        elif algorithm == "wrapper":
+            self.selector = None
         elif algorithm == "sequential":
             self.selector = SequentialFeatureSelector(estimator, n_features_to_select=num_features, **kwargs)
         elif algorithm == "select_model":
@@ -54,7 +61,7 @@ class Selector:
         """
         param = {
             "algorithm": ["kbest", "kbest_chi2", "pca", "wrapper", "sequential", "select_model", "rfe", "rfecv"], 
-            "estimator": [LinearSVC(penalty="l1"), LogisticRegression(), ExtraTreesClassifier(n_estimators=50)]
+            "estimator": [LinearSVC(penalty="l1", dual=False), LogisticRegression(), ExtraTreesClassifier(n_estimators=50)]
         }
         return param
     
@@ -62,21 +69,25 @@ class Selector:
         """
         for training the y data is also needed
         """
+        if self.console_out:
+            print("starting to select features...")
         if train_on:
             if self._algorithm == "wrapper":
-                self.selected_features = self.wrapper_select(X, y)
+                self.selected_features = self.__wrapper_select(X, y)
             else:
-                self.selector.fit(X, y)
-                self.selected_features = self.selector.get_feature_names_out()
+                self.selector.fit(X.values, y)
+                self.selected_features = self.selector.get_feature_names_out(X.columns)
         
         if self._algorithm in ["wrapper"]:
             X_selected = X[self.selected_features]
         else:
             X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
 
+        if self.console_out:
+            print("... features selected")
         return X_selected
 
-    def wrapper_select(self, X, y) -> list:
+    def __wrapper_select(self, X, y, pvalue_limit: float = 0.5) -> list:
         selected_features = list(X.columns)
         y = list(y)
         pmax = 1
@@ -88,7 +99,7 @@ class Selector:
             p = pd.Series(model.pvalues.values[1:],index = selected_features)      
             pmax = max(p)
             feature_pmax = p.idxmax()
-            if(pmax>0.05):
+            if(pmax>pvalue_limit):
                 selected_features.remove(feature_pmax)
             else:
                 break

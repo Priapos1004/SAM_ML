@@ -61,6 +61,9 @@ class Sampler:
                 nm: NearMiss (downsampling)
             
             random_state: seed for Random...Sampler
+
+            **kwargs:
+                additional parameters for sampler
         """
         if algorithm == "SMOTE":
             self.sampler = SMOTE(**kwargs)
@@ -73,7 +76,7 @@ class Sampler:
         elif algorithm == "nm":
             self.sampler = NearMiss(**kwargs)
         else:
-            print(f"type = '{algorithm}' does not exist --> using RandomOverSampler")
+            print(f"INPUT ERROR: type='{algorithm}' does not exist --> using RandomOverSampler")
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
 
     @staticmethod
