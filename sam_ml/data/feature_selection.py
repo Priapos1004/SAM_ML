@@ -87,7 +87,7 @@ class Selector:
             print("... features selected")
         return X_selected
 
-    def __wrapper_select(self, X, y, pvalue_limit: float = 0.5) -> list:
+    def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5) -> list:
         selected_features = list(X.columns)
         y = list(y)
         pmax = 1

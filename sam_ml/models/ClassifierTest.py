@@ -214,17 +214,20 @@ class CTest:
 
                 e.g. ['precision', 'recall'] - sort first by 'precision' and then by 'recall'
         """
-        if sort_by == "index":
-            scores = pd.DataFrame(self.scores).transpose().sort_index(ascending=True)
-        else:
-            scores = (
-                pd.DataFrame(self.scores)
-                .transpose()
-                .sort_values(by=sort_by, ascending=False)
-            )
+        if self.scores != {}:
+            if sort_by == "index":
+                scores = pd.DataFrame.from_dict(self.scores, orient="index").sort_index(ascending=True)
+            else:
+                scores = (
+                    pd.DataFrame.from_dict(self.scores, orient="index")
+                    .sort_values(by=sort_by, ascending=False)
+                )
 
-        if console_out:
-            print(scores)
+            if console_out:
+                print(scores)
+        else:
+            print("WARNING: no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
+            scores = None
 
         return scores
 
@@ -267,7 +270,7 @@ class CTest:
             self.eval_models(
                 x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
             )
-            self.output_scores_as_pd(sort_by=scoring)
+            self.output_scores_as_pd(sort_by=[scoring, "s_score"])
             print()
         else:
             print(
@@ -275,11 +278,13 @@ class CTest:
             )
             print()
 
-        sorted_scores = sorted(
-            self.scores.items(), key=lambda x: x[1][scoring], reverse=True
-        )
-        best_model_type = sorted_scores[0][0]
-        best_model_value = sorted_scores[0][1][scoring]
+        sorted_scores = (
+                pd.DataFrame(self.scores)
+                .transpose()
+                .sort_values(by=[scoring, "s_score"], ascending=False)
+            )
+        best_model_type = sorted_scores.iloc[0].name
+        best_model_value = sorted_scores.iloc[0][scoring]
 
         print(
             f"best model type ({scoring}): ", best_model_type, " - ", best_model_value
