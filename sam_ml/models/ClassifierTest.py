@@ -5,6 +5,8 @@ import warnings
 from typing import Union
 
 import pandas as pd
+from pkg_resources import resource_filename
+from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
 
@@ -99,6 +101,10 @@ class CTest:
 
         return models
 
+    def __finish_sound(self):
+        filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
+        playsound(filepath)
+
     def eval_models(
         self,
         x_train: pd.DataFrame,
@@ -130,7 +136,7 @@ class CTest:
                 self.scores[key] = score
 
             logging.debug("... models evaluated")
-
+            self.__finish_sound()
             return self.scores
 
         except KeyboardInterrupt:
@@ -195,7 +201,7 @@ class CTest:
                     }
 
             logging.debug("... models evaluated")
-
+            self.__finish_sound()
             return self.scores
 
         except KeyboardInterrupt:
@@ -263,26 +269,21 @@ class CTest:
             - saves best model in self.best_model
             - returns best model
         """
-        if self.scores == {}:
+        new_scores = (self.scores == {})
+        if new_scores:
             print(
                 "no scores are already created -> creating scores using 'eval_models()'"
             )
             self.eval_models(
                 x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
             )
-            self.output_scores_as_pd(sort_by=[scoring, "s_score"])
-            print()
         else:
             print(
                 "-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data"
             )
-            print()
 
-        sorted_scores = (
-                pd.DataFrame(self.scores)
-                .transpose()
-                .sort_values(by=[scoring, "s_score"], ascending=False)
-            )
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"], console_out=new_scores)
+        print()
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
 
@@ -317,5 +318,5 @@ class CTest:
         self.best_model = self.models[best_model_type]
 
         self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)
-
+        self.__finish_sound()
         return self.best_model

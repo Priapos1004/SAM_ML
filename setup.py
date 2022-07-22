@@ -10,6 +10,7 @@ setup(
     install_requires=["scikit-learn", "pandas", "matplotlib", "numpy", "catboost", "imbalanced-learn"], # M1 problems with tensorflow, sentence-transformers, xgboost
     extras_require={
         "test": ["pytest", "pylint!=2.5.0"],
+        "sounds": ["playsound", "PyObjC"]
     },
     author='Samuel Brinkmann',
     license='MIT',
