@@ -16,17 +16,17 @@ class RFC(Classifier):
     ):
         """
         @param (important one):
-            n_estimators - Number of trees in random forest
-            max_depth - Maximum number of levels in tree
-            n_jobs - how many cores shall be used (-1 means all)
-            random_state - random_state for model
-            verbose - log level (higher number --> more logs)
-            warm_start - work with previous fit and add more estimator
+            n_estimators: Number of trees in random forest
+            max_depth: Maximum number of levels in tree
+            n_jobs: how many cores shall be used (-1 means all)
+            random_state: random_state for model
+            verbose: log level (higher number --> more logs)
+            warm_start: work with previous fit and add more estimator
 
-            max_features - Number of features to consider at every split
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            bootstrap - Method of selecting samples for training each tree
+            max_features: Number of features to consider at every split
+            min_samples_split: Minimum number of samples required to split a node
+            min_samples_leaf: Minimum number of samples required at each leaf node
+            bootstrap: Method of selecting samples for training each tree
         """
         self.model_name = model_name
         self.model_type = "RFC"
@@ -41,7 +41,6 @@ class RFC(Classifier):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_estimators: list[int] = [1, 2, 4, 8, 16, 32, 64, 100, 200, 500, 1000],
-        max_features: list[Union[str, int, float]] = ["auto", "sqrt", 1],
         max_depth: list[int] = [2, 3, 4, 5, 6, 7, 8, 10, 15],
         min_samples_split: list[int] = [2, 3, 5, 10],
         min_samples_leaf: list[int] = [1, 2, 4],
@@ -61,30 +60,30 @@ class RFC(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            n_estimators - Number of trees in random forest
-            max_features - Number of features to consider at every split
-            max_depth - Maximum number of levels in tree
-            min_samples_split - Minimum number of samples required to split a node
-            min_samples_leaf - Minimum number of samples required at each leaf node
-            bootstrap - Method of selecting samples for training each tree
-            criterion - function to measure the quality of a split
+            n_estimators: Number of trees in random forest
+            max_features: Number of features to consider at every split
+            max_depth: Maximum number of levels in tree
+            min_samples_split: Minimum number of samples required to split a node
+            min_samples_leaf: Minimum number of samples required at each leaf node
+            bootstrap: Method of selecting samples for training each tree
+            criterion: function to measure the quality of a split
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
             
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
             
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search
@@ -92,7 +91,6 @@ class RFC(Classifier):
         # Create the random grid
         grid = dict(
             n_estimators=n_estimators,
-            max_features=max_features,
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,

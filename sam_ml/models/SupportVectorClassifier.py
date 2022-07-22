@@ -16,16 +16,16 @@ class SVC(Classifier):
     ):
         """
         @param (important one):
-            random_state - random_state for model
-            verbose - logging (True/False)
-            C - Inverse of regularization strength
-            kernel - kernel type to be used in the algorithm
-            gamma - Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
+            random_state: random_state for model
+            verbose: logging (True/False)
+            C: Inverse of regularization strength
+            kernel: kernel type to be used in the algorithm
+            gamma: Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
 
-            class_weight - set class_weight="balanced" to deal with imbalanced data
-            probability - probability=True enables probability estimates for SVM algorithms
+            class_weight: set class_weight="balanced" to deal with imbalanced data
+            probability: probability=True enables probability estimates for SVM algorithms
 
-            cache_size - Specify the size of the kernel cache (in MB)
+            cache_size: Specify the size of the kernel cache (in MB)
         """
         self.model_name = model_name
         self.model_type = "SVC"
@@ -66,26 +66,26 @@ class SVC(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            kernel - kernel type to be used in the algorithm
-            gamma - Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
-            C - Inverse of regularization strength
+            kernel: kernel type to be used in the algorithm
+            gamma: Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
+            C: Inverse of regularization strength
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

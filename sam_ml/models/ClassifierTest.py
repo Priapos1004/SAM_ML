@@ -1,7 +1,12 @@
 import logging
+import os
+import sys
+import warnings
 from typing import Union
 
 import pandas as pd
+from pkg_resources import resource_filename
+from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
 
@@ -24,44 +29,81 @@ from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+
 
 class CTest:
-    def __init__(
-        self,
-        models: list[Classifier] = [
-            LR(),
-            QDA(),
-            LDA(),
-            MLPC(),
-            LSVC(),
-            DTC(),
-            RFC(),
-            SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
-            GBM(),
-            CBC(),
-            ABC(model_name="AdaBoostClassifier (DTC based)"),
-            ABC(
-                base_estimator=RandomForestClassifier(max_depth=5),
-                model_name="AdaBoostClassifier (RFC based)",
-            ),
-            KNC(),
-            ETC(),
-            GNB(),
-            BNB(),
-            GPC(),
-            BC(model_name="BaggingClassifier (DTC based)"),
-            BC(
-                base_estimator=RandomForestClassifier(max_depth=5),
-                model_name="BaggingClassifier (RFC based)",
-            ),
-        ],
-    ):
+    def __init__(self, models: Union[str, list[Classifier]] = "all"):
+
+        if type(models) == str:
+            models = self.model_combs(models)
+
         self.models: dict = {}
         for i in range(len(models)):
             self.models[models[i].model_name] = models[i]
 
         self.best_model: Classifier
         self.scores: dict = {}
+
+    def model_combs(self, kind: str):
+        """
+        @params:
+            kind:
+                "all": use all models
+                "basic": use a simple combination (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
+        """
+        if kind == "all":
+            models = [
+                LR(),
+                QDA(),
+                LDA(),
+                MLPC(),
+                LSVC(),
+                DTC(),
+                #CBC(),
+                RFC(),
+                SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
+                GBM(),
+                
+                ABC(model_name="AdaBoostClassifier (DTC based)"),
+                ABC(
+                    base_estimator=RandomForestClassifier(max_depth=5),
+                    model_name="AdaBoostClassifier (RFC based)",
+                ),
+                KNC(),
+                ETC(),
+                GNB(),
+                BNB(),
+                GPC(),
+                BC(model_name="BaggingClassifier (DTC based)"),
+                BC(
+                    base_estimator=RandomForestClassifier(max_depth=5),
+                    model_name="BaggingClassifier (RFC based)",
+                ),
+            ]
+        elif kind == "basic":
+            models = [
+                LR(),
+                MLPC(),
+                LSVC(),
+                DTC(),
+                RFC(),
+                SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
+                GBM(),
+                ABC(model_name="AdaBoostClassifier (DTC based)"),
+                KNC(),
+            ]
+        else:
+            print(f"Cannot find model combination '{kind}' --> using all models")
+            models = self.model_combs("all")
+
+        return models
+
+    def __finish_sound(self):
+        filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
+        playsound(filepath)
 
     def eval_models(
         self,
@@ -74,16 +116,17 @@ class CTest:
     ) -> dict[str, dict]:
         """
         @param:
-            x_train, y_train, x_test, y_test - Data to train and evaluate models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            x_train, y_train, x_test, y_test: Data to train and evaluate models
+
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")    
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
         @return:
             saves metrics in dict self.scores and also outputs them
         """
         logging.debug("starting to evaluate models...")
         try:
-            for key in tqdm(self.models.keys()):
+            for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
                 score = self.models[key].evaluate(
                     x_test, y_test, avg=avg, pos_label=pos_label, console_out=False
@@ -93,7 +136,7 @@ class CTest:
                 self.scores[key] = score
 
             logging.debug("... models evaluated")
-
+            self.__finish_sound()
             return self.scores
 
         except KeyboardInterrupt:
@@ -108,29 +151,38 @@ class CTest:
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
         small_data_eval: bool = False,
-        upsampling: str = None,
+        sampling: str = None,
         vectorizer: str = "tfidf",
+        scaler: str = None,
     ) -> dict[str, dict]:
         """
         @param:
-            X, y - Data to train and evaluate models on
-            cv_num - number of different splits (ignored if small_data_eval=True)
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            X, y: Data to train and evaluate models on
+            cv_num: number of different splits (ignored if small_data_eval=True)
 
-            small_data_eval - if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-            upsampling - type of "data.sampling.sample" function or None for no upsampling (only for small_data_eval=True)
-            vectorizer - type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+            sampling: type of "data.sampling.Sampler" class or None for no sampling (only for small_data_eval=True)
+            vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
+            scaler: type of "data.scaler.Scaler" for scaling the data (only for small_data_eval=True)
 
         @return:
             saves metrics in dict self.scores and also outputs them
         """
         logging.debug("starting to evaluate models...")
+
+        if small_data_eval and sampling in ["nm","tl"]:
+            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='rus' for these models")
+        elif small_data_eval and sampling == "SMOTE":
+            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='ros' for these models")
+
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, upsampling=upsampling, vectorizer=vectorizer,
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, sampling=sampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False
                     )
                     self.scores[key] = self.models[key].cv_scores
                 else:
@@ -149,7 +201,7 @@ class CTest:
                     }
 
             logging.debug("... models evaluated")
-
+            self.__finish_sound()
             return self.scores
 
         except KeyboardInterrupt:
@@ -163,21 +215,25 @@ class CTest:
         """
         @param:
             sorted_by:
-                'index' - sort index ascending=True
-                'precision'/'recall'/'accuracy'/'train_score'/'train_time' - sort by these columns ascending=False
+                'index': sort index ascending=True
+                'precision'/'recall'/'accuracy'/'train_score'/'train_time': sort by these columns ascending=False
+
                 e.g. ['precision', 'recall'] - sort first by 'precision' and then by 'recall'
         """
-        if sort_by == "index":
-            scores = pd.DataFrame(self.scores).transpose().sort_index(ascending=True)
-        else:
-            scores = (
-                pd.DataFrame(self.scores)
-                .transpose()
-                .sort_values(by=sort_by, ascending=False)
-            )
+        if self.scores != {}:
+            if sort_by == "index":
+                scores = pd.DataFrame.from_dict(self.scores, orient="index").sort_index(ascending=True)
+            else:
+                scores = (
+                    pd.DataFrame.from_dict(self.scores, orient="index")
+                    .sort_values(by=sort_by, ascending=False)
+                )
 
-        if console_out:
-            print(scores)
+            if console_out:
+                print(scores)
+        else:
+            print("WARNING: no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
+            scores = None
 
         return scores
 
@@ -198,43 +254,38 @@ class CTest:
     ) -> Classifier:
         """
         @param:
-            scoring - "accuracy" / "precision" / "recall"
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: "accuracy" / "precision" / "recall"
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
-
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
-
-            console_out - outputs intermidiate results into the console
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
+            console_out: outputs intermidiate results into the console
 
         @return:
-            prints parameters and metrics of best model
-            saves best model in self.best_model
-            returns best model
+            - prints parameters and metrics of best model
+            - saves best model in self.best_model
+            - returns best model
         """
-        if self.scores == {}:
+        new_scores = (self.scores == {})
+        if new_scores:
             print(
                 "no scores are already created -> creating scores using 'eval_models()'"
             )
             self.eval_models(
                 x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
             )
-            self.output_scores_as_pd(sort_by=scoring)
-            print()
         else:
             print(
                 "-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data"
             )
-            print()
 
-        sorted_scores = sorted(
-            self.scores.items(), key=lambda x: x[1][scoring], reverse=True
-        )
-        best_model_type = sorted_scores[0][0]
-        best_model_value = sorted_scores[0][1][scoring]
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"], console_out=new_scores)
+        print()
+        best_model_type = sorted_scores.iloc[0].name
+        best_model_value = sorted_scores.iloc[0][scoring]
 
         print(
             f"best model type ({scoring}): ", best_model_type, " - ", best_model_value
@@ -267,5 +318,5 @@ class CTest:
         self.best_model = self.models[best_model_type]
 
         self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)
-
+        self.__finish_sound()
         return self.best_model

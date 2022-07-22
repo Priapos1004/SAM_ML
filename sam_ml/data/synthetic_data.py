@@ -17,8 +17,8 @@ def synt_data(columns: dict[str, list], label_name: str = "label", sample_num: i
     """
     @param:
         columns -> dict {"column_name1": [informativ: bool, range: tuple]}
-                - inforamtiv: is the feature important?
-                - range: (min_value, max_value) of column
+            inforamtiv: is the feature important?
+            range: (min_value, max_value) of column
     """
 
     total_feature_num = len(columns)

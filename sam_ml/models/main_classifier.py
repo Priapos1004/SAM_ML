@@ -13,7 +13,8 @@ from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
 from tqdm.auto import tqdm
 
 from sam_ml.data.embeddings import Embeddings_builder
-from sam_ml.data.sampling import sample
+from sam_ml.data.sampling import Sampler
+from sam_ml.data.scaler import Scaler
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
@@ -36,12 +37,12 @@ class Classifier(Model):
     ) -> dict:
         """
         @param:
-            x_test, y_test - Data to evaluate model
+            x_test, y_test: Data to evaluate model
             
-            avg - average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            console_out - shall the result be printed into the console
+            console_out: shall the result be printed into the console
         """
         logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
@@ -85,16 +86,16 @@ class Classifier(Model):
     ) -> Union[dict[str, list], pd.DataFrame]:
         """
         @param:
-            X, y - data to cross validate on
-            cv_num - number of different splits
+            X, y: data to cross validate on
+            cv_num: number of different splits
 
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            return_estimator - if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
+            return_estimator: if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
 
-            console_out - shall the result be printed into the console
-            return_as_dict - True: return scores as a dict, False: return scores as a pandas DataFrame
+            console_out: shall the result be printed into the console
+            return_as_dict: True: return scores as a dict, False: return scores as a pandas DataFrame
 
         @return:
             depending on "return_as_dict"
@@ -154,24 +155,28 @@ class Classifier(Model):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        upsampling: str = "ros",
+        sampling: str = "ros",
         vectorizer: str = "tfidf",
+        scaler: str = "standard",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
+        leave_loadbar: bool = True,
         console_out: bool = True,
     ) -> dict[str, list]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
 
         @param:
-            X, y - data to cross validate on
-            upsampling - type of "data.sampling.sample" function or None for no upsampling
-            vectorizer - type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
+            X, y: data to cross validate on
+            sampling: type of "data.sampling.Sampler" class or None for no sampling
+            vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
+            scaler: type of "data.scaler.Scaler" for scaling the data
 
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            console_out - shall the result be printed into the console
+            leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
+            console_out: shall the result be printed into the console
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
@@ -187,19 +192,21 @@ class Classifier(Model):
         X = X.convert_dtypes()
         string_columns = X.select_dtypes(include="string").columns
 
-        upsampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
+        sampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
 
-        if upsampling == "SMOTE" and self.model_type in upsampling_problems:
-            print(self.model_type+" does not work with upsampling='SMOTE' --> going on with upsampling='ros'")
-            upsampling = "ros"
+        if sampling == "SMOTE" and self.model_type in sampling_problems:
+            if console_out:
+                print(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
+            sampling = "ros"
 
-        elif upsampling in ["nm","tl"] and self.model_type in upsampling_problems:
-            print(self.model_type+" does not work with upsampling='"+upsampling+"' --> going on with upsampling='rus'")
-            upsampling = "rus"
+        elif sampling in ["nm","tl"] and self.model_type in sampling_problems:
+            if console_out:
+                print(self.model_type+f" does not work with sampling='{sampling}' --> going on with sampling='rus'")
+            sampling = "rus"
 
         eb = Embeddings_builder(vec=vectorizer, console_out=False)
         
-        for idx in tqdm(X.index, desc=self.model_name, leave=False):
+        for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
             x_train = X.drop(idx)
             y_train = y.drop(idx)
             x_test = X.loc[[idx]]
@@ -212,8 +219,14 @@ class Classifier(Model):
             x_train = x_train.drop(columns=string_columns)
             x_test = x_test.drop(columns=string_columns)
 
-            if upsampling != None:
-                    x_train, y_train = sample(x_train, y_train, type=upsampling)
+            if scaler != None:
+                sc = Scaler(scaler=scaler, console_out=False)
+                x_train = sc.scale(x_train, train_on=True)
+                x_test = sc.scale(x_test, train_on=False)
+
+            if sampling != None:
+                sampler = Sampler(algorithm=sampling)
+                x_train, y_train = sampler.sample(x_train, y_train)
 
             train_score, train_time = self.train(x_train, y_train, console_out=False)
             prediction = self.model.predict(x_test)
@@ -229,7 +242,7 @@ class Classifier(Model):
         s_score = s_scoring(true_values, predictions)
         l_score = l_scoring(true_values, predictions)
         avg_train_score = mean(t_scores)
-        avg_train_time = str(timedelta(seconds=sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times)))
+        avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
         self.cv_scores = {
             "accuracy": accuracy,
@@ -298,24 +311,24 @@ class Classifier(Model):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-            grid - dictonary of parameters to tune
+            grid: dictonary of parameters to tune
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

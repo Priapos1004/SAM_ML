@@ -25,12 +25,12 @@ class BC(Classifier):
     ):
         """
         @param (important one):
-            base_estimator -base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
-            n_estimator - number of boosting stages to perform
-            max_samples - the number of samples to draw from X to train each base estimator
-            max_features - the number of features to draw from X to train each base estimator
-            bootstrap - whether samples are drawn with replacement. If False, sampling without replacement is performed
-            bootstrap_features - whether features are drawn with replacement
+            base_estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
+            n_estimator: number of boosting stages to perform
+            max_samples: the number of samples to draw from X to train each base estimator
+            max_features: the number of features to draw from X to train each base estimator
+            bootstrap: whether samples are drawn with replacement. If False, sampling without replacement is performed
+            bootstrap_features: whether features are drawn with replacement
         """
         self.model_name = model_name
         self.model_type = "BC"
@@ -64,28 +64,28 @@ class BC(Classifier):
     ):
         """
         @param:
-            x_train - DataFrame with train features
-            y_train - Series with labels
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
             base_estimator -base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
-            n_estimator - number of boosting stages to perform
-            max_samples - the number of samples to draw from X to train each base estimator
-            max_features - the number of features to draw from X to train each base estimator
-            bootstrap - whether samples are drawn with replacement. If False, sampling without replacement is performed
-            bootstrap_features - whether features are drawn with replacement
+            n_estimator: number of boosting stages to perform
+            max_samples: the number of samples to draw from X to train each base estimator
+            max_features: the number of features to draw from X to train each base estimator
+            bootstrap: whether samples are drawn with replacement. If False, sampling without replacement is performed
+            bootstrap_features: whether features are drawn with replacement
 
-            n_split_num - number of different splits
-            n_repeats_num - number of repetition of one split
+            n_split_num: number of different splits
+            n_repeats_num: number of repetition of one split
 
-            scoring - metrics to evaluate the models
-            avg - average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label - if avg="binary", pos_label says which class to score. Else pos_label is ignored
-            rand_search - True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num - Combinations to try out if rand_search=True
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            rand_search: True: RandomizedSearchCV, False: GridSearchCV
+            n_iter_num: Combinations to try out if rand_search=True
 
-            verbose - log level (higher number --> more logs)
-            console_out - output the the results of the different iterations
-            train_afterwards - train the best model after finding it
+            verbose: log level (higher number --> more logs)
+            console_out: output the the results of the different iterations
+            train_afterwards: train the best model after finding it
 
         @return:
             set self.model = best model from search

@@ -26,5 +26,7 @@ pip install -e .
 ```
 from sam_ml.models import RFC
 
-RandomForstClassifier = RFC()
+RandomForestClassifier = RFC()
 ```
+
+--> in the "examples" folder you can find notebooks with code snippets that explain the usage of the package
