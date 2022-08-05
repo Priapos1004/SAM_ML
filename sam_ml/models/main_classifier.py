@@ -21,28 +21,50 @@ from .scorer import l_scoring, s_scoring
 
 
 class Classifier(Model):
-    def __init__(self, model_object=None, model_name="Classifier"):
+    def __init__(self, model_object = None, model_name: str = "Classifier"):
         self.model_name = model_name
         self.model_type = "Classifier"
         self.model = model_object
-        self.cv_scores = {}
+        self.cv_scores: dict[str, float] = {}
+        self._grid: dict[str, list] = {}
+
+    @property
+    def grid(self):
+        return self._grid
+
+    def update_grid(self, **kwargs):
+        """
+        function to update self.grid 
+
+        e.g.:
+            - model.grid {"n_estimators": [3, 4, 5]}
+            - model.update_grid(n_estimators = [10, 3, 5], solver = ["sag", "l1"])
+            - model.grid {"n_estimators": [10, 3, 5], "solver": ["sag", "l1"]}
+        """
+        for param in list(dict(**kwargs).keys()):
+            self._grid[param] = dict(**kwargs)[param]
 
     def evaluate(
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
         avg: str = None,
-        pos_label: Union[int, str] = 1,
+        pos_label: Union[int, str] = -1,
         console_out: bool = True,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ) -> dict:
         """
         @param:
             x_test, y_test: Data to evaluate model
-            
+
             avg: average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             console_out: shall the result be printed into the console
+
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
         """
         logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
@@ -51,8 +73,8 @@ class Classifier(Model):
         accuracy = accuracy_score(y_test, pred)
         precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
         recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
-        s_score = s_scoring(y_test, pred)
-        l_score = l_scoring(y_test, pred)
+        s_score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        l_score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
         if console_out:
             print("accuracy: ", accuracy)
@@ -79,10 +101,12 @@ class Classifier(Model):
         y: pd.Series,
         cv_num: int = 3,
         avg: str = "macro",
-        pos_label: Union[int, str] = 1,
+        pos_label: Union[int, str] = -1,
         return_estimator: bool = False,
         console_out: bool = True,
         return_as_dict: bool = False,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ) -> Union[dict[str, list], pd.DataFrame]:
         """
         @param:
@@ -90,12 +114,15 @@ class Classifier(Model):
             cv_num: number of different splits
 
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             return_estimator: if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
 
             console_out: shall the result be printed into the console
             return_as_dict: True: return scores as a dict, False: return scores as a pandas DataFrame
+
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             depending on "return_as_dict"
@@ -105,8 +132,8 @@ class Classifier(Model):
 
         precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
         recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
-        s_scorer = make_scorer(s_scoring)
-        l_scorer = make_scorer(l_scoring)
+        s_scorer = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        l_scorer = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
         if avg == "binary":
             scorer = {
@@ -159,9 +186,11 @@ class Classifier(Model):
         vectorizer: str = "tfidf",
         scaler: str = "standard",
         avg: str = "macro",
-        pos_label: Union[int, str] = 1,
+        pos_label: Union[int, str] = -1,
         leave_loadbar: bool = True,
         console_out: bool = True,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ) -> dict[str, list]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
@@ -173,10 +202,13 @@ class Classifier(Model):
             scaler: type of "data.scaler.Scaler" for scaling the data
 
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
             console_out: shall the result be printed into the console
+
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
@@ -199,7 +231,7 @@ class Classifier(Model):
                 print(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
             sampling = "ros"
 
-        elif sampling in ["nm","tl"] and self.model_type in sampling_problems:
+        elif sampling in ["nm", "tl"] and self.model_type in sampling_problems:
             if console_out:
                 print(self.model_type+f" does not work with sampling='{sampling}' --> going on with sampling='rus'")
             sampling = "rus"
@@ -239,8 +271,8 @@ class Classifier(Model):
         accuracy = accuracy_score(true_values, predictions)
         precision = precision_score(true_values, predictions, average=avg, pos_label=pos_label)
         recall = recall_score(true_values, predictions, average=avg, pos_label=pos_label)
-        s_score = s_scoring(true_values, predictions)
-        l_score = l_scoring(true_values, predictions)
+        s_score = s_scoring(true_values, predictions, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        l_score = l_scoring(true_values, predictions, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
         avg_train_score = mean(t_scores)
         avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
@@ -297,7 +329,7 @@ class Classifier(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        grid: dict,
+        grid: dict = None,
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
@@ -306,19 +338,21 @@ class Classifier(Model):
         verbose: int = 0,
         rand_search: bool = True,
         n_iter_num: int = 75,
-        console_out: bool = False,
+        console_out: bool = True,
         train_afterwards: bool = True,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ):
         """
         @param:
             x_train: DataFrame with train features
             y_train: Series with labels
 
-            grid: dictonary of parameters to tune
+            grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
 
             scoring: metrics to evaluate the models
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
 
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
@@ -330,9 +364,15 @@ class Classifier(Model):
             console_out: output the the results of the different iterations
             train_afterwards: train the best model after finding it
 
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+
         @return:
             set self.model = best model from search
         """
+        if grid is None:
+            grid = self.grid
+
         if console_out:
             print("grid: ", grid)
             print()
@@ -342,9 +382,9 @@ class Classifier(Model):
         elif scoring == "recall":
             scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
         elif scoring == "s_score":
-            scoring = make_scorer(s_scoring)
+            scoring = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
         elif scoring == "l_score":
-            scoring = make_scorer(l_scoring)
+            scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
         cv = RepeatedStratifiedKFold(
             n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42

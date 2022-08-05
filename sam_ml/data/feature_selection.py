@@ -32,6 +32,7 @@ class Selector:
         """
         self._algorithm = algorithm
         self.console_out = console_out
+        self.num_features = num_features
 
         if algorithm == "kbest":
             self.selector = SelectKBest(k=num_features, **kwargs)
@@ -69,6 +70,12 @@ class Selector:
         """
         for training the y data is also needed
         """
+        if len(X.columns) < self.num_features:
+            print("WARNING: the number of features that shall be selected is greater than the number of features in X")
+            print("--> return X")
+            self.selected_features = X.columns
+            return X
+
         if self.console_out:
             print("starting to select features...")
         if train_on:
