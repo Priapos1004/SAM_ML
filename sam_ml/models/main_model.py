@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class Model:
-    def __init__(self, model_object=None, model_name="model"):
+    def __init__(self, model_object=None, model_name: str = "model"):
         self.model = model_object
         self.model_name = model_name
         self.model_type = "Model"

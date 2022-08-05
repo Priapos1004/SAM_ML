@@ -21,11 +21,16 @@ from .scorer import l_scoring, s_scoring
 
 
 class Classifier(Model):
-    def __init__(self, model_object=None, model_name="Classifier"):
+    def __init__(self, model_object = None, model_name: str = "Classifier"):
         self.model_name = model_name
         self.model_type = "Classifier"
         self.model = model_object
         self.cv_scores = {}
+        self._grid = {}
+
+    @property
+    def grid(self):
+        return self._grid
 
     def evaluate(
         self,
@@ -297,7 +302,7 @@ class Classifier(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        grid: dict,
+        grid: dict = None,
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
@@ -306,7 +311,7 @@ class Classifier(Model):
         verbose: int = 0,
         rand_search: bool = True,
         n_iter_num: int = 75,
-        console_out: bool = False,
+        console_out: bool = True,
         train_afterwards: bool = True,
     ):
         """
@@ -314,7 +319,7 @@ class Classifier(Model):
             x_train: DataFrame with train features
             y_train: Series with labels
 
-            grid: dictonary of parameters to tune
+            grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
 
             scoring: metrics to evaluate the models
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
@@ -333,6 +338,9 @@ class Classifier(Model):
         @return:
             set self.model = best model from search
         """
+        if grid == None:
+            grid = self.grid
+
         if console_out:
             print("grid: ", grid)
             print()

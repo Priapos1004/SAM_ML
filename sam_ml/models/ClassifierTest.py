@@ -31,12 +31,18 @@ from .SupportVectorClassifier import SVC
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
-    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affects subprocesses
 
 
 class CTest:
     def __init__(self, models: Union[str, list[Classifier]] = "all"):
-
+        """
+        @params:
+            models:
+                list of Wrapperclass models from sam_ml library
+                'all': use all Wrapperclass models (18 models) from sam_ml library
+                'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
+        """
         if type(models) == str:
             models = self.model_combs(models)
 
@@ -102,6 +108,7 @@ class CTest:
         return models
 
     def __finish_sound(self):
+        """ little function to play a microwave sound """
         filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
         playsound(filepath)
 
