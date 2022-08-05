@@ -264,18 +264,22 @@ class CTest:
         n_split_num: int = 10,
         n_repeats_num: int = 3,
         console_out: bool = False,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ) -> Classifier:
         """
         @param:
-            scoring: "accuracy" / "precision" / "recall"
+            scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary") (if scoring='s_score'/'l_score', avg will be ignored)
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
             n_split_num: number of different splits
             n_repeats_num: number of repetition of one split
             console_out: outputs intermidiate results into the console
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
         @return:
             - prints parameters and metrics of best model
@@ -284,32 +288,21 @@ class CTest:
         """
         new_scores = (self.scores == {})
         if new_scores:
-            print(
-                "no scores are already created -> creating scores using 'eval_models()'"
-            )
-            self.eval_models(
-                x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label
-            )
+            print("no scores are already created -> creating scores using 'eval_models()'")
+            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label)
         else:
-            print(
-                "-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data"
-            )
+            print("-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data")
 
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"], console_out=new_scores)
         print()
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
 
-        print(
-            f"best model type ({scoring}): ", best_model_type, " - ", best_model_value
-        )
+        print(f"best model type ({scoring}): ", best_model_type, " - ", best_model_value)
 
-        print(
-            "starting to hyperparametertune best model type (rand_search = ",
-            rand_search,
-            ")...",
-        )
+        print(f"starting to hyperparametertune best model type (rand_search = {rand_search})...",)
         print()
+
         self.models[best_model_type].gridsearch(
             x_train,
             y_train,
@@ -322,7 +315,10 @@ class CTest:
             n_repeats_num=n_repeats_num,
             n_split_num=n_split_num,
             console_out=console_out,
+            secondary_scoring=secondary_scoring,
+            strength=strength,
         )
+
         print()
         print("... hyperparameter tuning finished")
         print()

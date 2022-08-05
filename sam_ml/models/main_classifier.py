@@ -325,6 +325,8 @@ class Classifier(Model):
         n_iter_num: int = 75,
         console_out: bool = True,
         train_afterwards: bool = True,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ):
         """
         @param:
@@ -334,8 +336,8 @@ class Classifier(Model):
             grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
 
             scoring: metrics to evaluate the models
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary") (if scoring='s_score'/'l_score', avg will be ignored)
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
 
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
@@ -346,6 +348,9 @@ class Classifier(Model):
             verbose: log level (higher number --> more logs)
             console_out: output the the results of the different iterations
             train_afterwards: train the best model after finding it
+
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
         @return:
             set self.model = best model from search
@@ -362,9 +367,9 @@ class Classifier(Model):
         elif scoring == "recall":
             scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
         elif scoring == "s_score":
-            scoring = make_scorer(s_scoring)
+            scoring = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
         elif scoring == "l_score":
-            scoring = make_scorer(l_scoring)
+            scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
         cv = RepeatedStratifiedKFold(
             n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
