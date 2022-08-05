@@ -304,7 +304,7 @@ class CTest:
             ")...",
         )
         print()
-        self.models[best_model_type].hyperparameter_tuning(
+        self.models[best_model_type].gridsearch(
             x_train,
             y_train,
             scoring=scoring,
