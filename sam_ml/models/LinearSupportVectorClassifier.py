@@ -26,7 +26,7 @@ class LSVC(Classifier):
             **kwargs,
         )
         self._grid = {
-            "penalty": ["l1","l2"],
+            "penalty": ["l1", "l2"],
             "dual": [True, False],
             "C": [10**i for i in range(-5, 6)]
         }

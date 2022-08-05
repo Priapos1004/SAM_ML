@@ -25,12 +25,24 @@ class Classifier(Model):
         self.model_name = model_name
         self.model_type = "Classifier"
         self.model = model_object
-        self.cv_scores = {}
-        self._grid = {}
+        self.cv_scores: dict[str, float] = {}
+        self._grid: dict[str, list] = {}
 
     @property
     def grid(self):
         return self._grid
+
+    def update_grid(self, **kwargs):
+        """
+        function to update self.grid 
+
+        e.g.:
+            - model.grid {"n_estimators": [3, 4, 5]}
+            - model.update_grid(n_estimators = [10, 3, 5], solver = ["sag", "l1"])
+            - model.grid {"n_estimators": [10, 3, 5], "solver": ["sag", "l1"]}
+        """
+        for param in list(dict(**kwargs).keys()):
+            self._grid[param] = dict(**kwargs)[param]
 
     def evaluate(
         self,
@@ -43,7 +55,7 @@ class Classifier(Model):
         """
         @param:
             x_test, y_test: Data to evaluate model
-            
+
             avg: average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
 
@@ -204,7 +216,7 @@ class Classifier(Model):
                 print(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
             sampling = "ros"
 
-        elif sampling in ["nm","tl"] and self.model_type in sampling_problems:
+        elif sampling in ["nm", "tl"] and self.model_type in sampling_problems:
             if console_out:
                 print(self.model_type+f" does not work with sampling='{sampling}' --> going on with sampling='rus'")
             sampling = "rus"
@@ -338,7 +350,7 @@ class Classifier(Model):
         @return:
             set self.model = best model from search
         """
-        if grid == None:
+        if grid is None:
             grid = self.grid
 
         if console_out:
