@@ -125,14 +125,19 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         avg: str = "macro",
-        pos_label: Union[int, str] = 1,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ) -> dict[str, dict]:
         """
         @param:
             x_train, y_train, x_test, y_test: Data to train and evaluate models
 
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")    
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             saves metrics in dict self.scores and also outputs them
@@ -142,7 +147,7 @@ class CTest:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
                 score = self.models[key].evaluate(
-                    x_test, y_test, avg=avg, pos_label=pos_label, console_out=False
+                    x_test, y_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
                 )
                 score["train_score"] = tscore
                 score["train_time"] = ttime
@@ -162,11 +167,13 @@ class CTest:
         y: pd.Series,
         cv_num: int = 3,
         avg: str = "macro",
-        pos_label: Union[int, str] = 1,
+        pos_label: Union[int, str] = -1,
         small_data_eval: bool = False,
         sampling: str = None,
         vectorizer: str = "tfidf",
         scaler: str = None,
+        secondary_scoring: str = None,
+        strength: int = 3,
     ) -> dict[str, dict]:
         """
         @param:
@@ -174,12 +181,15 @@ class CTest:
             cv_num: number of different splits (ignored if small_data_eval=True)
 
             avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
             
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             sampling: type of "data.sampling.Sampler" class or None for no sampling (only for small_data_eval=True)
             vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
             scaler: type of "data.scaler.Scaler" for scaling the data (only for small_data_eval=True)
+
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             saves metrics in dict self.scores and also outputs them
@@ -195,12 +205,12 @@ class CTest:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, sampling=sampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, sampling=sampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength
                     )
                     self.scores[key] = self.models[key].cv_scores
                 else:
                     self.models[key].cross_validation(
-                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False
+                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength
                     )
                     score = self.models[key].cv_scores["average"]
                     self.scores[key] = {
@@ -258,7 +268,7 @@ class CTest:
         y_test: pd.Series,
         scoring: str = "accuracy",
         avg: str = "macro",
-        pos_label: Union[int, str] = 1,
+        pos_label: Union[int, str] = -1,
         rand_search: bool = True,
         n_iter_num: int = 75,
         n_split_num: int = 10,
@@ -271,7 +281,7 @@ class CTest:
         @param:
             scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary") (if scoring='s_score'/'l_score', avg will be ignored)
+            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
@@ -289,7 +299,7 @@ class CTest:
         new_scores = (self.scores == {})
         if new_scores:
             print("no scores are already created -> creating scores using 'eval_models()'")
-            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label)
+            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
         else:
             print("-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data")
 
