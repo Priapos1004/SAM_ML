@@ -53,6 +53,12 @@ class CTest:
         self.best_model: Classifier
         self.scores: dict = {}
 
+    def remove_model(self, model_name: str):
+        del self.models[model_name]
+
+    def add_model(self, model: Classifier):
+        self.models[model.model_name] = model
+
     def model_combs(self, kind: str):
         """
         @params:
