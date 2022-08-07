@@ -23,7 +23,7 @@ from .scorer import l_scoring, s_scoring
 class Classifier(Model):
     """ Classifier parent class """
 
-    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}):
+    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}, is_pipeline: bool = False):
         """
         @params:
             model_object: model with 'fit' and 'predict' method
@@ -33,6 +33,7 @@ class Classifier(Model):
         """
         super().__init__(model_object, model_name, model_type)
         self._grid = grid
+        self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
 
     @property
@@ -440,6 +441,12 @@ class Classifier(Model):
                 print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
 
         self.model = grid_result.best_estimator_.model
+        if self.is_pipeline:
+            self.vectorizer = grid_result.best_estimator_.vectorizer
+            self.scaler = grid_result.best_estimator_.scaler
+            self.selector = grid_result.best_estimator_.selector
+            self.sampler = grid_result.best_estimator_.sampler
+
         print()
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
         print()

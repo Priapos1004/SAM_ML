@@ -1,5 +1,4 @@
 import copy
-import pickle
 from typing import Union
 
 import pandas as pd
@@ -19,23 +18,18 @@ class Pipe(Classifier):
             ...
             model_name: name of the model
         """
-        super().__init__(model.model, model_name, model.model_type, model.grid)
+        pre_grid = {f"model__{k}": v for k, v in model.grid.items()}
+        super().__init__(model.model, model_name, model.model_type, pre_grid, is_pipeline = True)
         self.vectorizer = vectorizer
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
         self.scaler = scaler
         self.selector = selector
         self.sampler = sampler
+        self._classifier = model
 
-    def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
-        if self.vectorizer is not None:
-            x_train = self.__auto_vectorizing(x_train, train_on=True)
-        if self.scaler is not None:
-            x_train = self.scaler.scale(x_train, train_on=True)
-        if self.selector is not None:
-            x_train = self.selector.select(x_train, y_train, train_on=True)
-        if self.sampler is not None:
-            x_train, y_train = self.sampler.sample(x_train, y_train)
-        return super().train(x_train, y_train, console_out)
+    @property
+    def steps(self):
+        return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self._classifier)]
 
     def __auto_vectorizing(self, X: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         # detect string columns and create a vectorizer for each
@@ -51,20 +45,45 @@ class Pipe(Classifier):
 
         return X_vec
 
-    def predict(self, x_test: pd.DataFrame) -> list:
+    def __data_prepare(self, X: pd.DataFrame, y: pd.Series, train_on: bool = True):
         if self.vectorizer is not None:
-            x_test = self.__auto_vectorizing(x_test, train_on=False)
+            X = self.__auto_vectorizing(X, train_on=train_on)
         if self.scaler is not None:
-            x_test = self.scaler.scale(x_test, train_on=False)
+            X = self.scaler.scale(X, train_on=train_on)
         if self.selector is not None:
-            x_test = self.selector.select(x_test, train_on=False)
-        return super().predict(x_test)
+            X = self.selector.select(X, y, train_on=train_on)
+        if self.sampler is not None and train_on:
+            X, y = self.sampler.sample(X, y)
+        return X, y
 
-    def cross_validation(self, X: pd.DataFrame, y: pd.Series, cv_num: int = 3, avg: str = "macro", pos_label: Union[int, str] = -1, return_estimator: bool = False, console_out: bool = True, return_as_dict: bool = False, secondary_scoring: str = None, strength: int = 3) -> Union[dict[str, float], pd.DataFrame]:
-        pass
+    def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
+        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
+        return super().train(x_train_pre, y_train_pre, console_out)
+
+    def fit(self, x_train: pd.DataFrame, y_train: pd.Series):
+        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
+        return super().fit(x_train_pre, y_train_pre)
+
+    def predict(self, x_test: pd.DataFrame) -> list:
+        x_test_pre, _ = self.__data_prepare(x_test, None, train_on=False)
+        return super().predict(x_test_pre)
+
+    def get_params(self, deep: bool = True):
+        return dict(self.steps)
+
+    def set_params(self, **params):
+        params = dict(**params)
+        vec_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "vectorizer"])
+        self.vectorizer.vectorizer.set_params(**vec_params)
+        scaler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "scaler"])
+        self.scaler.scaler.set_params(**scaler_params)
+        selector_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "selector"])
+        self.selector.selector.set_params(**selector_params)
+        sampler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "sampler"])
+        self.sampler.sampler.set_params(**sampler_params)
+        model_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "model"])
+        super().set_params(**model_params)
+        return self
 
     def cross_validation_small_data(self, X: pd.DataFrame, y: pd.Series, sampling: str = "ros", vectorizer: str = "tfidf", scaler: str = "standard", avg: str = "macro", pos_label: Union[int, str] = -1, leave_loadbar: bool = True, console_out: bool = True, secondary_scoring: str = None, strength: int = 3) -> dict[str, float]:
-        pass
-
-    def gridsearch(self, x_train: pd.DataFrame, y_train: pd.Series, grid: dict = None, scoring: str = "accuracy", avg: str = "macro", pos_label: Union[int, str] = 1, n_split_num: int = 10, n_repeats_num: int = 3, verbose: int = 0, rand_search: bool = True, n_iter_num: int = 75, console_out: bool = True, train_afterwards: bool = True, secondary_scoring: str = None, strength: int = 3):
         pass
