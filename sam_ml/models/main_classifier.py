@@ -1,4 +1,4 @@
-import logging
+import pickle
 from datetime import timedelta
 from statistics import mean
 from typing import Union
@@ -21,6 +21,8 @@ from .scorer import l_scoring, s_scoring
 
 
 class Classifier(Model):
+    """ Classifier parent class """
+
     def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}, is_pipeline: bool = False):
         """
         @params:
@@ -73,7 +75,6 @@ class Classifier(Model):
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
         """
-        logging.debug("evaluation started...")
         pred = self.model.predict(x_test)
 
         # Calculate Accuracy, Precision and Recall Metrics
@@ -87,7 +88,9 @@ class Classifier(Model):
             print("accuracy: ", accuracy)
             print("precision: ", precision)
             print("recall: ", recall)
-
+            print("s_score: ", s_score)
+            print("l_score: ", l_score)
+            print()
             print("classification report: ")
             print(classification_report(y_test, pred))
 
@@ -99,8 +102,16 @@ class Classifier(Model):
             "l_score": l_score,
         }
 
-        logging.debug("... evaluation finished")
         return self.test_score
+
+    @staticmethod
+    def load_model(path: str):
+        """ function to load a pickled Classifier class object """
+        print("loading model...")
+        with open(path, "rb") as f:
+            model = pickle.load(f)
+        print("... model loaded")
+        return Classifier(model, model.model_name, model.model_type, model.grid, model.is_pipeline)
 
     def cross_validation(
         self,
@@ -135,7 +146,8 @@ class Classifier(Model):
             depending on "return_as_dict"
             the scores will be saved in self.cv_scores as dict (WARNING: return_estimator=True increases object size)
         """
-        logging.debug("starting to cross validate...")
+        if console_out:
+            print("starting to cross validate...")
 
         precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
         recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
@@ -170,14 +182,14 @@ class Classifier(Model):
             n_jobs=-1,
         )
 
-        logging.debug("... cross validation completed")
-
         pd_scores = pd.DataFrame(cv_scores).transpose()
         pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
 
         self.cv_scores = pd_scores.to_dict()
 
         if console_out:
+            print("... cross validation completed")
+            print()
             print(pd_scores)
 
         if return_as_dict:
@@ -220,7 +232,8 @@ class Classifier(Model):
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
         """
-        logging.debug("starting to cross validate...")
+        if console_out:
+            print("starting to cross validate...")
 
         predictions = []
         true_values = []
@@ -294,6 +307,8 @@ class Classifier(Model):
         }
 
         if console_out:
+            print("... cross validation completed")
+            print()
             print("classification report:")
             print(classification_report(true_values, predictions))
 
@@ -421,10 +436,11 @@ class Classifier(Model):
                 scoring=scoring,
                 error_score=0,
             )
-
-        logging.debug("starting hyperparameter tuning...")
+        if console_out:
+            print("starting hyperparameter tuning...")
         grid_result = grid_search.fit(x_train, y_train)
-        logging.debug("... hyperparameter tuning finished")
+        if console_out:
+            print("... hyperparameter tuning finished")
 
         if console_out:
             means = grid_result.cv_results_["mean_test_score"]
@@ -440,6 +456,8 @@ class Classifier(Model):
         print()
 
         if train_afterwards:
-            logging.debug("starting to train best model...")
+            if console_out:
+                print("starting to train best model...")
             self.train(x_train, y_train, console_out=console_out)
-            logging.debug("... best model trained")
+            if console_out:
+                print("... best model trained")

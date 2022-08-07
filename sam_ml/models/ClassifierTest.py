@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import warnings
@@ -35,6 +34,8 @@ if not sys.warnoptions:
 
 
 class CTest:
+    """ AutoML class """
+
     def __init__(self, models: Union[str, list[Classifier]] = "all"):
         """
         @params:
@@ -142,7 +143,6 @@ class CTest:
         @return:
             saves metrics in dict self.scores and also outputs them
         """
-        logging.debug("starting to evaluate models...")
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
@@ -153,7 +153,6 @@ class CTest:
                 score["train_time"] = ttime
                 self.scores[key] = score
 
-            logging.debug("... models evaluated")
             self.__finish_sound()
             return self.scores
 
@@ -194,9 +193,8 @@ class CTest:
         @return:
             saves metrics in dict self.scores and also outputs them
         """
-        logging.debug("starting to evaluate models...")
 
-        if small_data_eval and sampling in ["nm","tl"]:
+        if small_data_eval and sampling in ["nm", "tl"]:
             print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='rus' for these models")
         elif small_data_eval and sampling == "SMOTE":
             print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='ros' for these models")
@@ -223,7 +221,6 @@ class CTest:
                         "avg train time": score[list(score.keys())[0]],
                     }
 
-            logging.debug("... models evaluated")
             self.__finish_sound()
             return self.scores
 
@@ -232,9 +229,7 @@ class CTest:
             print("KeyboardInterrupt - output interim result")
             return self.scores
 
-    def output_scores_as_pd(
-        self, sort_by: Union[str, list[str]] = "index", console_out: bool = True
-    ) -> pd.DataFrame:
+    def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
         """
         @param:
             sorted_by:
@@ -333,7 +328,7 @@ class CTest:
         print("... hyperparameter tuning finished")
         print()
 
-        logging.debug("Set self.best_model = hyperparameter tuned model")
+        # Set self.best_model = hyperparameter tuned model
         self.best_model = self.models[best_model_type]
 
         self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)
