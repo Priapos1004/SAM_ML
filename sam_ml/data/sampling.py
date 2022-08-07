@@ -67,7 +67,7 @@ class Sampler:
                 additional parameters for sampler
         """
         self.algorithm = algorithm
-        
+
         if algorithm == "SMOTE":
             self.sampler = SMOTE(**kwargs)
         elif algorithm == "rus":
@@ -92,7 +92,7 @@ class Sampler:
         param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
         return param
 
-    def sample(self, x_train: pd.DataFrame, y_train: pd.Series) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def sample(self, x_train: pd.DataFrame, y_train: pd.Series) -> tuple[pd.DataFrame, pd.Series]:
         """
         Function for up- and downsampling
 

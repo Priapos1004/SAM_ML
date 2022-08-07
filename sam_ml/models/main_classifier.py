@@ -161,7 +161,7 @@ class Classifier(Model):
             }
 
         cv_scores = cross_validate(
-            self.model,
+            self,
             X,
             y,
             scoring=scorer,
@@ -406,7 +406,7 @@ class Classifier(Model):
 
         if rand_search:
             grid_search = RandomizedSearchCV(
-                estimator=self.model,
+                estimator=self,
                 param_distributions=grid,
                 n_iter=n_iter_num,
                 cv=cv,
@@ -417,7 +417,7 @@ class Classifier(Model):
             )
         else:
             grid_search = GridSearchCV(
-                estimator=self.model,
+                estimator=self,
                 param_grid=grid,
                 n_jobs=-1,
                 cv=cv,
@@ -439,7 +439,7 @@ class Classifier(Model):
             for mean, stdev, param in zip(means, stds, params):
                 print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
 
-        self.model = grid_result.best_estimator_
+        self.model = grid_result.best_estimator_.model
         print()
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
         print()
