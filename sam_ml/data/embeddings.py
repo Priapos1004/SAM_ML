@@ -13,6 +13,8 @@ from tqdm.auto import tqdm
 
 
 class Embeddings_builder:
+    """ Vectorizer Wrapper class """
+
     def __init__(self, vec: str = "count", console_out: bool = True, **kwargs):
         """
         @param:
@@ -62,6 +64,13 @@ class Embeddings_builder:
         return param
 
     def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
+        """
+        @params:
+            data: pandas Series
+            train_on: shall the vectorizer fit before transform
+        @return:
+            pandas Dataframe with vectorized data
+        """
         indices = data.index
         if self.console_out:
             print("starting to create embeddings...")

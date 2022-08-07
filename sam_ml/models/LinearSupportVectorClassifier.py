@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class LSVC(Classifier):
+    """ LinearSupportVectorClassifier Wrapper class """
+
     def __init__(
         self,
         model_name: str = "LinearSupportVectorClassifier",

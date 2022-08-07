@@ -10,6 +10,7 @@ from sklearn.svm import LinearSVC
 
 
 class Selector:
+    """ feature selection algorithm Wrapper class """
 
     def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = True, **kwargs):
         """
@@ -68,7 +69,7 @@ class Selector:
     
     def select(self, X: pd.DataFrame, y: pd.DataFrame = None, train_on: bool = True) -> pd.DataFrame:
         """
-        for training the y data is also needed
+        for training: the y data is also needed
         """
         if len(X.columns) < self.num_features:
             print("WARNING: the number of features that shall be selected is greater than the number of features in X")

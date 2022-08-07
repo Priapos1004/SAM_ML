@@ -134,7 +134,7 @@ class CTest:
         @param:
             x_train, y_train, x_test, y_test: Data to train and evaluate models
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")    
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")    
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
@@ -179,7 +179,7 @@ class CTest:
             X, y: Data to train and evaluate models on
             cv_num: number of different splits (ignored if small_data_eval=True)
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
             
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
@@ -276,8 +276,8 @@ class CTest:
         @param:
             scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
             n_split_num: number of different splits

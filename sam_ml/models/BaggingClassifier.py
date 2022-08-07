@@ -13,6 +13,8 @@ warnings. filterwarnings('ignore')
 
 
 class BC(Classifier):
+    """ BaggingClassifier Wrapper class """
+
     def __init__(
         self,
         model_name: str = "BaggingClassifier",

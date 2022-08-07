@@ -9,6 +9,8 @@ from .main_classifier import Classifier
 
 
 class ABC(Classifier):
+    """ AdaBoostClassifier Wrapper class """
+
     def __init__(
         self,
         model_name: str = "AdaBoostClassifier",

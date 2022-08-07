@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class MLPC(Classifier):
+    """ MLP Classifier Wrapper class """
+
     def __init__(
         self,
         model_name: str = "MLP Classifier",

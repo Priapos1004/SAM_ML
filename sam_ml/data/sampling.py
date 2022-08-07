@@ -49,6 +49,7 @@ def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int,
     return x_train, y_train
 
 class Sampler:
+    """ sample algorithm Wrapper class """
 
     def __init__(self, algorithm: str = "ros", random_state: int = 42, **kwargs):
         """

@@ -28,7 +28,7 @@ class Classifier(Model):
         @params:
             model_object: model with 'fit' and 'predict' method
             model_name: name of the model
-            model_type: kind of estimator
+            model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
             grid: hyperparameter grid for the model
             is_pipeline: is the model a sklearn pipeline
         """
@@ -62,12 +62,12 @@ class Classifier(Model):
         console_out: bool = True,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> dict:
+    ) -> dict[str, float]:
         """
         @param:
             x_test, y_test: Data to evaluate model
 
-            avg: average to use for precision and recall score (e.g.: "micro", None, "weighted", "binary")
+            avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             console_out: shall the result be printed into the console
@@ -125,13 +125,13 @@ class Classifier(Model):
         return_as_dict: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> Union[dict[str, list], pd.DataFrame]:
+    ) -> Union[dict[str, float], pd.DataFrame]:
         """
         @param:
             X, y: data to cross validate on
             cv_num: number of different splits
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             return_estimator: if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
@@ -210,7 +210,7 @@ class Classifier(Model):
         console_out: bool = True,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> dict[str, list]:
+    ) -> dict[str, float]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
 
@@ -220,7 +220,7 @@ class Classifier(Model):
             vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
             scaler: type of "data.scaler.Scaler" for scaling the data
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
@@ -376,8 +376,8 @@ class Classifier(Model):
             grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
 
             scoring: metrics to evaluate the models
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
 
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True

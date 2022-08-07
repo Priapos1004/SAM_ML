@@ -8,6 +8,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class QDA(Classifier):
+    """ QuadraticDiscriminantAnalysis Wrapper class """
+
     def __init__(
         self,
         model_name: str = "QuadraticDiscriminantAnalysis",

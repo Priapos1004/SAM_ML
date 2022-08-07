@@ -5,6 +5,8 @@ from sklearn.preprocessing import (MaxAbsScaler, MinMaxScaler, Normalizer,
 
 
 class Scaler:
+    """ Scaler Wrapper class """
+
     def __init__(self, scaler: str = "standard", console_out: bool = True, **kwargs):
         """
         @param:

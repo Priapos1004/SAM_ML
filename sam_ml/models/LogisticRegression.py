@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class LR(Classifier):
+    """ LogisticRegression Wrapper class """
+
     def __init__(
         self,
         model_name: str = "LogisticRegression",
