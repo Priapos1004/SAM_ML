@@ -21,12 +21,19 @@ from .scorer import l_scoring, s_scoring
 
 
 class Classifier(Model):
-    def __init__(self, model_object = None, model_name: str = "Classifier"):
-        self.model_name = model_name
-        self.model_type = "Classifier"
-        self.model = model_object
+    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}, is_pipeline: bool = False):
+        """
+        @params:
+            model_object: model with 'fit' and 'predict' method
+            model_name: name of the model
+            model_type: kind of estimator
+            grid: hyperparameter grid for the model
+            is_pipeline: is the model a sklearn pipeline
+        """
+        super().__init__(model_object, model_name, model_type)
+        self._grid = grid
+        self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
-        self._grid: dict[str, list] = {}
 
     @property
     def grid(self):
@@ -296,6 +303,9 @@ class Classifier(Model):
         """
         feature_importance() generates a matplotlib plot of the feature importance from self.model
         """
+        if not self.trained:
+            return "INFO: You have to first train the classifier before getting the feature importance"
+
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
         elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC", "ETC"]:

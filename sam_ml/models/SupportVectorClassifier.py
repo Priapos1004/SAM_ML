@@ -24,25 +24,22 @@ class SVC(Classifier):
 
             cache_size: Specify the size of the kernel cache (in MB)
         """
-        self.model_name = model_name
-        self.model_type = "SVC"
-        self.model = svc(
+        model_type = "SVC"
+        model = svc(
             kernel=kernel,
             random_state=random_state,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "kernel": ["rbf", "poly", "sigmoid"],
             "gamma": [1, 0.1, 0.01, 0.001, 0.0001, "scale", "auto"],
             "C": [0.1, 1, 10, 100, 1000],
             "probability": [True, False],
         }
+        super().__init__(model, model_name, model_type, grid)
 
     def feature_importance(self):
         if self.model.kernel == "linear":
-            super(SVC, self).feature_importance()
+            super().feature_importance()
         else:
-            print(
-                "feature importance is only available for a linear kernel. You are currently using: ",
-                self.model.kernel,
-            )
+            print(f"feature importance is only available for a linear kernel. You are currently using: {self.model.kernel}")

@@ -29,14 +29,13 @@ class BC(Classifier):
             bootstrap: whether samples are drawn with replacement. If False, sampling without replacement is performed
             bootstrap_features: whether features are drawn with replacement
         """
-        self.model_name = model_name
-        self.model_type = "BC"
-        self.model = BaggingClassifier(
+        model_type = "BC"
+        model = BaggingClassifier(
             random_state=random_state,
             n_jobs=n_jobs,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "base_estimator": [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier(), RandomForestClassifier(max_depth=5), KNeighborsClassifier()],
             "n_estimators": list(range(10, 101, 10)) + [3, 4, 5, 6, 7, 8, 9, 200, 500, 1000, 1500, 3000],
             "max_samples": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
@@ -44,3 +43,4 @@ class BC(Classifier):
             "bootstrap": [True, False],
             "bootstrap_features": [True, False],
         }
+        super().__init__(model, model_name, model_type, grid)

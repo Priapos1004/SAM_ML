@@ -24,15 +24,14 @@ class CBC(Classifier):
             l2_leaf_reg: coefficient at the L2 regularization term of the cost function
             border_count: the number of splits for numerical features
         """
-        self.model_name = model_name
-        self.model_type = "CBC"
-        self.model = CatBoostClassifier(
+        model_type = "CBC"
+        model = CatBoostClassifier(
             verbose=verbose,
             random_state=random_state,
             allow_writing_files=allow_writing_files,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "depth": [4, 5, 6, 7, 8, 9, 10],
             "learning_rate": [0.1, 0.01, 0.02, 0.03, 0.04],
             "iterations": list(range(10, 101, 10)) + [200, 500, 1000],
@@ -41,3 +40,4 @@ class CBC(Classifier):
             "l2_leaf_reg": [2, 4, 6, 8, 12, 16, 20, 24, 30],
             "border_count": [2**i for i in range(0, 9)],
         }
+        super().__init__(model, model_name, model_type, grid)

@@ -18,15 +18,15 @@ class DTC(Classifier):
             min_samples_leaf: Minimum number of samples required at each leaf node
             random_state: random_state for model
         """
-        self.model_name = model_name
-        self.model_type = "DTC"
-        self.model = DecisionTreeClassifier(
+        model_type = "DTC"
+        model = DecisionTreeClassifier(
             random_state=random_state,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "criterion": ["gini", "entropy"],
             "max_depth": list(range(1, 10)),
             "min_samples_split": list(range(2, 10)),
             "min_samples_leaf": list(range(1, 5)),
         }
+        super().__init__(model, model_name, model_type, grid)

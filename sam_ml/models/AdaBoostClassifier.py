@@ -23,15 +23,15 @@ class ABC(Classifier):
             algorithm: boosting algorithm
             random_state: random_state for model
         """
-        self.model_name = model_name
-        self.model_type = "ABC"
-        self.model = AdaBoostClassifier(
+        model_type = "ABC"
+        model = AdaBoostClassifier(
             random_state=random_state,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "base_estimator": [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier(), RandomForestClassifier(max_depth=5)],
             "n_estimators": list(range(10, 101, 10)) + [200, 500, 1000, 1500, 3000],
             "learning_rate": [0.1, 0.05, 0.01, 0.005]+list(arange(0.2,2.1,0.1)),
             "algorithm": ["SAMME.R", "SAMME"],
         }
+        super().__init__(model, model_name, model_type, grid)

@@ -15,10 +15,10 @@ class LDA(Classifier):
             solver: solver to use
             shrinkage: shrinkage parameters (does not work with 'svd' solver)
         """
-        self.model_name = model_name
-        self.model_type = "LDA"
-        self.model = LinearDiscriminantAnalysis(**kwargs)
-        self._grid = {
+        model_type = "LDA"
+        model = LinearDiscriminantAnalysis(**kwargs)
+        grid = {
             "solver": ["lsqr", "eigen"],
             "shrinkage": list(arange(0, 1, 0.01))+["auto"],
         }
+        super().__init__(model, model_name, model_type, grid)

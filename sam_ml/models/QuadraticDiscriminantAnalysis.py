@@ -17,9 +17,9 @@ class QDA(Classifier):
         @param (important one):
             reg_param: regularizes the per-class covariance estimates by transforming
         """
-        self.model_name = model_name
-        self.model_type = "QDA"
-        self.model = QuadraticDiscriminantAnalysis(**kwargs)
-        self._grid = {
+        model_type = "QDA"
+        model = QuadraticDiscriminantAnalysis(**kwargs)
+        grid = {
             "reg_param": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
         }
+        super().__init__(model, model_name, model_type, grid)
