@@ -23,18 +23,16 @@ from .scorer import l_scoring, s_scoring
 class Classifier(Model):
     """ Classifier parent class """
 
-    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}, is_pipeline: bool = False):
+    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}):
         """
         @params:
             model_object: model with 'fit' and 'predict' method
             model_name: name of the model
             model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
             grid: hyperparameter grid for the model
-            is_pipeline: is the model a sklearn pipeline
         """
         super().__init__(model_object, model_name, model_type)
         self._grid = grid
-        self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
 
     @property
@@ -111,7 +109,7 @@ class Classifier(Model):
         with open(path, "rb") as f:
             model = pickle.load(f)
         print("... model loaded")
-        return Classifier(model, model.model_name, model.model_type, model.grid, model.is_pipeline)
+        return Classifier(model, model.model_name, model.model_type, model.grid)
 
     def cross_validation(
         self,
@@ -458,6 +456,6 @@ class Classifier(Model):
         if train_afterwards:
             if console_out:
                 print("starting to train best model...")
-            self.train(x_train, y_train, console_out=console_out)
+            self.train(x_train, y_train, console_out=False)
             if console_out:
                 print("... best model trained")

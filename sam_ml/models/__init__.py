@@ -14,6 +14,7 @@ from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .main_model import Model
+from .main_pipeline import Pipe as Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
@@ -22,6 +23,7 @@ from .SupportVectorClassifier import SVC
 __all__ = {
     "model parent class": "Model",
     "classifier parent class": "Classifier",
+    "pipeline class": "Pipeline",
     "AutoML class": "CTest",
     "RandomForestClassifier": "RFC",
     "LogisticRegression": "LR",
