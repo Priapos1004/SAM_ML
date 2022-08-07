@@ -31,7 +31,7 @@ class Selector:
             **kwargs:
                 additional parameters for selector
         """
-        self._algorithm = algorithm
+        self.algorithm = algorithm
         self.console_out = console_out
         self.num_features = num_features
 
@@ -54,6 +54,7 @@ class Selector:
         else:
             print(f"INPUT ERROR: algorithm='{algorithm}' does not exist -> using SelectKBest algorithm instead")
             self.selector = SelectKBest(k=num_features)
+            self.algorithm = "kbest"
 
     @staticmethod
     def params() -> dict:

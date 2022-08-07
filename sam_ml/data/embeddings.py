@@ -27,11 +27,12 @@ class Embeddings_builder:
                 additional parameters for CountVectorizer or TfidfVectorizer
         """
         self.console_out = console_out
+        self.vec_type = vec
+        
         if bert_active and vec == "bert":
             if self.console_out:
                 print("using quora-distilbert-multilingual model as vectorizer")
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual")
-            self.vec_type = vec
 
         elif not bert_active and vec == "bert":
             print("build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function")
@@ -40,13 +41,11 @@ class Embeddings_builder:
             if self.console_out:
                 print("using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer(**kwargs)
-            self.vec_type = vec
 
         elif vec == "tfidf":
             if self.console_out:
                 print("using TfidfVectorizer as vectorizer")
             self.vectorizer = TfidfVectorizer(**kwargs)
-            self.vec_type = vec
 
         else:
             if self.console_out:

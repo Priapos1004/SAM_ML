@@ -66,6 +66,8 @@ class Sampler:
             **kwargs:
                 additional parameters for sampler
         """
+        self.algorithm = algorithm
+        
         if algorithm == "SMOTE":
             self.sampler = SMOTE(**kwargs)
         elif algorithm == "rus":
@@ -79,6 +81,7 @@ class Sampler:
         else:
             print(f"INPUT ERROR: type='{algorithm}' does not exist --> using RandomOverSampler")
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
+            self.algorithm = "ros"
 
     @staticmethod
     def params() -> dict:

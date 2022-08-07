@@ -24,6 +24,7 @@ class Scaler:
                 additional parameters for scaler
         """
         self.console_out = console_out
+        self.scaler_type = scaler
 
         if scaler == "standard":
             if self.console_out:
@@ -68,6 +69,7 @@ class Scaler:
         else:
             print(f"INPUT ERROR: Scaler '{scaler}' is no valid input -> using StandardScaler")
             self.scaler = StandardScaler()
+            self.scaler_type = "standard"
 
     @staticmethod
     def params() -> dict:
