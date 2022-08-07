@@ -15,7 +15,7 @@ from tqdm.auto import tqdm
 class Embeddings_builder:
     """ Vectorizer Wrapper class """
 
-    def __init__(self, vec: str = "count", console_out: bool = True, **kwargs):
+    def __init__(self, vec: str = "count", console_out: bool = False, **kwargs):
         """
         @param:
             vec:
@@ -28,7 +28,7 @@ class Embeddings_builder:
         """
         self.console_out = console_out
         self.vec_type = vec
-        
+
         if bert_active and vec == "bert":
             if self.console_out:
                 print("using quora-distilbert-multilingual model as vectorizer")
@@ -48,8 +48,7 @@ class Embeddings_builder:
             self.vectorizer = TfidfVectorizer(**kwargs)
 
         else:
-            if self.console_out:
-                print(f"INPUT ERROR: the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
+            print(f"INPUT ERROR: the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 

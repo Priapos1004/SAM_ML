@@ -12,7 +12,7 @@ from sklearn.svm import LinearSVC
 class Selector:
     """ feature selection algorithm Wrapper class """
 
-    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = True, **kwargs):
+    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = False, **kwargs):
         """
         @params:
             algorithm:
@@ -81,13 +81,13 @@ class Selector:
         if self.console_out:
             print("starting to select features...")
         if train_on:
-            if self._algorithm == "wrapper":
+            if self.algorithm == "wrapper":
                 self.selected_features = self.__wrapper_select(X, y)
             else:
                 self.selector.fit(X.values, y)
                 self.selected_features = self.selector.get_feature_names_out(X.columns)
         
-        if self._algorithm in ["wrapper"]:
+        if self.algorithm in ["wrapper"]:
             X_selected = X[self.selected_features]
         else:
             X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)

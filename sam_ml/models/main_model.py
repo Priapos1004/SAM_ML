@@ -38,10 +38,12 @@ class Model:
 
         if console_out:
             print("Train score: ", self.train_score, " - Train time: ", self.train_time)
-            print("... training finished")
 
         self.trained = True
         return self.train_score, self.train_time
+
+    def predict(self, x_test: pd.DataFrame) -> list:
+        return list(self.model.predict(x_test))
 
     def evaluate(self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True) -> float:
         self.test_score = self.model.score(x_test, y_test)

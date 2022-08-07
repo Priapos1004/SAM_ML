@@ -7,7 +7,7 @@ from sklearn.preprocessing import (MaxAbsScaler, MinMaxScaler, Normalizer,
 class Scaler:
     """ Scaler Wrapper class """
 
-    def __init__(self, scaler: str = "standard", console_out: bool = True, **kwargs):
+    def __init__(self, scaler: str = "standard", console_out: bool = False, **kwargs):
         """
         @param:
             scaler: kind of scaler to use

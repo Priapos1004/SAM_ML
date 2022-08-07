@@ -73,7 +73,7 @@ class Classifier(Model):
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
         """
-        pred = self.model.predict(x_test)
+        pred = self.predict(x_test)
 
         # Calculate Accuracy, Precision and Recall Metrics
         accuracy = accuracy_score(y_test, pred)
@@ -279,7 +279,7 @@ class Classifier(Model):
                 x_train, y_train = sampler.sample(x_train, y_train)
 
             train_score, train_time = self.train(x_train, y_train, console_out=False)
-            prediction = self.model.predict(x_test)
+            prediction = self.predict(x_test)
 
             predictions.append(prediction)
             true_values.append(y_test)
