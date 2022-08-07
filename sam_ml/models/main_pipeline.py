@@ -19,12 +19,12 @@ class Pipe(Classifier):
             ...
             model_name: name of the model
         """
+        super().__init__(model.model, model_name, model.model_type, model.grid)
         self.vectorizer = vectorizer
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
         self.scaler = scaler
         self.selector = selector
         self.sampler = sampler
-        super().__init__(model, model_name, model.model_type, model.grid)
 
     def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
         if self.vectorizer is not None:
@@ -35,7 +35,7 @@ class Pipe(Classifier):
             x_train = self.selector.select(x_train, y_train, train_on=True)
         if self.sampler is not None:
             x_train, y_train = self.sampler.sample(x_train, y_train)
-        return self.model.train(x_train, y_train, console_out)
+        return super().train(x_train, y_train, console_out)
 
     def __auto_vectorizing(self, X: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         # detect string columns and create a vectorizer for each
@@ -58,21 +58,7 @@ class Pipe(Classifier):
             x_test = self.scaler.scale(x_test, train_on=False)
         if self.selector is not None:
             x_test = self.selector.select(x_test, train_on=False)
-        return self.model.predict(x_test)
-
-    def feature_importance(self):
-        self.model.feature_importance()
-
-    @staticmethod
-    def load_model(path: str):
-        """ function to load a pickled Pipe class object """
-        print("loading model...")
-        with open(path, "rb") as f:
-            model = pickle.load(f)
-        print("... model loaded")
-        pipe = Pipe(model.vectorizer, model.scaler, model.selector, model.sampler, model.model, model.model_name)
-        pipe.vectorizer_dict = model.vectorizer_dict
-        return pipe
+        return super().predict(x_test)
 
     def cross_validation(self, X: pd.DataFrame, y: pd.Series, cv_num: int = 3, avg: str = "macro", pos_label: Union[int, str] = -1, return_estimator: bool = False, console_out: bool = True, return_as_dict: bool = False, secondary_scoring: str = None, strength: int = 3) -> Union[dict[str, float], pd.DataFrame]:
         pass

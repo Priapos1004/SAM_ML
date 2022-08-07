@@ -102,15 +102,6 @@ class Classifier(Model):
 
         return self.test_score
 
-    @staticmethod
-    def load_model(path: str):
-        """ function to load a pickled Classifier class object """
-        print("loading model...")
-        with open(path, "rb") as f:
-            model = pickle.load(f)
-        print("... model loaded")
-        return Classifier(model, model.model_name, model.model_type, model.grid)
-
     def cross_validation(
         self,
         X: pd.DataFrame,

@@ -69,9 +69,9 @@ class Model:
 
     @staticmethod
     def load_model(path: str):
-        """ function to load a pickled Model class object """
+        """ function to load a pickled model class object """
         print("loading model...")
         with open(path, "rb") as f:
             model = pickle.load(f)
         print("... model loaded")
-        return Model(model, model.model_name, model.model_type)
+        return model
