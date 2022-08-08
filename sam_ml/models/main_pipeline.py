@@ -12,13 +12,20 @@ from .RandomForestClassifier import RFC
 class Pipe(Classifier):
     """ pipeline Wrapper class """
 
-    def __init__(self, vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None, model: Classifier = RFC(), model_name: str = "pipe"):
+    def __init__(self, vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None, model: Union[tuple, Classifier] = RFC(), model_name: str = "pipe"):
         """
         @params:
             ...
             model_name: name of the model
         """
-        super().__init__(model.model, model_name, model.model_type, model.grid, is_pipeline = True)
+        self._classifier: tuple
+
+        if issubclass(type(model), Classifier):
+            super().__init__(model.model, model_name, model.model_type, model.grid, is_pipeline = True)
+            self._classifier = (model.model, model.model_type, model.grid)
+        else:
+            super().__init__(model[0], model_name, model[1], model[2], is_pipeline = True)
+            self._classifier = model
 
         if vectorizer in Embeddings_builder.params()["vec"]:
             self.vectorizer = Embeddings_builder(vec=vectorizer)
@@ -41,7 +48,6 @@ class Pipe(Classifier):
             self.sampler = sampler
 
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
-        self._classifier = model
 
     @property
     def steps(self):

@@ -445,6 +445,7 @@ class Classifier(Model):
             self.scaler = grid_result.best_estimator_.scaler
             self.selector = grid_result.best_estimator_.selector
             self.sampler = grid_result.best_estimator_.sampler
+            self._classifier = (self.model, self.model_type, self._grid)
 
         print()
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
