@@ -25,6 +25,7 @@ class Scaler:
         """
         self.console_out = console_out
         self.scaler_type = scaler
+        self._grid: dict[str, list] = {} # for pipeline structure
 
         if scaler == "standard":
             if self.console_out:

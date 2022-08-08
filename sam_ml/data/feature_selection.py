@@ -34,6 +34,7 @@ class Selector:
         self.algorithm = algorithm
         self.console_out = console_out
         self.num_features = num_features
+        self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "kbest":
             self.selector = SelectKBest(k=num_features, **kwargs)

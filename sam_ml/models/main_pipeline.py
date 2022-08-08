@@ -12,25 +12,68 @@ from .RandomForestClassifier import RFC
 class Pipe(Classifier):
     """ pipeline Wrapper class """
 
-    def __init__(self, vectorizer: Embeddings_builder = None, scaler: Scaler = None, selector: Selector = None, sampler: Sampler = None, model: Classifier = RFC(), model_name: str = "pipe"):
+    def __init__(self, vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None, model: Classifier = RFC(), model_name: str = "pipe"):
         """
         @params:
             ...
             model_name: name of the model
         """
-        pre_grid = {f"model__{k}": v for k, v in model.grid.items()}
-        super().__init__(model.model, model_name, model.model_type, pre_grid, is_pipeline = True)
-        self.vectorizer = vectorizer
+        super().__init__(model.model, model_name, model.model_type, model.grid, is_pipeline = True)
+
+        if vectorizer in Embeddings_builder.params()["vec"]:
+            self.vectorizer = Embeddings_builder(vec=vectorizer)
+        else:
+            self.vectorizer = vectorizer
+
+        if scaler in Scaler.params()["scaler"]:
+            self.scaler = Scaler(scaler=scaler)
+        else:
+            self.scaler = scaler
+
+        if selector in Selector.params()["algorithm"]:
+            self.selector = Selector(algorithm=selector)
+        else:
+            self.selector = selector
+
+        if sampler in Sampler.params()["algorithm"]:
+            self.sampler = Sampler(algorithm=sampler)
+        else:
+            self.sampler = sampler
+
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
-        self.scaler = scaler
-        self.selector = selector
-        self.sampler = sampler
         self._classifier = model
 
     @property
     def steps(self):
         return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self._classifier)]
 
+    @property
+    def grid(self):
+        pre_grid = {}
+        vectorizer_grid = {f"vectorizer__{k}": v for k, v in self.vectorizer._grid.items()}
+        pre_grid.update(vectorizer_grid)
+        scaler_grid = {f"scaler__{k}": v for k, v in self.scaler._grid.items()}
+        pre_grid.update(scaler_grid)
+        selector_grid = {f"selector__{k}": v for k, v in self.selector._grid.items()}
+        pre_grid.update(selector_grid)
+        sampler_grid = {f"sampler__{k}": v for k, v in self.sampler._grid.items()}
+        pre_grid.update(sampler_grid)
+        model_grid = {f"model__{k}": v for k, v in self._grid.items()}
+        pre_grid.update(model_grid)
+        return pre_grid
+
+    def update_grid(self, **kwargs):
+        vectorizer_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "vectorizer"])
+        self.vectorizer._grid.update(vectorizer_params)
+        scaler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "scaler"])
+        self.scaler._grid.update(scaler_params)
+        selector_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "selector"])
+        self.selector._grid.update(selector_params)
+        sampler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "sampler"])
+        self.sampler._grid.update(sampler_params)
+        model_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "model"])
+        super().update_grid(**model_params)
+    
     def __auto_vectorizing(self, X: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         # detect string columns and create a vectorizer for each
         if train_on:

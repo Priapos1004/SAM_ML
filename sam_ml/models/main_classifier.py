@@ -49,8 +49,7 @@ class Classifier(Model):
             - model.update_grid(n_estimators = [10, 3, 5], solver = ["sag", "l1"])
             - model.grid {"n_estimators": [10, 3, 5], "solver": ["sag", "l1"]}
         """
-        for param in list(dict(**kwargs).keys()):
-            self._grid[param] = dict(**kwargs)[param]
+        self._grid.update(kwargs)
 
     def evaluate(
         self,

@@ -28,6 +28,7 @@ class Embeddings_builder:
         """
         self.console_out = console_out
         self.vec_type = vec
+        self._grid: dict[str, list] = {} # for pipeline structure
 
         if bert_active and vec == "bert":
             if self.console_out:

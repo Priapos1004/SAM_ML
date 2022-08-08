@@ -67,6 +67,7 @@ class Sampler:
                 additional parameters for sampler
         """
         self.algorithm = algorithm
+        self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "SMOTE":
             self.sampler = SMOTE(**kwargs)
