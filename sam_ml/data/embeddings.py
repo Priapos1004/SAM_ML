@@ -62,6 +62,13 @@ class Embeddings_builder:
         param = {"vec": ["bert", "count", "tfidf"]}
         return param
 
+    def set_params(self, **params):
+        if self.vec_type in ["bert"]:
+            self.vectorizer = SentenceTransformer("quora-distilbert-multilingual", **params)
+        else:
+            self.vectorizer.set_params(**params)
+        return self
+
     def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
         """
         @params:

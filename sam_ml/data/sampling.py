@@ -93,6 +93,10 @@ class Sampler:
         param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
         return param
 
+    def set_params(self, **params):
+        self.sampler.set_params(**params)
+        return self
+
     def sample(self, x_train: pd.DataFrame, y_train: pd.Series) -> tuple[pd.DataFrame, pd.Series]:
         """
         Function for up- and downsampling

@@ -29,23 +29,35 @@ class Pipe(Classifier):
 
         if vectorizer in Embeddings_builder.params()["vec"]:
             self.vectorizer = Embeddings_builder(vec=vectorizer)
-        else:
+        elif type(vectorizer) == Embeddings_builder:
             self.vectorizer = vectorizer
+        else:
+            print(f"ERROR: wrong input '{vectorizer}' for vectorizer -> vectorizer = None")
+            self.vectorizer = None
 
         if scaler in Scaler.params()["scaler"]:
             self.scaler = Scaler(scaler=scaler)
-        else:
+        elif type(scaler) == Scaler:
             self.scaler = scaler
+        else:
+            print(f"ERROR: wrong input '{scaler}' for scaler -> scaler = None")
+            self.scaler = None
 
         if selector in Selector.params()["algorithm"]:
             self.selector = Selector(algorithm=selector)
-        else:
+        elif type(selector) == Selector:
             self.selector = selector
+        else:
+            print(f"ERROR: wrong input '{selector}' for selector -> selector = None")
+            self.selector = None
 
         if sampler in Sampler.params()["algorithm"]:
             self.sampler = Sampler(algorithm=sampler)
-        else:
+        elif type(sampler) == Sampler:
             self.sampler = sampler
+        else:
+            print(f"ERROR: wrong input '{sampler}' for sampler -> sampler = None")
+            self.sampler = None
 
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
 
@@ -123,13 +135,13 @@ class Pipe(Classifier):
     def set_params(self, **params):
         params = dict(**params)
         vec_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "vectorizer"])
-        self.vectorizer.vectorizer.set_params(**vec_params)
+        self.vectorizer.set_params(**vec_params)
         scaler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "scaler"])
-        self.scaler.scaler.set_params(**scaler_params)
+        self.scaler.set_params(**scaler_params)
         selector_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "selector"])
-        self.selector.selector.set_params(**selector_params)
+        self.selector.set_params(**selector_params)
         sampler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "sampler"])
-        self.sampler.sampler.set_params(**sampler_params)
+        self.sampler.set_params(**sampler_params)
         model_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "model"])
         super().set_params(**model_params)
         return self

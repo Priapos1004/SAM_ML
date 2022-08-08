@@ -43,7 +43,7 @@ class Selector:
         elif algorithm == "pca":
             self.selector = PCA(n_components=num_features, random_state=42, **kwargs)
         elif algorithm == "wrapper":
-            self.selector = None
+            self.selector = {"pvalue_limit": 0.5}
         elif algorithm == "sequential":
             self.selector = SequentialFeatureSelector(estimator, n_features_to_select=num_features, **kwargs)
         elif algorithm == "select_model":
@@ -68,6 +68,13 @@ class Selector:
             "estimator": [LinearSVC(penalty="l1", dual=False), LogisticRegression(), ExtraTreesClassifier(n_estimators=50)]
         }
         return param
+
+    def set_params(self, **params):
+        if self.algorithm in ["wrapper"]:
+            self.selector = params
+        else:
+            self.selector.set_params(**params)
+        return self
     
     def select(self, X: pd.DataFrame, y: pd.DataFrame = None, train_on: bool = True) -> pd.DataFrame:
         """
@@ -83,7 +90,7 @@ class Selector:
             print("starting to select features...")
         if train_on:
             if self.algorithm == "wrapper":
-                self.selected_features = self.__wrapper_select(X, y)
+                self.selected_features = self.__wrapper_select(X, y, **self.selector)
             else:
                 self.selector.fit(X.values, y)
                 self.selected_features = self.selector.get_feature_names_out(X.columns)
@@ -97,7 +104,7 @@ class Selector:
             print("... features selected")
         return X_selected
 
-    def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5) -> list:
+    def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5, **kwargs) -> list:
         selected_features = list(X.columns)
         y = list(y)
         pmax = 1

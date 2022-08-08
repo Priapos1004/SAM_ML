@@ -76,10 +76,14 @@ class Scaler:
     def params() -> dict:
         """
         @return:
-            possible values for the parameters
+            possible values for the parameters of the Scaler class
         """
         param = {"scaler": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
         return param
+
+    def set_params(self, **params):
+        self.scaler.set_params(**params)
+        return self
 
     def scale(self, data: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         """
