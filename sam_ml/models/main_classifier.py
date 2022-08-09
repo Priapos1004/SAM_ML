@@ -1,4 +1,3 @@
-import pickle
 from datetime import timedelta
 from statistics import mean
 from typing import Union
@@ -11,10 +10,6 @@ from sklearn.metrics import (accuracy_score, classification_report,
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
                                      RepeatedStratifiedKFold, cross_validate)
 from tqdm.auto import tqdm
-
-from sam_ml.data.embeddings import Embeddings_builder
-from sam_ml.data.sampling import Sampler
-from sam_ml.data.scaler import Scaler
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
