@@ -109,9 +109,7 @@ class Classifier(Model):
         cv_num: int = 3,
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
-        return_estimator: bool = False,
         console_out: bool = True,
-        return_as_dict: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
     ) -> Union[dict[str, float], pd.DataFrame]:
@@ -123,10 +121,7 @@ class Classifier(Model):
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
-            return_estimator: if the estimator from the different splits shall be returned (suggestion: return_as_dict = True)
-
             console_out: shall the result be printed into the console
-            return_as_dict: True: return scores as a dict, False: return scores as a pandas DataFrame
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
@@ -167,32 +162,34 @@ class Classifier(Model):
             scoring=scorer,
             cv=cv_num,
             return_train_score=True,
-            return_estimator=return_estimator,
             n_jobs=-1,
         )
 
         pd_scores = pd.DataFrame(cv_scores).transpose()
         pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
 
-        self.cv_scores = pd_scores.to_dict()
+        score = pd_scores["average"]
+        self.cv_scores = {
+            "accuracy": score[list(score.keys())[6]],
+            "precision": score[list(score.keys())[2]],
+            "recall": score[list(score.keys())[4]],
+            "s_score": score[list(score.keys())[8]],
+            "l_score": score[list(score.keys())[10]],
+            "avg train score": score[list(score.keys())[7]],
+            "avg train time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+        }
 
         if console_out:
             print("... cross validation completed")
             print()
             print(pd_scores)
 
-        if return_as_dict:
-            return self.cv_scores
-        else:
-            return pd_scores
+        return self.cv_scores
 
     def cross_validation_small_data(
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        sampling: str = "ros",
-        vectorizer: str = "tfidf",
-        scaler: str = "standard",
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         leave_loadbar: bool = True,
@@ -205,9 +202,6 @@ class Classifier(Model):
 
         @param:
             X, y: data to cross validate on
-            sampling: type of "data.sampling.Sampler" class or None for no sampling
-            vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing
-            scaler: type of "data.scaler.Scaler" for scaling the data
 
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
@@ -228,46 +222,12 @@ class Classifier(Model):
         true_values = []
         t_scores = []
         t_times = []
-
-        # auto-detect data types
-        X = X.convert_dtypes()
-        string_columns = X.select_dtypes(include="string").columns
-
-        sampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
-
-        if sampling == "SMOTE" and self.model_type in sampling_problems:
-            if console_out:
-                print(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
-            sampling = "ros"
-
-        elif sampling in ["nm", "tl"] and self.model_type in sampling_problems:
-            if console_out:
-                print(self.model_type+f" does not work with sampling='{sampling}' --> going on with sampling='rus'")
-            sampling = "rus"
-
-        eb = Embeddings_builder(vec=vectorizer, console_out=False)
         
         for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
             x_train = X.drop(idx)
             y_train = y.drop(idx)
             x_test = X.loc[[idx]]
             y_test = y.loc[idx]
-
-            for col in string_columns:
-                x_train = pd.concat([x_train, eb.vectorize(x_train[col], train_on=True)], axis=1)
-                x_test = pd.concat([x_test, eb.vectorize(x_test[col], train_on=False)], axis=1)
-
-            x_train = x_train.drop(columns=string_columns)
-            x_test = x_test.drop(columns=string_columns)
-
-            if scaler != None:
-                sc = Scaler(scaler=scaler, console_out=False)
-                x_train = sc.scale(x_train, train_on=True)
-                x_test = sc.scale(x_test, train_on=False)
-
-            if sampling != None:
-                sampler = Sampler(algorithm=sampling)
-                x_train, y_train = sampler.sample(x_train, y_train)
 
             train_score, train_time = self.train(x_train, y_train, console_out=False)
             prediction = self.predict(x_test)

@@ -168,9 +168,6 @@ class CTest:
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         small_data_eval: bool = False,
-        sampling: str = None,
-        vectorizer: str = "tfidf",
-        scaler: str = None,
         secondary_scoring: str = None,
         strength: int = 3,
     ) -> dict[str, dict]:
@@ -183,9 +180,6 @@ class CTest:
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
             
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-            sampling: type of "data.sampling.Sampler" class or None for no sampling (only for small_data_eval=True)
-            vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
-            scaler: type of "data.scaler.Scaler" for scaling the data (only for small_data_eval=True)
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
@@ -194,33 +188,17 @@ class CTest:
             saves metrics in dict self.scores and also outputs them
         """
 
-        if small_data_eval and sampling in ["nm", "tl"]:
-            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='rus' for these models")
-        elif small_data_eval and sampling == "SMOTE":
-            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='ros' for these models")
-
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, sampling=sampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength,
                     )
-                    self.scores[key] = self.models[key].cv_scores
                 else:
                     self.models[key].cross_validation(
-                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength
+                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
                     )
-                    score = self.models[key].cv_scores["average"]
-                    self.scores[key] = {
-                        "accuracy": score[list(score.keys())[6]],
-                        "precision": score[list(score.keys())[2]],
-                        "recall": score[list(score.keys())[4]],
-                        "s_score": score[list(score.keys())[8]],
-                        "l_score": score[list(score.keys())[10]],
-                        "avg train score": score[list(score.keys())[7]],
-                        "avg train time": score[list(score.keys())[0]],
-                    }
-
+                self.scores[key] = self.models[key].cv_scores
             self.__finish_sound()
             return self.scores
 
