@@ -59,6 +59,16 @@ class Pipe(Classifier):
             print(f"ERROR: wrong input '{sampler}' for sampler -> sampler = None")
             self.sampler = None
 
+        # check for incompatible sampler-model combination
+        if self.sampler is not None:
+            sampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
+            if self.sampler.algorithm == "SMOTE" and self.model_type in sampling_problems:
+                print(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
+                self.sampler = Sampler(algorithm="ros")
+            elif self.sampler.algorithm in ["nm", "tl"] and self.model_type in sampling_problems:
+                print(self.model_type+f" does not work with sampling='{self.sampler.algorithm}' --> going on with sampling='rus'")
+                self.sampler = Sampler(algorithm="rus")
+
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
 
     @property
