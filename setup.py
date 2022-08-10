@@ -7,7 +7,7 @@ setup(
     packages=find_packages(),
     package_data={},
     scripts=[],
-    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy", "catboost", "imbalanced-learn", "playsound", "PyObjC"], # M1 problems with tensorflow, sentence-transformers, xgboost
+    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy", "catboost", "imbalanced-learn", "playsound", "PyObjC", "tqdm", "statsmodels"], # M1 problems with tensorflow, sentence-transformers, xgboost
     extras_require={
         "test": ["pytest", "pylint!=2.5.0"],
     },
