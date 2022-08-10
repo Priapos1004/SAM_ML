@@ -29,7 +29,7 @@ class Pipe(Classifier):
 
         if vectorizer in Embeddings_builder.params()["vec"]:
             self.vectorizer = Embeddings_builder(vec=vectorizer)
-        elif type(vectorizer) == Embeddings_builder:
+        elif type(vectorizer) == Embeddings_builder or vectorizer is None:
             self.vectorizer = vectorizer
         else:
             print(f"ERROR: wrong input '{vectorizer}' for vectorizer -> vectorizer = None")
@@ -37,7 +37,7 @@ class Pipe(Classifier):
 
         if scaler in Scaler.params()["scaler"]:
             self.scaler = Scaler(scaler=scaler)
-        elif type(scaler) == Scaler:
+        elif type(scaler) == Scaler or scaler is None:
             self.scaler = scaler
         else:
             print(f"ERROR: wrong input '{scaler}' for scaler -> scaler = None")
@@ -45,7 +45,7 @@ class Pipe(Classifier):
 
         if selector in Selector.params()["algorithm"]:
             self.selector = Selector(algorithm=selector)
-        elif type(selector) == Selector:
+        elif type(selector) == Selector or selector is None:
             self.selector = selector
         else:
             print(f"ERROR: wrong input '{selector}' for selector -> selector = None")
@@ -53,7 +53,7 @@ class Pipe(Classifier):
 
         if sampler in Sampler.params()["algorithm"]:
             self.sampler = Sampler(algorithm=sampler)
-        elif type(sampler) == Sampler:
+        elif type(sampler) == Sampler or sampler is None:
             self.sampler = sampler
         else:
             print(f"ERROR: wrong input '{sampler}' for sampler -> sampler = None")
@@ -78,27 +78,35 @@ class Pipe(Classifier):
     @property
     def grid(self):
         pre_grid = {}
-        vectorizer_grid = {f"vectorizer__{k}": v for k, v in self.vectorizer._grid.items()}
-        pre_grid.update(vectorizer_grid)
-        scaler_grid = {f"scaler__{k}": v for k, v in self.scaler._grid.items()}
-        pre_grid.update(scaler_grid)
-        selector_grid = {f"selector__{k}": v for k, v in self.selector._grid.items()}
-        pre_grid.update(selector_grid)
-        sampler_grid = {f"sampler__{k}": v for k, v in self.sampler._grid.items()}
-        pre_grid.update(sampler_grid)
+        if self.vectorizer is not None:
+            vectorizer_grid = {f"vectorizer__{k}": v for k, v in self.vectorizer._grid.items()}
+            pre_grid.update(vectorizer_grid)
+        if self.scaler is not None:
+            scaler_grid = {f"scaler__{k}": v for k, v in self.scaler._grid.items()}
+            pre_grid.update(scaler_grid)
+        if self.selector is not None:
+            selector_grid = {f"selector__{k}": v for k, v in self.selector._grid.items()}
+            pre_grid.update(selector_grid)
+        if self.sampler is not None:
+            sampler_grid = {f"sampler__{k}": v for k, v in self.sampler._grid.items()}
+            pre_grid.update(sampler_grid)
         model_grid = {f"model__{k}": v for k, v in self._grid.items()}
         pre_grid.update(model_grid)
         return pre_grid
 
     def update_grid(self, **kwargs):
-        vectorizer_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "vectorizer"])
-        self.vectorizer._grid.update(vectorizer_params)
-        scaler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "scaler"])
-        self.scaler._grid.update(scaler_params)
-        selector_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "selector"])
-        self.selector._grid.update(selector_params)
-        sampler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "sampler"])
-        self.sampler._grid.update(sampler_params)
+        if self.vectorizer is not None:
+            vectorizer_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "vectorizer"])
+            self.vectorizer._grid.update(vectorizer_params)
+        if self.scaler is not None:
+            scaler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "scaler"])
+            self.scaler._grid.update(scaler_params)
+        if self.selector is not None:
+            selector_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "selector"])
+            self.selector._grid.update(selector_params)
+        if self.sampler is not None:
+            sampler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "sampler"])
+            self.sampler._grid.update(sampler_params)
         model_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "model"])
         super().update_grid(**model_params)
     
@@ -144,17 +152,18 @@ class Pipe(Classifier):
 
     def set_params(self, **params):
         params = dict(**params)
-        vec_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "vectorizer"])
-        self.vectorizer.set_params(**vec_params)
-        scaler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "scaler"])
-        self.scaler.set_params(**scaler_params)
-        selector_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "selector"])
-        self.selector.set_params(**selector_params)
-        sampler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "sampler"])
-        self.sampler.set_params(**sampler_params)
+        if self.vectorizer is not None:
+            vec_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "vectorizer"])
+            self.vectorizer.set_params(**vec_params)
+        if self.scaler is not None:
+            scaler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "scaler"])
+            self.scaler.set_params(**scaler_params)
+        if self.selector is not None:
+            selector_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "selector"])
+            self.selector.set_params(**selector_params)
+        if self.sampler is not None:
+            sampler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "sampler"])
+            self.sampler.set_params(**sampler_params)
         model_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "model"])
         super().set_params(**model_params)
         return self
-
-    def cross_validation_small_data(self, X: pd.DataFrame, y: pd.Series, sampling: str = "ros", vectorizer: str = "tfidf", scaler: str = "standard", avg: str = "macro", pos_label: Union[int, str] = -1, leave_loadbar: bool = True, console_out: bool = True, secondary_scoring: str = None, strength: int = 3) -> dict[str, float]:
-        pass
