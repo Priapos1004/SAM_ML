@@ -14,7 +14,7 @@ from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
 from .main_model import Model
-from .main_pipeline import Pipe as Pipeline
+from .main_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC

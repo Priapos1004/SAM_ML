@@ -9,6 +9,8 @@ from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
 
+from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
+
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
@@ -23,6 +25,7 @@ from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
+from .main_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
@@ -36,29 +39,34 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: Union[str, list[Classifier]] = "all"):
+    def __init__(self, models: Union[str, list[Classifier]] = "all", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
         """
         @params:
             models:
                 list of Wrapperclass models from sam_ml library
                 'all': use all Wrapperclass models (18 models) from sam_ml library
                 'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
+            ...
         """
         if type(models) == str:
             models = self.model_combs(models)
 
         self.models: dict = {}
         for i in range(len(models)):
-            self.models[models[i].model_name] = models[i]
+            self.models[models[i].model_name] = Pipeline(vectorizer,  scaler, selector, sampler, models[i], models[i].model_name+" (pipeline)")
 
-        self.best_model: Classifier
+        self._vectorizer = vectorizer
+        self._scaler = scaler
+        self._selector = selector
+        self._sampler = sampler
+        self.best_model: Pipeline
         self.scores: dict = {}
 
     def remove_model(self, model_name: str):
         del self.models[model_name]
 
     def add_model(self, model: Classifier):
-        self.models[model.model_name] = model
+        self.models[model.model_name] = Pipeline(self._vectorizer, self._scaler, self._selector, self._sampler, model, model.model_name+" (pipeline)")
 
     def model_combs(self, kind: str):
         """
@@ -249,7 +257,7 @@ class CTest:
         console_out: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> Classifier:
+    ) -> Pipeline:
         """
         @param:
             scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
