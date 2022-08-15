@@ -10,7 +10,7 @@ from .RandomForestClassifier import RFC
 
 
 class Pipeline(Classifier):
-    """ pipeline Wrapper class """
+    """ classifier pipeline class """
 
     def __init__(self, vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None, model: Union[tuple, Classifier] = RFC(), model_name: str = "pipe"):
         """
