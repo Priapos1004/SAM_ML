@@ -250,6 +250,7 @@ class CTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
+        cv_kind: str = "no",
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
@@ -263,6 +264,10 @@ class CTest:
     ) -> Pipeline:
         """
         @param:
+            cv_kind: which kind of cross validation shall be used to create the scores to find the best model type
+                'no': use eval_models on x_train, y_train, x_test, y_test
+                'small': use eval_models_cv with small_data_eval=True on x_train, y_train
+                'multi': use eval_models_cv with small_data_eval=False on x_train, y_train
             scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
 
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
@@ -280,14 +285,21 @@ class CTest:
             - saves best model in self.best_model
             - returns best model
         """
-        new_scores = (self.scores == {})
-        if new_scores:
-            print("no scores are already created -> creating scores using 'eval_models()'")
-            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-        else:
-            print("-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data")
 
-        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"], console_out=new_scores)
+        if cv_kind == "no":
+            print("creating scores using 'eval_models()'")
+            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+        elif cv_kind == "small":
+            print("creating scores using 'eval_models_cv(small_data_eval=True)'")
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
+        elif cv_kind == "multi":
+            print("creating scores using 'eval_models_cv(small_data_eval=False)'")
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength)
+        else:
+            print(f"ERROR: wrong input '{cv_kind}' for cv_kind")
+            return
+
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"])
         print()
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
