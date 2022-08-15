@@ -33,6 +33,10 @@ class Classifier(Model):
 
     @property
     def grid(self):
+        """
+        @return:
+            hyperparameter tuning grid of the model
+        """
         return self._grid
 
     def update_grid(self, **kwargs):

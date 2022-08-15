@@ -46,7 +46,10 @@ class CTest:
                 list of Wrapperclass models from sam_ml library
                 'all': use all Wrapperclass models (18 models) from sam_ml library
                 'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
-            ...
+            vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
+            scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
+            selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
+            sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
         """
         if type(models) == str:
             models = self.model_combs(models)

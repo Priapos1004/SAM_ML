@@ -26,6 +26,10 @@ class Model:
         self.feature_names: list = None
 
     def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
+        """
+        @return:
+            tuple of train score and train time
+        """
         if console_out:
             print("started training...")
 
@@ -47,6 +51,10 @@ class Model:
         return self
 
     def predict(self, x_test: pd.DataFrame) -> list:
+        """
+        @return:
+            list with predictions
+        """
         return list(self.model.predict(x_test))
 
     def get_params(self, deep: bool = True):
