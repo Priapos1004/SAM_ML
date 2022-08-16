@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class LSVC(Classifier):
+    """ LinearSupportVectorClassifier Wrapper class """
+
     def __init__(
         self,
         model_name: str = "LinearSupportVectorClassifier",
@@ -19,14 +21,14 @@ class LSVC(Classifier):
             C: Inverse of regularization strength
             max_iter: Maximum number of iterations taken for the solvers to converge
         """
-        self.model_name = model_name
-        self.model_type = "LSVC"
-        self.model = LinearSVC(
+        model_type = "LSVC"
+        model = LinearSVC(
             random_state=random_state,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "penalty": ["l1", "l2"],
             "dual": [True, False],
             "C": [10**i for i in range(-5, 6)]
         }
+        super().__init__(model, model_name, model_type, grid)

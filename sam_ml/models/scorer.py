@@ -36,12 +36,12 @@ def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = 
 
     score = 1.0
     for i in range(len(prec)):
-        if (scoring=='precision' and pos_label==i) or (scoring=='precision' and pos_label<=0) or (scoring==None and pos_label==i):
+        if (scoring=='precision' and pos_label==i) or (scoring=='precision' and type(pos_label)==int and pos_label<=0) or (scoring==None and pos_label==i):
             score *= score_func(prec[i])**strength
         else:
             score *= score_func(prec[i])
     for i in range(len(rec)):
-        if (scoring=='recall' and pos_label==i) or (scoring=='recall' and pos_label<=0) or (scoring==None and pos_label==i):
+        if (scoring=='recall' and pos_label==i) or (scoring=='recall' and type(pos_label)==int and pos_label<=0) or (scoring==None and pos_label==i):
             score *= score_func(rec[i])**strength
         else:
             score *= score_func(rec[i])

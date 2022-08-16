@@ -10,8 +10,9 @@ from sklearn.svm import LinearSVC
 
 
 class Selector:
+    """ feature selection algorithm Wrapper class """
 
-    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = True, **kwargs):
+    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = False, **kwargs):
         """
         @params:
             algorithm:
@@ -30,9 +31,10 @@ class Selector:
             **kwargs:
                 additional parameters for selector
         """
-        self._algorithm = algorithm
+        self.algorithm = algorithm
         self.console_out = console_out
         self.num_features = num_features
+        self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "kbest":
             self.selector = SelectKBest(k=num_features, **kwargs)
@@ -41,7 +43,7 @@ class Selector:
         elif algorithm == "pca":
             self.selector = PCA(n_components=num_features, random_state=42, **kwargs)
         elif algorithm == "wrapper":
-            self.selector = None
+            self.selector = {"pvalue_limit": 0.5}
         elif algorithm == "sequential":
             self.selector = SequentialFeatureSelector(estimator, n_features_to_select=num_features, **kwargs)
         elif algorithm == "select_model":
@@ -53,6 +55,7 @@ class Selector:
         else:
             print(f"INPUT ERROR: algorithm='{algorithm}' does not exist -> using SelectKBest algorithm instead")
             self.selector = SelectKBest(k=num_features)
+            self.algorithm = "kbest"
 
     @staticmethod
     def params() -> dict:
@@ -65,10 +68,17 @@ class Selector:
             "estimator": [LinearSVC(penalty="l1", dual=False), LogisticRegression(), ExtraTreesClassifier(n_estimators=50)]
         }
         return param
+
+    def set_params(self, **params):
+        if self.algorithm in ["wrapper"]:
+            self.selector = params
+        else:
+            self.selector.set_params(**params)
+        return self
     
     def select(self, X: pd.DataFrame, y: pd.DataFrame = None, train_on: bool = True) -> pd.DataFrame:
         """
-        for training the y data is also needed
+        for training: the y data is also needed
         """
         if len(X.columns) < self.num_features:
             print("WARNING: the number of features that shall be selected is greater than the number of features in X")
@@ -79,13 +89,13 @@ class Selector:
         if self.console_out:
             print("starting to select features...")
         if train_on:
-            if self._algorithm == "wrapper":
-                self.selected_features = self.__wrapper_select(X, y)
+            if self.algorithm == "wrapper":
+                self.selected_features = self.__wrapper_select(X, y, **self.selector)
             else:
                 self.selector.fit(X.values, y)
                 self.selected_features = self.selector.get_feature_names_out(X.columns)
         
-        if self._algorithm in ["wrapper"]:
+        if self.algorithm in ["wrapper"]:
             X_selected = X[self.selected_features]
         else:
             X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
@@ -94,7 +104,7 @@ class Selector:
             print("... features selected")
         return X_selected
 
-    def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5) -> list:
+    def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5, **kwargs) -> list:
         selected_features = list(X.columns)
         y = list(y)
         pmax = 1

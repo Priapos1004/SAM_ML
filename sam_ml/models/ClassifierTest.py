@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import warnings
@@ -9,6 +8,8 @@ from pkg_resources import resource_filename
 from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
+
+from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
 
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
@@ -24,6 +25,7 @@ from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
+from .main_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
@@ -35,29 +37,39 @@ if not sys.warnoptions:
 
 
 class CTest:
-    def __init__(self, models: Union[str, list[Classifier]] = "all"):
+    """ AutoML class """
+
+    def __init__(self, models: Union[str, list[Classifier]] = "all", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
         """
         @params:
             models:
                 list of Wrapperclass models from sam_ml library
                 'all': use all Wrapperclass models (18 models) from sam_ml library
                 'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
+            vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
+            scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
+            selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
+            sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
         """
         if type(models) == str:
             models = self.model_combs(models)
 
         self.models: dict = {}
         for i in range(len(models)):
-            self.models[models[i].model_name] = models[i]
+            self.models[models[i].model_name] = Pipeline(vectorizer,  scaler, selector, sampler, models[i], models[i].model_name+" (pipeline)")
 
-        self.best_model: Classifier
+        self._vectorizer = vectorizer
+        self._scaler = scaler
+        self._selector = selector
+        self._sampler = sampler
+        self.best_model: Pipeline
         self.scores: dict = {}
 
     def remove_model(self, model_name: str):
         del self.models[model_name]
 
     def add_model(self, model: Classifier):
-        self.models[model.model_name] = model
+        self.models[model.model_name] = Pipeline(self._vectorizer, self._scaler, self._selector, self._sampler, model, model.model_name+" (pipeline)")
 
     def model_combs(self, kind: str):
         """
@@ -133,7 +145,7 @@ class CTest:
         @param:
             x_train, y_train, x_test, y_test: Data to train and evaluate models
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")    
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")    
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
@@ -142,7 +154,6 @@ class CTest:
         @return:
             saves metrics in dict self.scores and also outputs them
         """
-        logging.debug("starting to evaluate models...")
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
@@ -153,7 +164,6 @@ class CTest:
                 score["train_time"] = ttime
                 self.scores[key] = score
 
-            logging.debug("... models evaluated")
             self.__finish_sound()
             return self.scores
 
@@ -169,9 +179,6 @@ class CTest:
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         small_data_eval: bool = False,
-        sampling: str = None,
-        vectorizer: str = "tfidf",
-        scaler: str = None,
         secondary_scoring: str = None,
         strength: int = 3,
     ) -> dict[str, dict]:
@@ -180,13 +187,10 @@ class CTest:
             X, y: Data to train and evaluate models on
             cv_num: number of different splits (ignored if small_data_eval=True)
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
             
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-            sampling: type of "data.sampling.Sampler" class or None for no sampling (only for small_data_eval=True)
-            vectorizer: type of "data.embeddings.Embeddings_builder" for automatic string column vectorizing (only for small_data_eval=True)
-            scaler: type of "data.scaler.Scaler" for scaling the data (only for small_data_eval=True)
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
@@ -194,36 +198,18 @@ class CTest:
         @return:
             saves metrics in dict self.scores and also outputs them
         """
-        logging.debug("starting to evaluate models...")
-
-        if small_data_eval and sampling in ["nm","tl"]:
-            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='rus' for these models")
-        elif small_data_eval and sampling == "SMOTE":
-            print("QDA / LDA / LR / MLPC / LSVC does not work with sampling='"+sampling+"' --> going on with sampling='ros' for these models")
 
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, sampling=sampling, vectorizer=vectorizer, scaler=scaler, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength,
                     )
-                    self.scores[key] = self.models[key].cv_scores
                 else:
                     self.models[key].cross_validation(
-                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength
+                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
                     )
-                    score = self.models[key].cv_scores["average"]
-                    self.scores[key] = {
-                        "accuracy": score[list(score.keys())[6]],
-                        "precision": score[list(score.keys())[2]],
-                        "recall": score[list(score.keys())[4]],
-                        "s_score": score[list(score.keys())[8]],
-                        "l_score": score[list(score.keys())[10]],
-                        "avg train score": score[list(score.keys())[7]],
-                        "avg train time": score[list(score.keys())[0]],
-                    }
-
-            logging.debug("... models evaluated")
+                self.scores[key] = self.models[key].cv_scores
             self.__finish_sound()
             return self.scores
 
@@ -232,9 +218,7 @@ class CTest:
             print("KeyboardInterrupt - output interim result")
             return self.scores
 
-    def output_scores_as_pd(
-        self, sort_by: Union[str, list[str]] = "index", console_out: bool = True
-    ) -> pd.DataFrame:
+    def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
         """
         @param:
             sorted_by:
@@ -266,6 +250,7 @@ class CTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
+        cv_kind: str = "no",
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
@@ -276,13 +261,17 @@ class CTest:
         console_out: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> Classifier:
+    ) -> Pipeline:
         """
         @param:
+            cv_kind: which kind of cross validation shall be used to create the scores to find the best model type
+                'no': use eval_models on x_train, y_train, x_test, y_test
+                'small': use eval_models_cv with small_data_eval=True on x_train, y_train
+                'multi': use eval_models_cv with small_data_eval=False on x_train, y_train
             scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
 
-            avg: average to use for precision and recall score (e.g.: "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except: scoring='s_score'/'l_score')
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
             n_split_num: number of different splits
@@ -296,14 +285,21 @@ class CTest:
             - saves best model in self.best_model
             - returns best model
         """
-        new_scores = (self.scores == {})
-        if new_scores:
-            print("no scores are already created -> creating scores using 'eval_models()'")
-            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-        else:
-            print("-> using already created scores for the models. Please run 'eval_models()'/'eval_models_cv()' again if something changed with the data")
 
-        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"], console_out=new_scores)
+        if cv_kind == "no":
+            print("creating scores using 'eval_models()'")
+            self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+        elif cv_kind == "small":
+            print("creating scores using 'eval_models_cv(small_data_eval=True)'")
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
+        elif cv_kind == "multi":
+            print("creating scores using 'eval_models_cv(small_data_eval=False)'")
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength)
+        else:
+            print(f"ERROR: wrong input '{cv_kind}' for cv_kind")
+            return
+
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"])
         print()
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
@@ -333,7 +329,7 @@ class CTest:
         print("... hyperparameter tuning finished")
         print()
 
-        logging.debug("Set self.best_model = hyperparameter tuned model")
+        # Set self.best_model = hyperparameter tuned model
         self.best_model = self.models[best_model_type]
 
         self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)

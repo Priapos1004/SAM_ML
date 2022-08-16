@@ -13,14 +13,18 @@ from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
 from .main_classifier import Classifier
+from .main_model import Model
+from .main_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
 __all__ = {
-    "main_classifier": "Classifier",
-    "Classifier Testing": "CTest",
+    "model parent class": "Model",
+    "classifier parent class": "Classifier",
+    "pipeline class": "Pipeline",
+    "AutoML class": "CTest",
     "RandomForestClassifier": "RFC",
     "LogisticRegression": "LR",
     "DecisionTreeClassifier": "DCT",

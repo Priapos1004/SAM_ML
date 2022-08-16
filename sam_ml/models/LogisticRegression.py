@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class LR(Classifier):
+    """ LogisticRegression Wrapper class """
+
     def __init__(
         self,
         model_name: str = "LogisticRegression",
@@ -23,14 +25,14 @@ class LR(Classifier):
             solver: Algorithm to use in the optimization problem
             penalty: Specify the norm of the penalty
         """
-        self.model_name = model_name
-        self.model_type = "LR"
-        self.model = LogisticRegression(
+        model_type = "LR"
+        model = LogisticRegression(
             random_state=random_state,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "solver": ["newton-cg", "lbfgs", "liblinear", "sag"],
             "penalty": ["l2"],
             "C": [100, 10, 1.0, 0.1, 0.01],
         }
+        super().__init__(model, model_name, model_type, grid)

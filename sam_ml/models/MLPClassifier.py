@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class MLPC(Classifier):
+    """ MLP Classifier Wrapper class """
+
     def __init__(
         self,
         model_name: str = "MLP Classifier",
@@ -26,16 +28,16 @@ class MLPC(Classifier):
             batch_size: Size of minibatches for stochastic optimizers
             early_stopping: True: tests on 10% of train data and stops if there is for 'n_iter_no_change' no improvement in the metrics
         """
-        self.model_name = model_name
-        self.model_type = "MLPC"
-        self.model = MLPClassifier(
+        model_type = "MLPC"
+        model = MLPClassifier(
             random_state=random_state,
             **kwargs,
         )
-        self._grid = {
+        grid = {
             "hidden_layer_sizes": [(10, 30, 10), (20,), (10,), (100,), (50,50,50), (50,100,50)],
             "activation": ["tanh", "relu", "logistic"],
             "solver": ["sgd", "adam"],
             "alpha": [0.0001, 0.001, 0.01, 0.05],
             "learning_rate": ["constant", "adaptive"],
         }
+        super().__init__(model, model_name, model_type, grid)

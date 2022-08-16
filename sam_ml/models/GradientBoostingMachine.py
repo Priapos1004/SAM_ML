@@ -4,6 +4,8 @@ from .main_classifier import Classifier
 
 
 class GBM(Classifier):
+    """ GradientBoostingMachine Wrapper class """
+
     def __init__(
         self,
         model_name: str = "GradientBoostingMachine",
@@ -25,10 +27,9 @@ class GBM(Classifier):
             warm_start: work with previous fit and add more estimator
             random_state: random_state for model
         """
-        self.model_name = model_name
-        self.model_type = "GBM"
-        self.model = GradientBoostingClassifier(random_state=random_state, **kwargs,)
-        self._grid = {
+        model_type = "GBM"
+        model = GradientBoostingClassifier(random_state=random_state, **kwargs,)
+        grid = {
             "n_estimators": list(range(20, 101, 10)) + [200, 500, 1000, 1500],
             "max_depth": list(range(1, 8)) + [10, 12, 15],
             "min_samples_split": [2, 4, 6, 8, 10, 20, 40, 60, 100],
@@ -39,3 +40,4 @@ class GBM(Classifier):
             "loss": ["deviance", "exponential"],
             "learning_rate": [0.1, 0.05, 0.01, 0.005],
         }
+        super().__init__(model, model_name, model_type, grid)

@@ -13,7 +13,9 @@ from tqdm.auto import tqdm
 
 
 class Embeddings_builder:
-    def __init__(self, vec: str = "count", console_out: bool = True, **kwargs):
+    """ Vectorizer Wrapper class """
+
+    def __init__(self, vec: str = "count", console_out: bool = False, **kwargs):
         """
         @param:
             vec:
@@ -25,11 +27,13 @@ class Embeddings_builder:
                 additional parameters for CountVectorizer or TfidfVectorizer
         """
         self.console_out = console_out
+        self.vec_type = vec
+        self._grid: dict[str, list] = {} # for pipeline structure
+
         if bert_active and vec == "bert":
             if self.console_out:
                 print("using quora-distilbert-multilingual model as vectorizer")
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual")
-            self.vec_type = vec
 
         elif not bert_active and vec == "bert":
             print("build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function")
@@ -38,17 +42,14 @@ class Embeddings_builder:
             if self.console_out:
                 print("using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer(**kwargs)
-            self.vec_type = vec
 
         elif vec == "tfidf":
             if self.console_out:
                 print("using TfidfVectorizer as vectorizer")
             self.vectorizer = TfidfVectorizer(**kwargs)
-            self.vec_type = vec
 
         else:
-            if self.console_out:
-                print(f"INPUT ERROR: the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
+            print(f"INPUT ERROR: the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 
@@ -61,7 +62,21 @@ class Embeddings_builder:
         param = {"vec": ["bert", "count", "tfidf"]}
         return param
 
+    def set_params(self, **params):
+        if self.vec_type in ["bert"]:
+            self.vectorizer = SentenceTransformer("quora-distilbert-multilingual", **params)
+        else:
+            self.vectorizer.set_params(**params)
+        return self
+
     def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
+        """
+        @params:
+            data: pandas Series
+            train_on: shall the vectorizer fit before transform
+        @return:
+            pandas Dataframe with vectorized data
+        """
         indices = data.index
         if self.console_out:
             print("starting to create embeddings...")

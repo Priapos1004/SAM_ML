@@ -5,7 +5,9 @@ from sklearn.preprocessing import (MaxAbsScaler, MinMaxScaler, Normalizer,
 
 
 class Scaler:
-    def __init__(self, scaler: str = "standard", console_out: bool = True, **kwargs):
+    """ Scaler Wrapper class """
+
+    def __init__(self, scaler: str = "standard", console_out: bool = False, **kwargs):
         """
         @param:
             scaler: kind of scaler to use
@@ -22,6 +24,8 @@ class Scaler:
                 additional parameters for scaler
         """
         self.console_out = console_out
+        self.scaler_type = scaler
+        self._grid: dict[str, list] = {} # for pipeline structure
 
         if scaler == "standard":
             if self.console_out:
@@ -66,15 +70,20 @@ class Scaler:
         else:
             print(f"INPUT ERROR: Scaler '{scaler}' is no valid input -> using StandardScaler")
             self.scaler = StandardScaler()
+            self.scaler_type = "standard"
 
     @staticmethod
     def params() -> dict:
         """
         @return:
-            possible values for the parameters
+            possible values for the parameters of the Scaler class
         """
         param = {"scaler": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
         return param
+
+    def set_params(self, **params):
+        self.scaler.set_params(**params)
+        return self
 
     def scale(self, data: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         """

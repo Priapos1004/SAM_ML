@@ -49,6 +49,7 @@ def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int,
     return x_train, y_train
 
 class Sampler:
+    """ sample algorithm Wrapper class """
 
     def __init__(self, algorithm: str = "ros", random_state: int = 42, **kwargs):
         """
@@ -65,6 +66,9 @@ class Sampler:
             **kwargs:
                 additional parameters for sampler
         """
+        self.algorithm = algorithm
+        self._grid: dict[str, list] = {} # for pipeline structure
+
         if algorithm == "SMOTE":
             self.sampler = SMOTE(**kwargs)
         elif algorithm == "rus":
@@ -78,6 +82,7 @@ class Sampler:
         else:
             print(f"INPUT ERROR: type='{algorithm}' does not exist --> using RandomOverSampler")
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
+            self.algorithm = "ros"
 
     @staticmethod
     def params() -> dict:
@@ -88,7 +93,11 @@ class Sampler:
         param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
         return param
 
-    def sample(self, x_train: pd.DataFrame, y_train: pd.Series) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def set_params(self, **params):
+        self.sampler.set_params(**params)
+        return self
+
+    def sample(self, x_train: pd.DataFrame, y_train: pd.Series) -> tuple[pd.DataFrame, pd.Series]:
         """
         Function for up- and downsampling
 
