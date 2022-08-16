@@ -7,12 +7,21 @@ setup(
     packages=find_packages(),
     package_data={},
     scripts=[],
-    install_requires=["scikit-learn", "pandas", "matplotlib", "numpy", "catboost", "imbalanced-learn", "playsound", "tqdm", "statsmodels"], # M1 problems with tensorflow, sentence-transformers, xgboost
-    extras_require={
-        "test": ["pytest", "pylint!=2.5.0"],
-    },
-    author='Samuel Brinkmann',
-    license='MIT',
-    tests_require=['pytest==4.4.1'],
+    install_requires=[
+        "scikit-learn",
+        "pandas",
+        "matplotlib",
+        "numpy",
+        "catboost",
+        "imbalanced-learn",
+        "playsound",
+        "PyObjC;platform_system=='Darwin'",
+        "tqdm",
+        "statsmodels",
+    ],  # M1 problems with tensorflow, sentence-transformers, xgboost
+    extras_require={"test": ["pytest", "pylint!=2.5.0"],},
+    author="Samuel Brinkmann",
+    license="MIT",
+    tests_require=["pytest==4.4.1"],
     setup_requires=["pytest-runner"],
 )
