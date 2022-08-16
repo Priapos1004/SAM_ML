@@ -30,10 +30,18 @@ class ABC(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "base_estimator": [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier(), RandomForestClassifier(max_depth=5)],
-            "n_estimators": list(range(10, 101, 10)) + [200, 500, 1000, 1500, 3000],
-            "learning_rate": [0.1, 0.05, 0.01, 0.005]+list(arange(0.2,2.1,0.1)),
-            "algorithm": ["SAMME.R", "SAMME"],
-        }
+        if type(model.base_estimator) == RandomForestClassifier:
+            grid = {
+                "base_estimator": [RandomForestClassifier(max_depth=i, n_estimators=j) for i in range(1,11) for j in [5, 10, 20, 50, 100]]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier()],
+                "n_estimators": list(range(10, 101, 10)) + [200, 500, 1000, 1500, 3000],
+                "learning_rate": [0.1, 0.05, 0.01, 0.005]+list(arange(0.2,2.1,0.1)),
+                "algorithm": ["SAMME.R", "SAMME"],
+            }
+        else:
+            grid = {
+                "base_estimator": [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier()],
+                "n_estimators": list(range(10, 101, 10)) + [200, 500, 1000, 1500, 3000],
+                "learning_rate": [0.1, 0.05, 0.01, 0.005]+list(arange(0.2,2.1,0.1)),
+                "algorithm": ["SAMME.R", "SAMME"],
+            }
         super().__init__(model, model_name, model_type, grid)

@@ -10,7 +10,6 @@ class LR(Classifier):
     def __init__(
         self,
         model_name: str = "LogisticRegression",
-        penalty: str = "l2",
         random_state: int = 42,
         **kwargs,
     ):
@@ -30,10 +29,9 @@ class LR(Classifier):
         model_type = "LR"
         model = LogisticRegression(
             random_state=random_state,
-            penalty=penalty,
             **kwargs,
         )
-        if penalty == "l2":
+        if model.penalty == "l2":
             grid = {
                 "solver": ["newton-cg", "lbfgs", "liblinear", "sag", "saga"],
                 "penalty": ["l2"],
@@ -46,5 +44,4 @@ class LR(Classifier):
                 "C": [100, 10, 1.0, 0.1, 0.01],
                 "l1_ratio": list(np.linspace(0, 1, num=5))+[0.01],
             }
-
         super().__init__(model, model_name, model_type, grid)
