@@ -44,7 +44,7 @@ class CTest:
         @params:
             models:
                 list of Wrapperclass models from sam_ml library
-                'all': use all Wrapperclass models (18 models) from sam_ml library
+                'all': use all Wrapperclass models (18+ models) from sam_ml library
                 'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
@@ -80,7 +80,8 @@ class CTest:
         """
         if kind == "all":
             models = [
-                LR(),
+                LR(model_name="LogisticRegression (l2 penalty)"),
+                LR(model_name="LogisticRegression (elasticnet penalty)", penalty="elasticnet", solver="saga", l1_ratio=0.5),
                 QDA(),
                 LDA(),
                 MLPC(),
