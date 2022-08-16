@@ -1,5 +1,5 @@
-from sklearn.linear_model import LogisticRegression
 import numpy as np
+from sklearn.linear_model import LogisticRegression
 
 from .main_classifier import Classifier
 
