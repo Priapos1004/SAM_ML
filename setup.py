@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="sam_ml",
-    version="0.2.0",
+    version="0.2.1",
     description="a library for ML programing created by Samuel Brinkmann",
     packages=find_packages(),
     package_data={},
