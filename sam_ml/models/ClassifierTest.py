@@ -257,8 +257,7 @@ class CTest:
         pos_label: Union[int, str] = -1,
         rand_search: bool = True,
         n_iter_num: int = 75,
-        n_split_num: int = 10,
-        n_repeats_num: int = 3,
+        cv_num: int = 5,
         console_out: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
@@ -275,8 +274,7 @@ class CTest:
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
-            n_split_num: number of different splits
-            n_repeats_num: number of repetition of one split
+            cv_num: number of different splits
             console_out: outputs intermidiate results into the console
             secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
@@ -319,8 +317,7 @@ class CTest:
             pos_label=pos_label,
             rand_search=rand_search,
             n_iter_num=n_iter_num,
-            n_repeats_num=n_repeats_num,
-            n_split_num=n_split_num,
+            cv_num=cv_num,
             console_out=console_out,
             secondary_scoring=secondary_scoring,
             strength=strength,

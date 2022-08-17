@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              make_scorer, precision_score, recall_score)
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
-                                     RepeatedStratifiedKFold, cross_validate)
+                                     cross_validate)
 from tqdm.auto import tqdm
 
 from .main_model import Model
@@ -306,8 +306,7 @@ class Classifier(Model):
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
-        n_split_num: int = 10,
-        n_repeats_num: int = 3,
+        cv_num: int = 5,
         verbose: int = 0,
         rand_search: bool = True,
         n_iter_num: int = 75,
@@ -330,8 +329,7 @@ class Classifier(Model):
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num: number of different splits
-            n_repeats_num: number of repetition of one split
+            cv_num: number of different splits
 
             verbose: log level (higher number --> more logs)
             console_out: output the the results of the different iterations
@@ -359,16 +357,12 @@ class Classifier(Model):
         elif scoring == "l_score":
             scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
-        cv = RepeatedStratifiedKFold(
-            n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
-        )
-
         if rand_search:
             grid_search = RandomizedSearchCV(
                 estimator=self,
                 param_distributions=grid,
                 n_iter=n_iter_num,
-                cv=cv,
+                cv=cv_num,
                 verbose=verbose,
                 random_state=42,
                 n_jobs=-1,
@@ -379,7 +373,7 @@ class Classifier(Model):
                 estimator=self,
                 param_grid=grid,
                 n_jobs=-1,
-                cv=cv,
+                cv=cv_num,
                 verbose=verbose,
                 scoring=scoring,
                 error_score=0,
