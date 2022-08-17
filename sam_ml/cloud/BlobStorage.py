@@ -13,6 +13,8 @@ class BlobStorage:
 
     def upload_csv(self, local_path: str, target_path: str):
         blob_client = self.blob_service_client.get_blob_client(container=self.container, blob=target_path)
+        if blob_client.exists():
+            blob_client.delete_blob(delete_snapshots="include")
         with open(local_path, "rb") as data:
             blob_client.upload_blob(data=data)
 

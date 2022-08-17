@@ -295,7 +295,7 @@ class CTest:
             self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
         elif cv_kind == "multi":
             print("creating scores using 'eval_models_cv(small_data_eval=False)'")
-            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength)
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength, cv_num=10)
         else:
             print(f"ERROR: wrong input '{cv_kind}' for cv_kind")
             return
