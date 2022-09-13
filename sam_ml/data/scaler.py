@@ -72,6 +72,9 @@ class Scaler:
             self.scaler = StandardScaler()
             self.scaler_type = "standard"
 
+    def __repr__(self) -> str:
+        return f"scaler_type='{self.scaler_type}'\n\nparams={self.get_params()}"
+
     @staticmethod
     def params() -> dict:
         """
@@ -80,6 +83,9 @@ class Scaler:
         """
         param = {"scaler": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
         return param
+
+    def get_params(self, deep: bool = True):
+        return self.scaler.get_params(deep)
 
     def set_params(self, **params):
         self.scaler.set_params(**params)

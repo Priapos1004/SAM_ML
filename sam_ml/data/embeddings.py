@@ -53,6 +53,9 @@ class Embeddings_builder:
             self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 
+    def __repr__(self) -> str:
+        return f"vec_type='{self.vec_type}'\n\nparams={self.get_params()}"
+
     @staticmethod
     def params() -> dict:
         """
@@ -61,6 +64,12 @@ class Embeddings_builder:
         """
         param = {"vec": ["bert", "count", "tfidf"]}
         return param
+
+    def get_params(self, deep: bool = True):
+        if self.vec_type != "bert":
+            return self.vectorizer.get_params(deep)
+        else:
+            return {"model_name_or_path": "quora-distilbert-multilingual"}
 
     def set_params(self, **params):
         if self.vec_type in ["bert"]:

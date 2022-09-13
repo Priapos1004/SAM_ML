@@ -84,6 +84,9 @@ class Sampler:
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
             self.algorithm = "ros"
 
+    def __repr__(self) -> str:
+        return f"algorithm='{self.algorithm}'\n\nparams={self.get_params()}"
+
     @staticmethod
     def params() -> dict:
         """
@@ -92,6 +95,9 @@ class Sampler:
         """
         param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
         return param
+
+    def get_params(self, deep: bool = True):
+        return self.sampler.get_params(deep)
 
     def set_params(self, **params):
         self.sampler.set_params(**params)

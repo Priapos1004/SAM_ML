@@ -57,6 +57,9 @@ class Selector:
             self.selector = SelectKBest(k=num_features)
             self.algorithm = "kbest"
 
+    def __repr__(self) -> str:
+        return f"algorithm='{self.algorithm}'\n\nparams={self.get_params()}"
+
     @staticmethod
     def params() -> dict:
         """
@@ -68,6 +71,12 @@ class Selector:
             "estimator": [LinearSVC(penalty="l1", dual=False), LogisticRegression(), ExtraTreesClassifier(n_estimators=50)]
         }
         return param
+
+    def get_params(self, deep: bool = True):
+        if self.algorithm in ["wrapper"]:
+            return self.selector
+        else:
+            return self.selector.get_params(deep)
 
     def set_params(self, **params):
         if self.algorithm in ["wrapper"]:
