@@ -306,7 +306,7 @@ class Classifier(Model):
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
-        cv_num: int = 5,
+        cv_num: int = 10,
         verbose: int = 0,
         rand_search: bool = True,
         n_iter_num: int = 75,

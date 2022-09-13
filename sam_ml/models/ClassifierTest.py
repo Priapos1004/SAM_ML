@@ -257,7 +257,7 @@ class CTest:
         pos_label: Union[int, str] = -1,
         rand_search: bool = True,
         n_iter_num: int = 75,
-        cv_num: int = 5,
+        cv_num: int = 10,
         console_out: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
@@ -293,7 +293,7 @@ class CTest:
             self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
         elif cv_kind == "multi":
             print("creating scores using 'eval_models_cv(small_data_eval=False)'")
-            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength, cv_num=10)
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength, cv_num=cv_num)
         else:
             print(f"ERROR: wrong input '{cv_kind}' for cv_kind")
             return
@@ -331,5 +331,6 @@ class CTest:
         self.best_model = self.models[best_model_type]
 
         self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)
+        self.best_model.feature_importance()
         self.__finish_sound()
         return self.best_model
