@@ -65,6 +65,45 @@ class CTest:
         self.best_model: Pipeline
         self.scores: dict = {}
 
+    def __repr__(self) -> str:
+        models: str = ""
+        for model_name in list(self.models.keys()):
+            models+="\n\n   "+model_name
+
+        vectorizer: str
+        if type(self._vectorizer)==str:
+            vectorizer = self._vectorizer
+        elif type(self._vectorizer)==Embeddings_builder:
+            vectorizer = self._vectorizer.vec_type
+        else:
+            vectorizer = ''
+
+        scaler: str
+        if type(self._scaler)==str:
+            scaler = self._scaler
+        elif type(self._scaler)==Scaler:
+            scaler = self._scaler.scaler_type
+        else:
+            scaler = ''
+
+        selector: str
+        if type(self._selector)==str:
+            selector = self._selector
+        elif type(self._selector)==Selector:
+            selector = self._selector.algorithm
+        else:
+            selector = ''
+
+        sampler: str
+        if type(self._sampler)==str:
+            sampler = self._sampler
+        elif type(self._sampler)==Sampler:
+            sampler = self._sampler.algorithm
+        else:
+            sampler = ''
+
+        return f"vectorizer='{vectorizer}'\n\nscaler='{scaler}'\n\nselector='{selector}'\n\nsampler='{sampler}'\n\nmodels: {len(list(self.models.keys()))}{models}"
+
     def remove_model(self, model_name: str):
         del self.models[model_name]
 

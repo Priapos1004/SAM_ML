@@ -25,6 +25,9 @@ class Model:
         self.test_score: Union[float, dict[str, float]] = None
         self.feature_names: list = None
 
+    def __repr__(self) -> str:
+        return f"model_name='{self.model_name}'\n\nmodel_type='{self.model_type}'"
+
     def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
         """
         @return:

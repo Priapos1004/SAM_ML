@@ -75,6 +75,37 @@ class Pipeline(Classifier):
 
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
 
+    def __repr__(self) -> str:
+        model_params: str = ""
+        for key in self.model.get_params():
+            model_params+= key+"="+str(self.model.get_params()[key])+", "
+
+        vectorizer: str
+        if self.vectorizer != None:
+            vectorizer = self.vectorizer.vec_type
+        else:
+            vectorizer = ''
+
+        scaler: str
+        if self.scaler != None:
+            scaler = self.scaler.scaler_type
+        else:
+            scaler = ''
+
+        selector: str
+        if self.selector != None:
+            selector = self.selector.algorithm
+        else:
+            selector = ''
+
+        sampler: str
+        if self.sampler != None:
+            sampler = self.sampler.algorithm
+        else:
+            sampler = ''
+
+        return f"model_name='{self.model_name}'\n\nvectorizer='{vectorizer}'\n\nscaler='{scaler}'\n\nselector='{selector}'\n\nsampler='{sampler}'\n\n{self.model_type}({model_params})\n\ngrid={self.grid}"
+
     @property
     def steps(self) -> list[tuple[str, any]]:
         return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self._classifier)]

@@ -31,6 +31,13 @@ class Classifier(Model):
         self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
 
+    def __repr__(self) -> str:
+        params: str = ""
+        for key in self.model.get_params():
+            params+= key+"="+str(self.model.get_params()[key])+", "
+
+        return f"model_name='{self.model_name}'\n\n{self.model_type}({params})\n\ngrid={self.grid}"
+
     @property
     def grid(self):
         """
