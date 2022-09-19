@@ -5,6 +5,10 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.under_sampling import NearMiss, RandomUnderSampler, TomekLinks
 from sklearn.utils import resample
 
+from sam_ml.config import setup_logger
+
+logger = setup_logger(__name__)
+
 
 def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int, str] = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -70,7 +74,7 @@ class Sampler:
         self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "SMOTE":
-            self.sampler = SMOTE(**kwargs)
+            self.sampler = SMOTE(random_state=random_state, **kwargs)
         elif algorithm == "rus":
             self.sampler = RandomUnderSampler(random_state=random_state, replacement=True, **kwargs)
         elif algorithm == "ros":
@@ -80,12 +84,18 @@ class Sampler:
         elif algorithm == "nm":
             self.sampler = NearMiss(**kwargs)
         else:
-            print(f"INPUT ERROR: type='{algorithm}' does not exist --> using RandomOverSampler")
+            logger.error(f"type='{algorithm}' does not exist --> using RandomOverSampler")
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
             self.algorithm = "ros"
 
     def __repr__(self) -> str:
-        return f"algorithm='{self.algorithm}'\n\nparams={self.get_params()}"
+        sampler_params: str = ""
+        for key in self.get_params():
+            if type(self.get_params()[key]) == str:
+                sampler_params += key+"='"+str(self.get_params()[key])+"', "
+            else:
+                sampler_params += key+"="+str(self.get_params()[key])+", "
+        return f"Sampler({sampler_params})"
 
     @staticmethod
     def params() -> dict:
@@ -97,7 +107,7 @@ class Sampler:
         return param
 
     def get_params(self, deep: bool = True):
-        return self.sampler.get_params(deep)
+        return {"algorithm": self.algorithm} | self.sampler.get_params(deep)
 
     def set_params(self, **params):
         self.sampler.set_params(**params)
