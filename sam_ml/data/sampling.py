@@ -90,11 +90,12 @@ class Sampler:
 
     def __repr__(self) -> str:
         sampler_params: str = ""
-        for key in self.get_params():
-            if type(self.get_params()[key]) == str:
-                sampler_params += key+"='"+str(self.get_params()[key])+"', "
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                sampler_params += key+"='"+str(param_dict[key])+"', "
             else:
-                sampler_params += key+"="+str(self.get_params()[key])+", "
+                sampler_params += key+"="+str(param_dict[key])+", "
         return f"Sampler({sampler_params})"
 
     @staticmethod

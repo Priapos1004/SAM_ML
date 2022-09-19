@@ -78,11 +78,12 @@ class Scaler:
 
     def __repr__(self) -> str:
         scaler_params: str = ""
-        for key in self.get_params():
-            if type(self.get_params()[key]) == str:
-                scaler_params += key+"='"+str(self.get_params()[key])+"', "
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                scaler_params += key+"='"+str(param_dict[key])+"', "
             else:
-                scaler_params += key+"="+str(self.get_params()[key])+", "
+                scaler_params += key+"="+str(param_dict[key])+", "
         return f"Scaler({scaler_params})"
 
     @staticmethod

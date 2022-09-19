@@ -59,11 +59,12 @@ class Embeddings_builder:
 
     def __repr__(self) -> str:
         vec_params: str = ""
-        for key in self.get_params():
-            if type(self.get_params()[key]) == str:
-                vec_params += key+"='"+str(self.get_params()[key])+"', "
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                vec_params += key+"='"+str(param_dict[key])+"', "
             else:
-                vec_params += key+"="+str(self.get_params()[key])+", "
+                vec_params += key+"="+str(param_dict[key])+", "
         return f"Embeddings_builder({vec_params})"
 
     @staticmethod

@@ -8,6 +8,10 @@ from sklearn.feature_selection import (RFE, RFECV, SelectFromModel,
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 
+from sam_ml.config import setup_logger
+
+logger = setup_logger(__name__)
+
 
 class Selector:
     """ feature selection algorithm Wrapper class """
@@ -53,12 +57,19 @@ class Selector:
         elif algorithm == "rfecv":
             self.selector = RFECV(estimator, min_features_to_select=num_features, **kwargs)
         else:
-            print(f"INPUT ERROR: algorithm='{algorithm}' does not exist -> using SelectKBest algorithm instead")
+            logger.error(f"algorithm='{algorithm}' does not exist -> using SelectKBest algorithm instead")
             self.selector = SelectKBest(k=num_features)
             self.algorithm = "kbest"
 
     def __repr__(self) -> str:
-        return f"algorithm='{self.algorithm}'\n\nparams={self.get_params()}"
+        selector_params: str = ""
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                selector_params += key+"='"+str(param_dict[key])+"', "
+            else:
+                selector_params += key+"="+str(param_dict[key])+", "
+        return f"Selector({selector_params})"
 
     @staticmethod
     def params() -> dict:
@@ -73,10 +84,23 @@ class Selector:
         return param
 
     def get_params(self, deep: bool = True):
+        class_params = {"algorithm": self.algorithm, "num_features": self.num_features, "console_out": self.console_out}
         if self.algorithm in ["wrapper"]:
-            return self.selector
+            return class_params | self.selector
         else:
-            return self.selector.get_params(deep)
+            selector_params = self.selector.get_params(deep)
+            if self.algorithm in ["kbest", "kbest_chi2"]:
+                selector_params.pop("k")
+            elif self.algorithm in ["pca"]:
+                selector_params.pop("n_components")
+            elif self.algorithm in ["sequential", "rfe"]:
+                selector_params.pop("n_features_to_select")
+            elif self.algorithm in ["select_model"]:
+                selector_params.pop("max_features")
+            elif self.algorithm in ["rfecv"]:
+                selector_params.pop("min_features_to_select")
+
+            return class_params | selector_params
 
     def set_params(self, **params):
         if self.algorithm in ["wrapper"]:
@@ -90,13 +114,12 @@ class Selector:
         for training: the y data is also needed
         """
         if len(X.columns) < self.num_features:
-            print("WARNING: the number of features that shall be selected is greater than the number of features in X")
-            print("--> return X")
+            logger.warning("the number of features that shall be selected is greater than the number of features in X --> return X")
             self.selected_features = X.columns
             return X
 
         if self.console_out:
-            print("starting to select features...")
+            logger.debug("selecting features - started")
         if train_on:
             if self.algorithm == "wrapper":
                 self.selected_features = self.__wrapper_select(X, y, **self.selector)
@@ -110,7 +133,7 @@ class Selector:
             X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
 
         if self.console_out:
-            print("... features selected")
+            logger.debug("selecting features - finished")
         return X_selected
 
     def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5, **kwargs) -> list:
@@ -130,5 +153,5 @@ class Selector:
             else:
                 break
         if len(selected_features) == len(X.columns):
-            print("WARNING: the wrapper algorithm selected all features")
+            logger.warning("the wrapper algorithm selected all features")
         return selected_features

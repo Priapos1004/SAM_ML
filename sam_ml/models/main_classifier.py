@@ -37,11 +37,12 @@ class Classifier(Model):
 
     def __repr__(self) -> str:
         params: str = ""
-        for key in self.model.get_params():
-            if type(self.model.get_params()[key]) == str:
-                params+= key+"='"+str(self.model.get_params()[key])+"', "
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                params+= key+"='"+str(param_dict[key])+"', "
             else:
-                params+= key+"="+str(self.model.get_params()[key])+", "
+                params+= key+"="+str(param_dict[key])+", "
         params += f"model_name='{self.model_name}'"
 
         return f"{self.model_type}({params})"
