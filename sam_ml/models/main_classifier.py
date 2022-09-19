@@ -11,8 +11,12 @@ from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
                                      cross_validate)
 from tqdm.auto import tqdm
 
+from sam_ml.config import setup_logger
+
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
+
+logger = setup_logger(__name__)
 
 
 class Classifier(Model):
@@ -34,9 +38,12 @@ class Classifier(Model):
     def __repr__(self) -> str:
         params: str = ""
         for key in self.model.get_params():
-            params+= key+"="+str(self.model.get_params()[key])+", "
+            if type(self.model.get_params()[key]) == str:
+                params+= key+"='"+str(self.model.get_params()[key])+"', "
+            else:
+                params+= key+"="+str(self.model.get_params()[key])+", "
 
-        return f"model_name='{self.model_name}'\n\n{self.model_type}({params})\n\ngrid={self.grid}"
+        return f"{self.model_type}({params})"
 
     @property
     def grid(self):
@@ -112,7 +119,7 @@ class Classifier(Model):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        cv_num: int = 3,
+        cv_num: int = 10,
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         console_out: bool = True,
@@ -133,11 +140,9 @@ class Classifier(Model):
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
-            depending on "return_as_dict"
-            the scores will be saved in self.cv_scores as dict (WARNING: return_estimator=True increases object size)
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
         """
-        if console_out:
-            print("starting to cross validate...")
+        logger.debug(f"cross validation {self.model_name} - started")
 
         precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
         recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
@@ -185,8 +190,9 @@ class Classifier(Model):
             "avg train time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
         }
 
+        logger.debug(f"cross validation {self.model_name} - finished")
+
         if console_out:
-            print("... cross validation completed")
             print()
             print(pd_scores)
 
@@ -221,8 +227,7 @@ class Classifier(Model):
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
         """
-        if console_out:
-            print("starting to cross validate...")
+        logger.debug(f"cross validation {self.model_name} - started")
 
         predictions = []
         true_values = []
@@ -261,8 +266,9 @@ class Classifier(Model):
             "avg train time": avg_train_time,
         }
 
+        logger.debug(f"cross validation {self.model_name} - finished")
+
         if console_out:
-            print("... cross validation completed")
             print()
             print("classification report:")
             print(classification_report(true_values, predictions))
@@ -274,14 +280,16 @@ class Classifier(Model):
         feature_importance() generates a matplotlib plot of the feature importance from self.model
         """
         if not self.trained:
-            return "INFO: You have to first train the classifier before getting the feature importance"
+            logger.error("You have to first train the classifier before getting the feature importance")
+            return
 
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
         elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC", "ETC"]:
             importances = self.model.feature_importances_
         elif self.model_type in ["KNC", "GNB", "BNB", "GPC", "QDA", "BC"]:
-            return self.model_name+" does not have a feature importance"
+            logger.warning(f"{self.model_name} does not have a feature importance")
+            return
         else:
             importances = self.model.coef_[0]  # "normal"
 
@@ -352,6 +360,7 @@ class Classifier(Model):
             grid = self.grid
 
         if console_out:
+            print()
             print("grid: ", grid)
             print()
 
@@ -385,11 +394,9 @@ class Classifier(Model):
                 scoring=scoring,
                 error_score=0,
             )
-        if console_out:
-            print("starting hyperparameter tuning...")
+        logger.debug(f"hyperparameter tuning {self.model_name} - started")
         grid_result = grid_search.fit(x_train, y_train)
-        if console_out:
-            print("... hyperparameter tuning finished")
+        logger.debug(f"hyperparameter tuning {self.model_name} - finished")
 
         if console_out:
             means = grid_result.cv_results_["mean_test_score"]
@@ -398,6 +405,7 @@ class Classifier(Model):
             print()
             for mean, stdev, param in zip(means, stds, params):
                 print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
+            print()
 
         self.model = grid_result.best_estimator_.model
         if self.is_pipeline:
@@ -412,8 +420,6 @@ class Classifier(Model):
         print()
 
         if train_afterwards:
-            if console_out:
-                print("starting to train best model...")
+            logger.debug(f"best model training {self.model_name} - started")
             self.train(x_train, y_train, console_out=False)
-            if console_out:
-                print("... best model trained")
+            logger.debug(f"best model training {self.model_name} - finished")
