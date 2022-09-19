@@ -9,6 +9,7 @@ from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
 
+from sam_ml.config import setup_logger
 from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
 
 from .AdaBoostClassifier import ABC
@@ -31,6 +32,8 @@ from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
+logger = setup_logger(__name__)
+
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
     os.environ["PYTHONWARNINGS"] = "ignore" # Also affects subprocesses
@@ -51,6 +54,8 @@ class CTest:
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
             sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
         """
+        self.__models_input = models
+
         if type(models) == str:
             models = self.model_combs(models)
 
@@ -66,43 +71,51 @@ class CTest:
         self.scores: dict = {}
 
     def __repr__(self) -> str:
-        models: str = ""
-        for model_name in list(self.models.keys()):
-            models+="\n\n   "+model_name
+        params: str = ""
 
-        vectorizer: str
-        if type(self._vectorizer)==str:
-            vectorizer = self._vectorizer
-        elif type(self._vectorizer)==Embeddings_builder:
-            vectorizer = self._vectorizer.vec_type
+        if type(self.__models_input) == str:
+            params += f"models='{self.__models_input}', "
         else:
-            vectorizer = ''
+            params += "models=["
+            for model in self.__models_input:
+                params += f"\n    {model.__str__()},"
+            params += "],\n"
 
-        scaler: str
-        if type(self._scaler)==str:
-            scaler = self._scaler
-        elif type(self._scaler)==Scaler:
-            scaler = self._scaler.scaler_type
+        if type(self._vectorizer) == str:
+            params += f"vectorizer='{self._vectorizer}'"
+        elif type(self._vectorizer) == Embeddings_builder:
+            params += f"vectorizer={self._vectorizer.__str__()}"
         else:
-            scaler = ''
+            params += f"vectorizer={self._vectorizer}"
+        
+        params += ", "
 
-        selector: str
-        if type(self._selector)==str:
-            selector = self._selector
-        elif type(self._selector)==Selector:
-            selector = self._selector.algorithm
+        if type(self._scaler) == str:
+            params += f"scaler='{self._scaler}'"
+        elif type(self._scaler) == Scaler:
+            params += f"scaler={self._scaler.__str__()}"
         else:
-            selector = ''
+            params += f"scaler={self._scaler}"
 
-        sampler: str
-        if type(self._sampler)==str:
-            sampler = self._sampler
-        elif type(self._sampler)==Sampler:
-            sampler = self._sampler.algorithm
+        params += ", "
+
+        if type(self._selector) == str:
+            params += f"selector='{self._selector}'"
+        elif type(self._selector) == Selector:
+            params += f"selector={self._selector.__str__()}"
         else:
-            sampler = ''
+            params += f"selector={self._selector}"
 
-        return f"vectorizer='{vectorizer}'\n\nscaler='{scaler}'\n\nselector='{selector}'\n\nsampler='{sampler}'\n\nmodels: {len(list(self.models.keys()))}{models}"
+        params += ", "
+
+        if type(self._sampler) == str:
+            params += f"sampler='{self._sampler}'"
+        elif type(self._sampler) == Sampler:
+            params += f"sampler={self._sampler.__str__()}"
+        else:
+            params += f"sampler={self._sampler}"
+
+        return f"CTest({params})"
 
     def remove_model(self, model_name: str):
         del self.models[model_name]
@@ -133,7 +146,7 @@ class CTest:
                 
                 ABC(model_name="AdaBoostClassifier (DTC based)"),
                 ABC(
-                    base_estimator=RandomForestClassifier(max_depth=5),
+                    base_estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="AdaBoostClassifier (RFC based)",
                 ),
                 KNC(),
@@ -143,7 +156,7 @@ class CTest:
                 GPC(),
                 BC(model_name="BaggingClassifier (DTC based)"),
                 BC(
-                    base_estimator=RandomForestClassifier(max_depth=5),
+                    base_estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="BaggingClassifier (RFC based)",
                 ),
             ]
@@ -208,14 +221,14 @@ class CTest:
             return self.scores
 
         except KeyboardInterrupt:
-            print("KeyboardInterrupt - output interim result")
+            logger.info("KeyboardInterrupt - output interim result")
             return self.scores
 
     def eval_models_cv(
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        cv_num: int = 3,
+        cv_num: int = 10,
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         small_data_eval: bool = False,
@@ -254,8 +267,7 @@ class CTest:
             return self.scores
 
         except KeyboardInterrupt:
-
-            print("KeyboardInterrupt - output interim result")
+            logger.info("KeyboardInterrupt - output interim result")
             return self.scores
 
     def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
@@ -279,7 +291,7 @@ class CTest:
             if console_out:
                 print(scores)
         else:
-            print("WARNING: no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
+            logger.warning("no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
             scores = None
 
         return scores
@@ -325,28 +337,27 @@ class CTest:
         """
 
         if cv_kind == "no":
-            print("creating scores using 'eval_models()'")
+            logger.debug("creating scores using 'eval_models()'")
             self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
         elif cv_kind == "small":
-            print("creating scores using 'eval_models_cv(small_data_eval=True)'")
+            logger.debug("creating scores using 'eval_models_cv(small_data_eval=True)'")
             self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
         elif cv_kind == "multi":
-            print("creating scores using 'eval_models_cv(small_data_eval=False)'")
+            logger.debug("creating scores using 'eval_models_cv(small_data_eval=False)'")
             self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength, cv_num=cv_num)
         else:
-            print(f"ERROR: wrong input '{cv_kind}' for cv_kind")
+            logger.error(f"wrong input '{cv_kind}' for cv_kind")
             return
 
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"])
-        print()
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
 
+        print()
         print(f"best model type ({scoring}): ", best_model_type, " - ", best_model_value)
-
-        print(f"starting to hyperparametertune best model type (rand_search = {rand_search})...",)
         print()
 
+        logger.info(f"hyperparametertuning for best model type (rand_search = {rand_search}) - started")
         self.models[best_model_type].gridsearch(
             x_train,
             y_train,
@@ -361,10 +372,7 @@ class CTest:
             secondary_scoring=secondary_scoring,
             strength=strength,
         )
-
-        print()
-        print("... hyperparameter tuning finished")
-        print()
+        logger.info(f"hyperparametertuning for best model type (rand_search = {rand_search}) - finished")
 
         # Set self.best_model = hyperparameter tuned model
         self.best_model = self.models[best_model_type]
