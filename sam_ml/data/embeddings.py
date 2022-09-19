@@ -11,6 +11,10 @@ except:
 
 from tqdm.auto import tqdm
 
+from sam_ml.config import setup_logger
+
+logger = setup_logger(__name__)
+
 
 class Embeddings_builder:
     """ Vectorizer Wrapper class """
@@ -32,29 +36,35 @@ class Embeddings_builder:
 
         if bert_active and vec == "bert":
             if self.console_out:
-                print("using quora-distilbert-multilingual model as vectorizer")
+                logger.info("using quora-distilbert-multilingual model as vectorizer")
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual")
 
         elif not bert_active and vec == "bert":
-            print("build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function")
+            logger.warning("build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function")
 
         elif vec == "count":
             if self.console_out:
-                print("using CountVectorizer as vectorizer")
+                logger.info("using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer(**kwargs)
 
         elif vec == "tfidf":
             if self.console_out:
-                print("using TfidfVectorizer as vectorizer")
+                logger.info("using TfidfVectorizer as vectorizer")
             self.vectorizer = TfidfVectorizer(**kwargs)
 
         else:
-            print(f"INPUT ERROR: the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
+            logger.error(f"the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer()
             self.vec_type = "count"
 
     def __repr__(self) -> str:
-        return f"vec_type='{self.vec_type}'\n\nparams={self.get_params()}"
+        vec_params: str = ""
+        for key in self.get_params():
+            if type(self.get_params()[key]) == str:
+                vec_params += key+"='"+str(self.get_params()[key])+"', "
+            else:
+                vec_params += key+"="+str(self.get_params()[key])+", "
+        return f"Embeddings_builder({vec_params})"
 
     @staticmethod
     def params() -> dict:
@@ -66,10 +76,11 @@ class Embeddings_builder:
         return param
 
     def get_params(self, deep: bool = True):
+        class_params = {"vec": self.vec_type, "console_out": self.console_out}
         if self.vec_type != "bert":
-            return self.vectorizer.get_params(deep)
+            return class_params | self.vectorizer.get_params(deep)
         else:
-            return {"model_name_or_path": "quora-distilbert-multilingual"}
+            return class_params | {"model_name_or_path": "quora-distilbert-multilingual"}
 
     def set_params(self, **params):
         if self.vec_type in ["bert"]:
@@ -88,7 +99,7 @@ class Embeddings_builder:
         """
         indices = data.index
         if self.console_out:
-            print("starting to create embeddings...")
+            logger.debug("creating embeddings - started")
         if self.vec_type == "bert":
             message_embeddings = [self.vectorizer.encode(str(i)) for i in tqdm(data, desc="Bert Embeddings")]
             emb_ar = np.asarray(message_embeddings)
@@ -101,6 +112,6 @@ class Embeddings_builder:
 
         emb_df = pd.DataFrame(emb_ar, index=indices).add_suffix("_"+data.name)
         if self.console_out:
-            print("... embeddings created")
+            logger.debug("creating embeddings - finished")
 
         return emb_df
