@@ -42,6 +42,7 @@ class Classifier(Model):
                 params+= key+"='"+str(self.model.get_params()[key])+"', "
             else:
                 params+= key+"="+str(self.model.get_params()[key])+", "
+        params += f"model_name='{self.model_name}'"
 
         return f"{self.model_type}({params})"
 

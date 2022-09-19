@@ -84,7 +84,8 @@ class Pipeline(Classifier):
         for step in data_steps:
             params += step[0]+"="+step[1].__str__()+", "
 
-        params += f"model={self.model.__str__()}"
+        params += f"model={self.model.__str__()}, "
+        params += f"model_name='{self.model_name}'"
 
         return f"Pipeline({params})"
 
