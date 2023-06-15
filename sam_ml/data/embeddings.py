@@ -1,14 +1,9 @@
+import concurrent.futures
+
 import numpy as np
 import pandas as pd
+from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-
-try:
-    from sentence_transformers import SentenceTransformer
-
-    bert_active = True
-except:
-    bert_active = False
-
 from tqdm.auto import tqdm
 
 from sam_ml.config import setup_logger
@@ -19,7 +14,7 @@ logger = setup_logger(__name__)
 class Embeddings_builder:
     """ Vectorizer Wrapper class """
 
-    def __init__(self, vec: str = "count", console_out: bool = False, **kwargs):
+    def __init__(self, vec: str = "count", **kwargs):
         """
         @param:
             vec:
@@ -30,26 +25,19 @@ class Embeddings_builder:
             **kwargs:
                 additional parameters for CountVectorizer or TfidfVectorizer
         """
-        self.console_out = console_out
         self.vec_type = vec
         self._grid: dict[str, list] = {} # for pipeline structure
 
-        if bert_active and vec == "bert":
-            if self.console_out:
-                logger.info("using quora-distilbert-multilingual model as vectorizer")
+        if vec == "bert":
+            logger.debug("using quora-distilbert-multilingual model as vectorizer")
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual")
 
-        elif not bert_active and vec == "bert":
-            logger.warning("build_embeddings(vec = 'bert') from data.bertembeddings cannot be used \n-> install 'sentence-transformers' to use this function")
-
         elif vec == "count":
-            if self.console_out:
-                logger.info("using CountVectorizer as vectorizer")
+            logger.debug("using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer(**kwargs)
 
         elif vec == "tfidf":
-            if self.console_out:
-                logger.info("using TfidfVectorizer as vectorizer")
+            logger.debug("using TfidfVectorizer as vectorizer")
             self.vectorizer = TfidfVectorizer(**kwargs)
 
         else:
@@ -83,11 +71,31 @@ class Embeddings_builder:
         return class_params | {"model_name_or_path": "quora-distilbert-multilingual"}
 
     def set_params(self, **params):
-        if self.vec_type in ("bert"):
+        if self.vec_type == "bert":
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual", **params)
         else:
             self.vectorizer.set_params(**params)
         return self
+    
+    def create_parallel_bert_embeddings(self, content: list) -> list:
+        logger.debug("Going to parallel process embedding creation")
+
+        # Create a progress bar
+        pbar = tqdm(total=len(content), desc="Bert Embeddings")
+
+        # Define a new function that updates the progress bar after each embedding
+        def get_embedding_and_update(text: str) -> list:
+            pbar.update()
+            return self.vectorizer.encode(text)
+        
+        # Parallel processing
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            content_embeddings = list(executor.map(get_embedding_and_update, content))
+
+        # Close the progress bar
+        pbar.close()
+
+        return content_embeddings
 
     def vectorize(self, data: pd.Series, train_on: bool = True) -> pd.DataFrame:
         """
@@ -98,10 +106,9 @@ class Embeddings_builder:
             pandas Dataframe with vectorized data
         """
         indices = data.index
-        if self.console_out:
-            logger.debug("creating embeddings - started")
+        logger.debug("creating embeddings - started")
         if self.vec_type == "bert":
-            message_embeddings = [self.vectorizer.encode(str(i)) for i in tqdm(data, desc="Bert Embeddings")]
+            message_embeddings = self.create_parallel_bert_embeddings(list(data))
             emb_ar = np.asarray(message_embeddings)
 
         else:
@@ -111,7 +118,6 @@ class Embeddings_builder:
                 emb_ar = self.vectorizer.transform(data).toarray()
 
         emb_df = pd.DataFrame(emb_ar, index=indices).add_suffix("_"+data.name)
-        if self.console_out:
-            logger.debug("creating embeddings - finished")
+        logger.debug("creating embeddings - finished")
 
         return emb_df
