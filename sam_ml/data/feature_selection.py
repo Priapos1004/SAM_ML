@@ -89,15 +89,15 @@ class Selector:
             return class_params | self.selector
         else:
             selector_params = self.selector.get_params(deep)
-            if self.algorithm in ["kbest", "kbest_chi2"]:
+            if self.algorithm in ("kbest", "kbest_chi2"):
                 selector_params.pop("k")
-            elif self.algorithm in ["pca"]:
+            elif self.algorithm in ("pca"):
                 selector_params.pop("n_components")
-            elif self.algorithm in ["sequential", "rfe"]:
+            elif self.algorithm in ("sequential", "rfe"):
                 selector_params.pop("n_features_to_select")
-            elif self.algorithm in ["select_model"]:
+            elif self.algorithm in ("select_model"):
                 selector_params.pop("max_features")
-            elif self.algorithm in ["rfecv"]:
+            elif self.algorithm in ("rfecv"):
                 selector_params.pop("min_features_to_select")
 
             return class_params | selector_params

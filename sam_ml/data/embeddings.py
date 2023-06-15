@@ -80,11 +80,10 @@ class Embeddings_builder:
         class_params = {"vec": self.vec_type, "console_out": self.console_out}
         if self.vec_type != "bert":
             return class_params | self.vectorizer.get_params(deep)
-        else:
-            return class_params | {"model_name_or_path": "quora-distilbert-multilingual"}
+        return class_params | {"model_name_or_path": "quora-distilbert-multilingual"}
 
     def set_params(self, **params):
-        if self.vec_type in ["bert"]:
+        if self.vec_type in ("bert"):
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual", **params)
         else:
             self.vectorizer.set_params(**params)
