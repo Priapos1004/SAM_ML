@@ -1,27 +1,18 @@
 # SAM_ML
+
+[![PyPI version](https://badge.fury.io/py/sam-ml-py.svg)](https://badge.fury.io/py/sam-ml-py)
+
 a library created by Samuel Brinkmann
 
 ## getting started
 
-1. clone this repository into your current working directory
+1. install the package to your activated virtual environment
 
 ```
-git clone https://github.com/Priapos1004/SAM_ML
+pip install sam-ml-py
 ```
 
-2. go into the `SAM_ML` folder
-
-```
-cd SAM_ML/
-```
-
-3. install the package to your activated virtual environment
-
-```
-pip install -e .
-```
-
-4. now you can import the package, e.g.:
+2. now you can import the package, e.g.:
 
 ```
 from sam_ml.models import RFC
