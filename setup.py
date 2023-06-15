@@ -6,7 +6,7 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="sam_ml",
+    name="sam-ml",
     version="0.4.0",
     description="a library for ML programing created by Samuel Brinkmann",
     long_description=long_description,
