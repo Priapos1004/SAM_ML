@@ -29,4 +29,4 @@ from sam_ml.models import RFC
 RandomForestClassifier = RFC()
 ```
 
---> in the '[examples](examples)' folder you can find notebooks with code snippets that explain the usage of the package
+--> in the '[examples](https://github.com/Priapos1004/SAM_ML/tree/main/examples)' folder you can find notebooks with code snippets that explain the usage of the package
