@@ -11,7 +11,7 @@ def rescale(col: pd.Series, range_low: int, range_high: int) -> pd.Series:
     min_val = min(col)
     max_val = max(col)
     scaled = (range_high - range_low) * ((col-min_val)/(max_val - min_val)) + range_low
-    return scaled.apply(lambda x: round(x))
+    return scaled.apply(round)
 
 def synt_data(columns: dict[str, list], label_name: str = "label", sample_num: int = 1000, classes_num: int = 2, weights: list[float] = None, class_sep: float = 0.98, random_seed: int = 42) -> pd.DataFrame:
     """

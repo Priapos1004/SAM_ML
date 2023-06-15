@@ -8,11 +8,15 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              make_scorer, precision_score, recall_score)
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
-                                     RepeatedStratifiedKFold, cross_validate)
+                                     cross_validate)
 from tqdm.auto import tqdm
+
+from sam_ml.config import setup_logger
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
+
+logger = setup_logger(__name__)
 
 
 class Classifier(Model):
@@ -30,6 +34,18 @@ class Classifier(Model):
         self._grid = grid
         self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
+
+    def __repr__(self) -> str:
+        params: str = ""
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                params+= key+"='"+str(param_dict[key])+"', "
+            else:
+                params+= key+"="+str(param_dict[key])+", "
+        params += f"model_name='{self.model_name}'"
+
+        return f"{self.model_type}({params})"
 
     @property
     def grid(self):
@@ -105,7 +121,7 @@ class Classifier(Model):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        cv_num: int = 3,
+        cv_num: int = 10,
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         console_out: bool = True,
@@ -126,11 +142,9 @@ class Classifier(Model):
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
-            depending on "return_as_dict"
-            the scores will be saved in self.cv_scores as dict (WARNING: return_estimator=True increases object size)
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
         """
-        if console_out:
-            print("starting to cross validate...")
+        logger.debug(f"cross validation {self.model_name} - started")
 
         precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
         recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
@@ -178,8 +192,9 @@ class Classifier(Model):
             "avg train time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
         }
 
+        logger.debug(f"cross validation {self.model_name} - finished")
+
         if console_out:
-            print("... cross validation completed")
             print()
             print(pd_scores)
 
@@ -214,8 +229,7 @@ class Classifier(Model):
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
         """
-        if console_out:
-            print("starting to cross validate...")
+        logger.debug(f"cross validation {self.model_name} - started")
 
         predictions = []
         true_values = []
@@ -254,8 +268,9 @@ class Classifier(Model):
             "avg train time": avg_train_time,
         }
 
+        logger.debug(f"cross validation {self.model_name} - finished")
+
         if console_out:
-            print("... cross validation completed")
             print()
             print("classification report:")
             print(classification_report(true_values, predictions))
@@ -267,22 +282,24 @@ class Classifier(Model):
         feature_importance() generates a matplotlib plot of the feature importance from self.model
         """
         if not self.trained:
-            return "INFO: You have to first train the classifier before getting the feature importance"
+            logger.error("You have to first train the classifier before getting the feature importance")
+            return
 
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ["DTC", "RFC", "GBM", "CBC", "ABC", "ETC"]:
+        elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC"):
             importances = self.model.feature_importances_
-        elif self.model_type in ["KNC", "GNB", "BNB", "GPC", "QDA", "BC"]:
-            return self.model_name+" does not have a feature importance"
+        elif self.model_type in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
+            logger.warning(f"{self.model_name} does not have a feature importance")
+            return
         else:
             importances = self.model.coef_[0]  # "normal"
 
         feature_importances = pd.Series(importances, index=self.feature_names)
 
         fig, ax = plt.subplots()
-        if self.model_type in ["RFC", "GBM", "ETC"]:
-            if self.model_type in ["RFC", "ETC"]:
+        if self.model_type in ("RFC", "GBM", "ETC"):
+            if self.model_type in ("RFC", "ETC"):
                 std = np.std(
                     [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
                 )
@@ -306,8 +323,7 @@ class Classifier(Model):
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = 1,
-        n_split_num: int = 10,
-        n_repeats_num: int = 3,
+        cv_num: int = 10,
         verbose: int = 0,
         rand_search: bool = True,
         n_iter_num: int = 75,
@@ -330,8 +346,7 @@ class Classifier(Model):
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
 
-            n_split_num: number of different splits
-            n_repeats_num: number of repetition of one split
+            cv_num: number of different splits
 
             verbose: log level (higher number --> more logs)
             console_out: output the the results of the different iterations
@@ -347,6 +362,7 @@ class Classifier(Model):
             grid = self.grid
 
         if console_out:
+            print()
             print("grid: ", grid)
             print()
 
@@ -359,16 +375,12 @@ class Classifier(Model):
         elif scoring == "l_score":
             scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
-        cv = RepeatedStratifiedKFold(
-            n_splits=n_split_num, n_repeats=n_repeats_num, random_state=42
-        )
-
         if rand_search:
             grid_search = RandomizedSearchCV(
                 estimator=self,
                 param_distributions=grid,
                 n_iter=n_iter_num,
-                cv=cv,
+                cv=cv_num,
                 verbose=verbose,
                 random_state=42,
                 n_jobs=-1,
@@ -379,16 +391,14 @@ class Classifier(Model):
                 estimator=self,
                 param_grid=grid,
                 n_jobs=-1,
-                cv=cv,
+                cv=cv_num,
                 verbose=verbose,
                 scoring=scoring,
                 error_score=0,
             )
-        if console_out:
-            print("starting hyperparameter tuning...")
+        logger.debug(f"hyperparameter tuning {self.model_name} - started")
         grid_result = grid_search.fit(x_train, y_train)
-        if console_out:
-            print("... hyperparameter tuning finished")
+        logger.debug(f"hyperparameter tuning {self.model_name} - finished")
 
         if console_out:
             means = grid_result.cv_results_["mean_test_score"]
@@ -397,6 +407,7 @@ class Classifier(Model):
             print()
             for mean, stdev, param in zip(means, stds, params):
                 print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
+            print()
 
         self.model = grid_result.best_estimator_.model
         if self.is_pipeline:
@@ -411,8 +422,6 @@ class Classifier(Model):
         print()
 
         if train_afterwards:
-            if console_out:
-                print("starting to train best model...")
+            logger.debug(f"best model training {self.model_name} - started")
             self.train(x_train, y_train, console_out=False)
-            if console_out:
-                print("... best model trained")
+            logger.debug(f"best model training {self.model_name} - finished")

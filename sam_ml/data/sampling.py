@@ -5,6 +5,10 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.under_sampling import NearMiss, RandomUnderSampler, TomekLinks
 from sklearn.utils import resample
 
+from sam_ml.config import setup_logger
+
+logger = setup_logger(__name__)
+
 
 def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int, str] = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -70,7 +74,7 @@ class Sampler:
         self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "SMOTE":
-            self.sampler = SMOTE(**kwargs)
+            self.sampler = SMOTE(random_state=random_state, **kwargs)
         elif algorithm == "rus":
             self.sampler = RandomUnderSampler(random_state=random_state, replacement=True, **kwargs)
         elif algorithm == "ros":
@@ -80,9 +84,19 @@ class Sampler:
         elif algorithm == "nm":
             self.sampler = NearMiss(**kwargs)
         else:
-            print(f"INPUT ERROR: type='{algorithm}' does not exist --> using RandomOverSampler")
+            logger.error(f"type='{algorithm}' does not exist --> using RandomOverSampler")
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
             self.algorithm = "ros"
+
+    def __repr__(self) -> str:
+        sampler_params: str = ""
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                sampler_params += key+"='"+str(param_dict[key])+"', "
+            else:
+                sampler_params += key+"="+str(param_dict[key])+", "
+        return f"Sampler({sampler_params})"
 
     @staticmethod
     def params() -> dict:
@@ -92,6 +106,9 @@ class Sampler:
         """
         param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
         return param
+
+    def get_params(self, deep: bool = True):
+        return {"algorithm": self.algorithm} | self.sampler.get_params(deep)
 
     def set_params(self, **params):
         self.sampler.set_params(**params)

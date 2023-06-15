@@ -5,6 +5,9 @@ from typing import Union
 
 import pandas as pd
 
+from sam_ml.config import setup_logger
+
+logger = setup_logger(__name__)
 
 class Model:
     """ Model parent class """
@@ -25,13 +28,16 @@ class Model:
         self.test_score: Union[float, dict[str, float]] = None
         self.feature_names: list = None
 
+    def __repr__(self) -> str:
+        return f"Model(model_object={self.model.__str__()}, model_name='{self.model_name}', model_type='{self.model_type}')"
+
     def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
         """
         @return:
             tuple of train score and train time
         """
         if console_out:
-            print("started training...")
+            logger.debug(f"training {self.model_name} - started")
 
         start_time = time.time()
         self.model.fit(x_train, y_train)
@@ -42,8 +48,10 @@ class Model:
 
         if console_out:
             print("Train score: ", self.train_score, " - Train time: ", self.train_time)
+            logger.debug(f"training {self.model_name} - finished")
 
         self.trained = True
+
         return self.train_score, self.train_time
 
     def fit(self, x_train: pd.DataFrame, y_train: pd.Series):
@@ -78,19 +86,19 @@ class Model:
             path: path to save the model with suffix '.pkl'
             only_estimator: if True, only the estimator of the class object will be saved
         """
-        print("saving started...")
+        logger.debug(f"saving {self.model_name} - started")
         with open(path, "wb") as f:
             if only_estimator:
                 pickle.dump(self.model, f)
             else:
                 pickle.dump(self, f)
-        print("... model saved")
+        logger.debug(f"saving {self.model_name} - finished")
 
     @staticmethod
     def load_model(path: str):
         """ function to load a pickled model class object """
-        print("loading model...")
+        logger.debug("loading model - started")
         with open(path, "rb") as f:
             model = pickle.load(f)
-        print("... model loaded")
+        logger.debug("loading model - finished")
         return model

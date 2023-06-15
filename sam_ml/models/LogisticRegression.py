@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 from .main_classifier import Classifier
@@ -30,9 +31,17 @@ class LR(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "solver": ["newton-cg", "lbfgs", "liblinear", "sag"],
-            "penalty": ["l2"],
-            "C": [100, 10, 1.0, 0.1, 0.01],
-        }
+        if model.penalty == "l2":
+            grid = {
+                "solver": ["newton-cg", "lbfgs", "liblinear", "sag", "saga"],
+                "penalty": ["l2"],
+                "C": [100, 10, 1.0, 0.1, 0.01],
+            }
+        else:
+            grid = {
+                "solver": ["saga"],
+                "penalty": ["elasticnet"],
+                "C": [100, 10, 1.0, 0.1, 0.01],
+                "l1_ratio": list(np.linspace(0, 1, num=5))+[0.01],
+            }
         super().__init__(model, model_name, model_type, grid)

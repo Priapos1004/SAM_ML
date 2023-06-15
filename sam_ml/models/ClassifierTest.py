@@ -4,17 +4,21 @@ import warnings
 from typing import Union
 
 import pandas as pd
+
+# to deactivate pygame promt 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
+import pygame
 from pkg_resources import resource_filename
-from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
 
+from sam_ml.config import setup_logger
 from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
 
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
-from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
 from .ExtraTreesClassifier import ETC
 from .GaussianNB import GNB
@@ -31,6 +35,8 @@ from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 
+logger = setup_logger(__name__)
+
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
     os.environ["PYTHONWARNINGS"] = "ignore" # Also affects subprocesses
@@ -44,13 +50,15 @@ class CTest:
         @params:
             models:
                 list of Wrapperclass models from sam_ml library
-                'all': use all Wrapperclass models (18 models) from sam_ml library
+                'all': use all Wrapperclass models (18+ models) from sam_ml library
                 'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
             sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
         """
+        self.__models_input = models
+
         if type(models) == str:
             models = self.model_combs(models)
 
@@ -64,6 +72,53 @@ class CTest:
         self._sampler = sampler
         self.best_model: Pipeline
         self.scores: dict = {}
+
+    def __repr__(self) -> str:
+        params: str = ""
+
+        if type(self.__models_input) == str:
+            params += f"models='{self.__models_input}', "
+        else:
+            params += "models=["
+            for model in self.__models_input:
+                params += f"\n    {model.__str__()},"
+            params += "],\n"
+
+        if type(self._vectorizer) == str:
+            params += f"vectorizer='{self._vectorizer}'"
+        elif type(self._vectorizer) == Embeddings_builder:
+            params += f"vectorizer={self._vectorizer.__str__()}"
+        else:
+            params += f"vectorizer={self._vectorizer}"
+        
+        params += ", "
+
+        if type(self._scaler) == str:
+            params += f"scaler='{self._scaler}'"
+        elif type(self._scaler) == Scaler:
+            params += f"scaler={self._scaler.__str__()}"
+        else:
+            params += f"scaler={self._scaler}"
+
+        params += ", "
+
+        if type(self._selector) == str:
+            params += f"selector='{self._selector}'"
+        elif type(self._selector) == Selector:
+            params += f"selector={self._selector.__str__()}"
+        else:
+            params += f"selector={self._selector}"
+
+        params += ", "
+
+        if type(self._sampler) == str:
+            params += f"sampler='{self._sampler}'"
+        elif type(self._sampler) == Sampler:
+            params += f"sampler={self._sampler.__str__()}"
+        else:
+            params += f"sampler={self._sampler}"
+
+        return f"CTest({params})"
 
     def remove_model(self, model_name: str):
         del self.models[model_name]
@@ -80,20 +135,20 @@ class CTest:
         """
         if kind == "all":
             models = [
-                LR(),
+                LR(model_name="LogisticRegression (l2 penalty)"),
+                LR(model_name="LogisticRegression (elasticnet penalty)", penalty="elasticnet", solver="saga", l1_ratio=0.5),
                 QDA(),
                 LDA(),
                 MLPC(),
                 LSVC(),
                 DTC(),
-                #CBC(),
                 RFC(),
                 SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
                 GBM(),
                 
                 ABC(model_name="AdaBoostClassifier (DTC based)"),
                 ABC(
-                    base_estimator=RandomForestClassifier(max_depth=5),
+                    base_estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="AdaBoostClassifier (RFC based)",
                 ),
                 KNC(),
@@ -103,7 +158,7 @@ class CTest:
                 GPC(),
                 BC(model_name="BaggingClassifier (DTC based)"),
                 BC(
-                    base_estimator=RandomForestClassifier(max_depth=5),
+                    base_estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="BaggingClassifier (RFC based)",
                 ),
             ]
@@ -128,7 +183,9 @@ class CTest:
     def __finish_sound(self):
         """ little function to play a microwave sound """
         filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
-        playsound(filepath)
+        pygame.mixer.init()
+        pygame.mixer.music.load(filepath)
+        pygame.mixer.music.play()
 
     def eval_models(
         self,
@@ -168,14 +225,14 @@ class CTest:
             return self.scores
 
         except KeyboardInterrupt:
-            print("KeyboardInterrupt - output interim result")
+            logger.info("KeyboardInterrupt - output interim result")
             return self.scores
 
     def eval_models_cv(
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        cv_num: int = 3,
+        cv_num: int = 10,
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         small_data_eval: bool = False,
@@ -214,8 +271,7 @@ class CTest:
             return self.scores
 
         except KeyboardInterrupt:
-
-            print("KeyboardInterrupt - output interim result")
+            logger.info("KeyboardInterrupt - output interim result")
             return self.scores
 
     def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
@@ -239,7 +295,7 @@ class CTest:
             if console_out:
                 print(scores)
         else:
-            print("WARNING: no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
+            logger.warning("no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
             scores = None
 
         return scores
@@ -256,8 +312,7 @@ class CTest:
         pos_label: Union[int, str] = -1,
         rand_search: bool = True,
         n_iter_num: int = 75,
-        n_split_num: int = 10,
-        n_repeats_num: int = 3,
+        cv_num: int = 10,
         console_out: bool = False,
         secondary_scoring: str = None,
         strength: int = 3,
@@ -274,8 +329,7 @@ class CTest:
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             rand_search: True: RandomizedSearchCV, False: GridSearchCV
             n_iter_num: Combinations to try out if rand_search=True
-            n_split_num: number of different splits
-            n_repeats_num: number of repetition of one split
+            cv_num: number of different splits
             console_out: outputs intermidiate results into the console
             secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
@@ -287,28 +341,27 @@ class CTest:
         """
 
         if cv_kind == "no":
-            print("creating scores using 'eval_models()'")
+            logger.debug("creating scores using 'eval_models()'")
             self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
         elif cv_kind == "small":
-            print("creating scores using 'eval_models_cv(small_data_eval=True)'")
+            logger.debug("creating scores using 'eval_models_cv(small_data_eval=True)'")
             self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
         elif cv_kind == "multi":
-            print("creating scores using 'eval_models_cv(small_data_eval=False)'")
-            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength)
+            logger.debug("creating scores using 'eval_models_cv(small_data_eval=False)'")
+            self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength, cv_num=cv_num)
         else:
-            print(f"ERROR: wrong input '{cv_kind}' for cv_kind")
+            logger.error(f"wrong input '{cv_kind}' for cv_kind")
             return
 
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"])
-        print()
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
 
+        print()
         print(f"best model type ({scoring}): ", best_model_type, " - ", best_model_value)
-
-        print(f"starting to hyperparametertune best model type (rand_search = {rand_search})...",)
         print()
 
+        logger.info(f"hyperparametertuning for best model type (rand_search = {rand_search}) - started")
         self.models[best_model_type].gridsearch(
             x_train,
             y_train,
@@ -318,20 +371,17 @@ class CTest:
             pos_label=pos_label,
             rand_search=rand_search,
             n_iter_num=n_iter_num,
-            n_repeats_num=n_repeats_num,
-            n_split_num=n_split_num,
+            cv_num=cv_num,
             console_out=console_out,
             secondary_scoring=secondary_scoring,
             strength=strength,
         )
-
-        print()
-        print("... hyperparameter tuning finished")
-        print()
+        logger.info(f"hyperparametertuning for best model type (rand_search = {rand_search}) - finished")
 
         # Set self.best_model = hyperparameter tuned model
         self.best_model = self.models[best_model_type]
 
         self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)
+        self.best_model.feature_importance()
         self.__finish_sound()
         return self.best_model

@@ -3,6 +3,10 @@ from sklearn.preprocessing import (MaxAbsScaler, MinMaxScaler, Normalizer,
                                    PowerTransformer, QuantileTransformer,
                                    RobustScaler, StandardScaler)
 
+from sam_ml.config import setup_logger
+
+logger = setup_logger(__name__)
+
 
 class Scaler:
     """ Scaler Wrapper class """
@@ -29,48 +33,58 @@ class Scaler:
 
         if scaler == "standard":
             if self.console_out:
-                print("using StandardScaler as scaler")
+                logger.info("using StandardScaler as scaler")
             self.scaler = StandardScaler(**kwargs)
 
         elif scaler == "minmax":
             if self.console_out:
-                print("using MinMaxScaler as scaler")
+                logger.info("using MinMaxScaler as scaler")
             self.scaler = MinMaxScaler(**kwargs)
 
         elif scaler == "maxabs":
             if self.console_out:
-                print("using MaxAbsScaler as scaler")
+                logger.info("using MaxAbsScaler as scaler")
             self.scaler = MaxAbsScaler(**kwargs)
 
         elif scaler == "robust":
             if self.console_out:
-                print("using RobustScaler as scaler")
+                logger.info("using RobustScaler as scaler")
             self.scaler = RobustScaler(**kwargs)
             
         elif scaler == "normalizer":
             if self.console_out:
-                print("using Normalizer as scaler")
+                logger.info("using Normalizer as scaler")
             self.scaler = Normalizer(**kwargs)
 
         elif scaler == "power":
             if self.console_out:
-                print("using PowerTransformer as scaler")
+                logger.info("using PowerTransformer as scaler")
             self.scaler = PowerTransformer(**kwargs)
 
         elif scaler == "quantile":
             if self.console_out:
-                print("using QuantileTransformer as scaler")
+                logger.info("using QuantileTransformer as scaler")
             self.scaler = QuantileTransformer(**kwargs)
 
         elif scaler == "quantile_normal":
             if self.console_out:
-                print("using QuantileTransformer with output_distribution='normal' as scaler")
+                logger.info("using QuantileTransformer with output_distribution='normal' as scaler")
             self.scaler = QuantileTransformer(output_distribution="normal", **kwargs)
 
         else:
-            print(f"INPUT ERROR: Scaler '{scaler}' is no valid input -> using StandardScaler")
+            logger.error(f"scaler='{scaler}' is no valid input -> using StandardScaler")
             self.scaler = StandardScaler()
             self.scaler_type = "standard"
+
+    def __repr__(self) -> str:
+        scaler_params: str = ""
+        param_dict = self.get_params(False)
+        for key in param_dict:
+            if type(param_dict[key]) == str:
+                scaler_params += key+"='"+str(param_dict[key])+"', "
+            else:
+                scaler_params += key+"="+str(param_dict[key])+", "
+        return f"Scaler({scaler_params})"
 
     @staticmethod
     def params() -> dict:
@@ -80,6 +94,9 @@ class Scaler:
         """
         param = {"scaler": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
         return param
+
+    def get_params(self, deep: bool = True):
+        return {"scaler": self.scaler_type, "console_out": self.console_out} | self.scaler.get_params(deep)
 
     def set_params(self, **params):
         self.scaler.set_params(**params)
@@ -95,7 +112,7 @@ class Scaler:
         """
         columns = data.columns
         if self.console_out:
-            print("starting to scale...")
+            logger.debug("scaling - started")
 
         if train_on:
             scaled_ar = self.scaler.fit_transform(data)
@@ -105,7 +122,7 @@ class Scaler:
         scaled_df = pd.DataFrame(scaled_ar, columns=columns)
 
         if self.console_out:
-            print("... data scaled")
+            logger.debug("scaling - finished")
 
         return scaled_df
 
