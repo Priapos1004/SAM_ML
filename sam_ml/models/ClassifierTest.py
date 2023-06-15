@@ -4,6 +4,10 @@ import warnings
 from typing import Union
 
 import pandas as pd
+
+# to deactivate pygame promt 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 from pkg_resources import resource_filename
 from sklearn.ensemble import RandomForestClassifier

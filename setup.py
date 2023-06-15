@@ -22,6 +22,7 @@ setup(
         "numpy",
         "imbalanced-learn",
         "pygame",
+        "ipywidgets",
         "tqdm",
         "statsmodels",
     ],  # M1 problems with tensorflow, sentence-transformers, xgboost
