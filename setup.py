@@ -25,7 +25,8 @@ setup(
         "ipywidgets",
         "tqdm",
         "statsmodels",
-    ],  # M1 problems with tensorflow, sentence-transformers, xgboost
+        "sentence-transformers"
+    ],
     extras_require={"test": ["pytest", "pylint!=2.5.0", "isort", "refurb", "black"],},
     author="Samuel Brinkmann",
     license="MIT",
