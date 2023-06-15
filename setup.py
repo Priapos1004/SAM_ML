@@ -22,6 +22,7 @@ setup(
         "numpy",
         "catboost",
         "imbalanced-learn",
+        "wheel",
         "playsound",
         "PyObjC;platform_system=='Darwin'",
         "tqdm",
