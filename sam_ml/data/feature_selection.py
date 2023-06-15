@@ -85,7 +85,7 @@ class Selector:
 
     def get_params(self, deep: bool = True):
         class_params = {"algorithm": self.algorithm, "num_features": self.num_features, "console_out": self.console_out}
-        if self.algorithm in ["wrapper"]:
+        if self.algorithm == "wrapper":
             return class_params | self.selector
         else:
             selector_params = self.selector.get_params(deep)
@@ -103,7 +103,7 @@ class Selector:
             return class_params | selector_params
 
     def set_params(self, **params):
-        if self.algorithm in ["wrapper"]:
+        if self.algorithm == "wrapper":
             self.selector = params
         else:
             self.selector.set_params(**params)
@@ -127,7 +127,7 @@ class Selector:
                 self.selector.fit(X.values, y)
                 self.selected_features = self.selector.get_feature_names_out(X.columns)
         
-        if self.algorithm in ["wrapper"]:
+        if self.algorithm == "wrapper":
             X_selected = X[self.selected_features]
         else:
             X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
@@ -140,7 +140,7 @@ class Selector:
         selected_features = list(X.columns)
         y = list(y)
         pmax = 1
-        while (len(selected_features)>0):
+        while selected_features:
             p= []
             X_new = X[selected_features]
             X_new = sm.add_constant(X_new)

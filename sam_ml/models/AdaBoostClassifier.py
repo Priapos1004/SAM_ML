@@ -32,7 +32,7 @@ class ABC(Classifier):
         )
         if type(model.base_estimator) == RandomForestClassifier:
             grid = {
-                "base_estimator": [RandomForestClassifier(max_depth=i, n_estimators=j) for i in range(1,11) for j in [5, 10, 20, 50, 100]]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier()],
+                "base_estimator": [RandomForestClassifier(max_depth=i, n_estimators=j) for i in range(1,11) for j in (5, 10, 20, 50, 100)]+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier()],
                 "n_estimators": list(range(10, 101, 10)) + [200, 500, 1000, 1500, 3000],
                 "learning_rate": [0.1, 0.05, 0.01, 0.005]+list(arange(0.2,2.1,0.1)),
                 "algorithm": ["SAMME.R", "SAMME"],

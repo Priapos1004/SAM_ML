@@ -20,10 +20,10 @@ setup(
         "pandas",
         "matplotlib",
         "numpy",
-        "catboost",
+        #"catboost",
         "imbalanced-learn",
         "pygame",
-        "PyObjC;platform_system=='Darwin'",
+        #"PyObjC;platform_system=='Darwin'",
         "tqdm",
         "statsmodels",
     ],  # M1 problems with tensorflow, sentence-transformers, xgboost

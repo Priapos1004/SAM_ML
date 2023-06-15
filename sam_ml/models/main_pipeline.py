@@ -72,7 +72,7 @@ class Pipeline(Classifier):
             if self.sampler.algorithm == "SMOTE" and self.model_type in sampling_problems:
                 logger.warning(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
                 self.sampler = Sampler(algorithm="ros")
-            elif self.sampler.algorithm in ["nm", "tl"] and self.model_type in sampling_problems:
+            elif self.sampler.algorithm in ("nm", "tl") and self.model_type in sampling_problems:
                 logger.warning(self.model_type+f" does not work with sampling='{self.sampler.algorithm}' --> going on with sampling='rus'")
                 self.sampler = Sampler(algorithm="rus")
 
@@ -170,7 +170,6 @@ class Pipeline(Classifier):
         return dict(self.steps)
 
     def set_params(self, **params):
-        params = dict(**params)
         if self.vectorizer is not None:
             vec_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "vectorizer"])
             self.vectorizer.set_params(**vec_params)
