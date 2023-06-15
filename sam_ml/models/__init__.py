@@ -1,7 +1,6 @@
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
-from .CatBoostClassifier import CBC
 from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
 from .ExtraTreesClassifier import ETC
@@ -31,7 +30,6 @@ __all__ = {
     "SupportVectorClassifier": "SVC",
     "MLP Classifier": "MLPC",
     "GradientBoostingMachine": "GBM",
-    "CatBoostClassifier": "CBC",
     "AdaBoostClassifier": "ABC",
     "KNeighborsClassifier": "KNC",
     "ExtraTreesClassifier": "ETC",

@@ -4,8 +4,8 @@ import warnings
 from typing import Union
 
 import pandas as pd
+import pygame
 from pkg_resources import resource_filename
-from playsound import playsound
 from sklearn.ensemble import RandomForestClassifier
 from tqdm.auto import tqdm
 
@@ -15,7 +15,6 @@ from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
-from .CatBoostClassifier import CBC
 from .DecisionTreeClassifier import DTC
 from .ExtraTreesClassifier import ETC
 from .GaussianNB import GNB
@@ -139,7 +138,6 @@ class CTest:
                 MLPC(),
                 LSVC(),
                 DTC(),
-                #CBC(),
                 RFC(),
                 SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
                 GBM(),
@@ -181,7 +179,9 @@ class CTest:
     def __finish_sound(self):
         """ little function to play a microwave sound """
         filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
-        playsound(filepath)
+        pygame.mixer.init()
+        pygame.mixer.music.load(filepath)
+        pygame.mixer.music.play()
 
     def eval_models(
         self,
