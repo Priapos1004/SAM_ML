@@ -26,7 +26,6 @@ setup(
         "PyObjC;platform_system=='Darwin'",
         "tqdm",
         "statsmodels",
-        "azure-storage-blob",
     ],  # M1 problems with tensorflow, sentence-transformers, xgboost
     extras_require={"test": ["pytest", "pylint!=2.5.0", "isort", "refurb", "black"],},
     author="Samuel Brinkmann",
