@@ -65,7 +65,7 @@ class Embeddings_builder:
         return param
 
     def get_params(self, deep: bool = True):
-        class_params = {"vec": self.vec_type, "console_out": self.console_out}
+        class_params = {"vec": self.vec_type}
         if self.vec_type != "bert":
             return class_params | self.vectorizer.get_params(deep)
         return class_params | {"model_name_or_path": "quora-distilbert-multilingual"}
