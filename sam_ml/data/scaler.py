@@ -11,7 +11,7 @@ logger = setup_logger(__name__)
 class Scaler:
     """ Scaler Wrapper class """
 
-    def __init__(self, scaler: str = "standard", console_out: bool = False, **kwargs):
+    def __init__(self, scaler: str = "standard", **kwargs):
         """
         @param:
             scaler: kind of scaler to use
@@ -27,48 +27,39 @@ class Scaler:
             **kwargs:
                 additional parameters for scaler
         """
-        self.console_out = console_out
         self.scaler_type = scaler
         self._grid: dict[str, list] = {} # for pipeline structure
 
         if scaler == "standard":
-            if self.console_out:
-                logger.info("using StandardScaler as scaler")
+            logger.debug("using StandardScaler as scaler")
             self.scaler = StandardScaler(**kwargs)
 
         elif scaler == "minmax":
-            if self.console_out:
-                logger.info("using MinMaxScaler as scaler")
+            logger.debug("using MinMaxScaler as scaler")
             self.scaler = MinMaxScaler(**kwargs)
 
         elif scaler == "maxabs":
-            if self.console_out:
-                logger.info("using MaxAbsScaler as scaler")
+            logger.debug("using MaxAbsScaler as scaler")
             self.scaler = MaxAbsScaler(**kwargs)
 
         elif scaler == "robust":
-            if self.console_out:
-                logger.info("using RobustScaler as scaler")
+            logger.debug("using RobustScaler as scaler")
             self.scaler = RobustScaler(**kwargs)
             
         elif scaler == "normalizer":
-            if self.console_out:
-                logger.info("using Normalizer as scaler")
+            logger.debug("using Normalizer as scaler")
             self.scaler = Normalizer(**kwargs)
 
         elif scaler == "power":
-            if self.console_out:
-                logger.info("using PowerTransformer as scaler")
+            logger.debug("using PowerTransformer as scaler")
             self.scaler = PowerTransformer(**kwargs)
 
         elif scaler == "quantile":
-            if self.console_out:
-                logger.info("using QuantileTransformer as scaler")
+            logger.debug("using QuantileTransformer as scaler")
             self.scaler = QuantileTransformer(**kwargs)
 
         elif scaler == "quantile_normal":
-            if self.console_out:
-                logger.info("using QuantileTransformer with output_distribution='normal' as scaler")
+            logger.debug("using QuantileTransformer with output_distribution='normal' as scaler")
             self.scaler = QuantileTransformer(output_distribution="normal", **kwargs)
 
         else:
@@ -96,7 +87,7 @@ class Scaler:
         return param
 
     def get_params(self, deep: bool = True):
-        return {"scaler": self.scaler_type, "console_out": self.console_out} | self.scaler.get_params(deep)
+        return {"scaler": self.scaler_type} | self.scaler.get_params(deep)
 
     def set_params(self, **params):
         self.scaler.set_params(**params)
@@ -111,8 +102,7 @@ class Scaler:
             Dataframe with scaled data
         """
         columns = data.columns
-        if self.console_out:
-            logger.debug("scaling - started")
+        logger.debug("scaling - started")
 
         if train_on:
             scaled_ar = self.scaler.fit_transform(data)
@@ -121,8 +111,7 @@ class Scaler:
 
         scaled_df = pd.DataFrame(scaled_ar, columns=columns)
 
-        if self.console_out:
-            logger.debug("scaling - finished")
+        logger.debug("scaling - finished")
 
         return scaled_df
 

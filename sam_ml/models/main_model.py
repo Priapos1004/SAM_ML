@@ -36,8 +36,7 @@ class Model:
         @return:
             tuple of train score and train time
         """
-        if console_out:
-            logger.debug(f"training {self.model_name} - started")
+        logger.debug(f"training {self.model_name} - started")
 
         start_time = time.time()
         self.model.fit(x_train, y_train)
@@ -48,7 +47,8 @@ class Model:
 
         if console_out:
             print("Train score: ", self.train_score, " - Train time: ", self.train_time)
-            logger.debug(f"training {self.model_name} - finished")
+            
+        logger.debug(f"training {self.model_name} - finished")
 
         self.trained = True
 

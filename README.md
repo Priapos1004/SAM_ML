@@ -6,7 +6,7 @@ a library created by Samuel Brinkmann
 
 ## getting started
 
-1. install the package to your activated virtual environment
+1. install the package to your activated virtual environment *(python version 3.10 and higher is needed)*
 
 ```
 pip install sam-ml-py

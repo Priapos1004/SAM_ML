@@ -16,7 +16,7 @@ logger = setup_logger(__name__)
 class Selector:
     """ feature selection algorithm Wrapper class """
 
-    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), console_out: bool = False, **kwargs):
+    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), **kwargs):
         """
         @params:
             algorithm:
@@ -36,7 +36,6 @@ class Selector:
                 additional parameters for selector
         """
         self.algorithm = algorithm
-        self.console_out = console_out
         self.num_features = num_features
         self._grid: dict[str, list] = {} # for pipeline structure
 
@@ -84,7 +83,7 @@ class Selector:
         return param
 
     def get_params(self, deep: bool = True):
-        class_params = {"algorithm": self.algorithm, "num_features": self.num_features, "console_out": self.console_out}
+        class_params = {"algorithm": self.algorithm, "num_features": self.num_features}
         if self.algorithm == "wrapper":
             return class_params | self.selector
         else:
@@ -118,8 +117,7 @@ class Selector:
             self.selected_features = X.columns
             return X
 
-        if self.console_out:
-            logger.debug("selecting features - started")
+        logger.debug("selecting features - started")
         if train_on:
             if self.algorithm == "wrapper":
                 self.selected_features = self.__wrapper_select(X, y, **self.selector)
@@ -132,8 +130,7 @@ class Selector:
         else:
             X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
 
-        if self.console_out:
-            logger.debug("selecting features - finished")
+        logger.debug("selecting features - finished")
         return X_selected
 
     def __wrapper_select(self, X: pd.DataFrame, y: pd.DataFrame, pvalue_limit: float = 0.5, **kwargs) -> list:
