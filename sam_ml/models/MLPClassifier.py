@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Float
 from sklearn.neural_network import MLPClassifier
 
 from .main_classifier import Classifier
@@ -33,11 +34,13 @@ class MLPC(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "hidden_layer_sizes": [(10, 30, 10), (20,), (10,), (100,), (50,50,50), (50,100,50)],
-            "activation": ["tanh", "relu", "logistic"],
-            "solver": ["sgd", "adam"],
-            "alpha": [0.0001, 0.001, 0.01, 0.05],
-            "learning_rate": ["constant", "adaptive"],
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "hidden_layer_sizes": Categorical("hidden_layer_sizes", ((10, 30, 10), (20,), (10,), (100,), (50,50,50), (50,100,50))),
+            "activation": Categorical("activation", ["tanh", "relu", "logistic"]),
+            "solver": Categorical("solver", ["sgd", "adam"]),
+            "alpha": Float("alpha", (0.0001, 0.05), log=True),
+            "learning_rate": Categorical("learning_rate", ["constant", "adaptive"]),
+            })
         super().__init__(model, model_name, model_type, grid)

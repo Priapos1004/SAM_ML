@@ -1,5 +1,6 @@
 import warnings
 
+from ConfigSpace import ConfigurationSpace, Float
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 from .main_classifier import Classifier
@@ -21,7 +22,9 @@ class QDA(Classifier):
         """
         model_type = "QDA"
         model = QuadraticDiscriminantAnalysis(**kwargs)
-        grid = {
-            "reg_param": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "reg_param": Float("reg_param", (0, 1)),
+            })
         super().__init__(model, model_name, model_type, grid)

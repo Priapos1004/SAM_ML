@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn.neighbors import KNeighborsClassifier
 
 from .main_classifier import Classifier
@@ -22,10 +23,12 @@ class KNC(Classifier):
         """
         model_type = "KNC"
         model = KNeighborsClassifier(**kwargs,)
-        grid = {
-            "n_neighbors": list(range(1,30)),
-            "p": [1, 2, 3, 4, 5],
-            "leaf_size": list(range(1,50)),
-            "weights": ["uniform", "distance"],
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "n_neighbors": Integer("n_neighbors", (1, 30)),
+            "p": Integer("p", (1, 5)),
+            "leaf_size": Integer("leaf_size", (1, 50)),
+            "weights": Categorical("weights", ["uniform", "distance"]),
+            })
         super().__init__(model, model_name, model_type, grid)

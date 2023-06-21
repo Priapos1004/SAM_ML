@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn.gaussian_process import GaussianProcessClassifier
 
 from .main_classifier import Classifier
@@ -22,8 +23,10 @@ class GPC(Classifier):
         model = GaussianProcessClassifier(
             n_jobs=n_jobs, random_state=random_state, **kwargs,
         )
-        grid = {
-            "multi_class": ["one_vs_rest", "one_vs_one"],
-            "max_iter_predict": [1, 10, 50, 100, 200, 500, 1000],
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "multi_class": Categorical("multi_class", ["one_vs_rest", "one_vs_one"]),
+            "max_iter_predict": Integer("max_iter_predict", (1, 1000), log=True),
+            })
         super().__init__(model, model_name, model_type, grid)

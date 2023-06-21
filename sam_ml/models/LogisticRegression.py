@@ -1,4 +1,7 @@
 import numpy as np
+from ConfigSpace import (Categorical, ConfigurationSpace, EqualsCondition,
+                         Float, ForbiddenAndConjunction, ForbiddenEqualsClause,
+                         ForbiddenInClause)
 from sklearn.linear_model import LogisticRegression
 
 from .main_classifier import Classifier
@@ -31,17 +34,19 @@ class LR(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        if model.penalty == "l2":
-            grid = {
-                "solver": ["newton-cg", "lbfgs", "liblinear", "sag", "saga"],
-                "penalty": ["l2"],
-                "C": [100, 10, 1.0, 0.1, 0.01],
-            }
-        else:
-            grid = {
-                "solver": ["saga"],
-                "penalty": ["elasticnet"],
-                "C": [100, 10, 1.0, 0.1, 0.01],
-                "l1_ratio": list(np.linspace(0, 1, num=5))+[0.01],
-            }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "solver": Categorical("solver", ["newton-cg", "lbfgs", "liblinear", "sag", "saga"], default="lbfgs"),
+            "penalty": Categorical("penalty", ["l2", "elasticnet"]),
+            "C": Float("C", (0.01, 100), log=True),
+            "l1_ratio": Float("l1_ratio", (0.01, 1)),
+            })
+        solver_and_penalty = ForbiddenAndConjunction(
+            ForbiddenEqualsClause(grid["penalty"], "elasticnet"),
+            ForbiddenInClause(grid["solver"], ["newton-cg", "lbfgs", "liblinear", "sag"]),
+        )
+        l1_ratio_cond = EqualsCondition(grid["l1_ratio"], grid["penalty"], "elasticnet")
+        grid.add_forbidden_clause(solver_and_penalty)
+        grid.add_condition(l1_ratio_cond)
         super().__init__(model, model_name, model_type, grid)

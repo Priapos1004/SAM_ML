@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn.tree import DecisionTreeClassifier
 
 from .main_classifier import Classifier
@@ -25,10 +26,12 @@ class DTC(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "criterion": ["gini", "entropy"],
-            "max_depth": list(range(1, 10)),
-            "min_samples_split": list(range(2, 10)),
-            "min_samples_leaf": list(range(1, 5)),
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "criterion": Categorical("criterion", ["gini", "entropy"]),
+            "max_depth": Integer("max_depth", (1, 10)),
+            "min_samples_split": Integer("min_samples_split", (2, 10)),
+            "min_samples_leaf": Integer("min_samples_leaf", (1, 5)),
+            })
         super().__init__(model, model_name, model_type, grid)

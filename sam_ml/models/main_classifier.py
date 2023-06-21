@@ -54,6 +54,13 @@ class Classifier(Model):
             hyperparameter tuning grid of the model
         """
         return self._grid
+    
+    def get_random_params(self):
+        """
+        @return;
+            set of random parameter from grid
+        """
+        return dict(self.grid.sample_configuration(1))
 
     def update_grid(self, **kwargs):
         """

@@ -25,7 +25,9 @@ setup(
         "ipywidgets",
         "tqdm",
         "statsmodels",
-        "sentence-transformers"
+        "sentence-transformers",
+        "xgboost",
+        "ConfigSpace", # for hyperparameter tuning spaces
     ],
     extras_require={"test": ["pytest", "pylint!=2.5.0", "isort", "refurb", "black"],},
     author="Samuel Brinkmann",

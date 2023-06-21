@@ -148,7 +148,7 @@ class CTest:
                 
                 ABC(model_name="AdaBoostClassifier (DTC based)"),
                 ABC(
-                    base_estimator=RandomForestClassifier(max_depth=5, random_state=42),
+                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="AdaBoostClassifier (RFC based)",
                 ),
                 KNC(),
@@ -158,7 +158,7 @@ class CTest:
                 GPC(),
                 BC(model_name="BaggingClassifier (DTC based)"),
                 BC(
-                    base_estimator=RandomForestClassifier(max_depth=5, random_state=42),
+                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="BaggingClassifier (RFC based)",
                 ),
             ]

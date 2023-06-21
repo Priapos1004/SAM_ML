@@ -1,3 +1,4 @@
+from ConfigSpace import ConfigurationSpace, Float
 from sklearn.naive_bayes import GaussianNB
 
 from .main_classifier import Classifier
@@ -18,7 +19,9 @@ class GNB(Classifier):
         """
         model_type = "GNB"
         model = GaussianNB(**kwargs,)
-        grid = {
-            "var_smoothing": [10**i for i in range(-11, 1)]
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "var_smoothing": Float("var_smoothing", (0.00000000001, 1), log=True)
+            })
         super().__init__(model, model_name, model_type, grid)
