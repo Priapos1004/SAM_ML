@@ -287,7 +287,7 @@ class Classifier(Model):
 
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC"):
+        elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC", "XGBC"):
             importances = self.model.feature_importances_
         elif self.model_type in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
             logger.warning(f"{self.model_name} does not have a feature importance")
@@ -310,7 +310,7 @@ class Classifier(Model):
             feature_importances.plot.bar(yerr=std, ax=ax)
         else:
             feature_importances.plot.bar(ax=ax)
-        ax.set_title("Feature importances of " + self.model_name)
+        ax.set_title("Feature importances of " + str(self.model_name))
         ax.set_ylabel("use of coefficients as importance scores")
         fig.tight_layout()
         plt.show()
