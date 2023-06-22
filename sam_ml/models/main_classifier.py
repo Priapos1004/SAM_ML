@@ -392,6 +392,7 @@ class Classifier(Model):
         strength: int = 3,
         small_data_eval: bool = False,
         cv_num: int = 5,
+        leave_loadbar: bool = True,
     ) -> tuple[dict, float]:
         results = []
         configs = self._grid.sample_configuration(n_trails)
@@ -399,7 +400,7 @@ class Classifier(Model):
         configs = list(dict.fromkeys(configs))
         at_least_one_run: bool = False
         try:
-            for config in tqdm(configs, desc="randomCVsearch"):
+            for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
                 model = copy(self)
                 model.set_params(**config)
                 if small_data_eval:
@@ -417,7 +418,7 @@ class Classifier(Model):
             
 
         self.rCVsearch_results = pd.DataFrame(results).sort_values(by=scoring, ascending=False)
-        
+
         # for-loop to keep dtypes of columns
         best_hyperparameters = {} 
         for col in self.rCVsearch_results.columns:
