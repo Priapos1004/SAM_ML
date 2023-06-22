@@ -385,28 +385,44 @@ class Classifier(Model):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_trails: int = 10,
-        cv_num: int = 5,
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         secondary_scoring: str = None,
         strength: int = 3,
-    ):
+        small_data_eval: bool = False,
+        cv_num: int = 5,
+    ) -> tuple[dict, float]:
         results = []
         configs = self._grid.sample_configuration(n_trails)
         # remove duplicates
         configs = list(dict.fromkeys(configs))
-
-        for config in tqdm(configs, desc="randomCVsearch"):
-            model = copy(self)
-            model.set_params(**config)
-            score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-            config_dict = dict(config)
-            config_dict[scoring] = score[scoring]
-            results.append(config_dict)
+        at_least_one_run: bool = False
+        try:
+            for config in tqdm(configs, desc="randomCVsearch"):
+                model = copy(self)
+                model.set_params(**config)
+                if small_data_eval:
+                    score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                else:
+                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                config_dict = dict(config)
+                config_dict[scoring] = score[scoring]
+                results.append(config_dict)
+                at_least_one_run = True
+        except KeyboardInterrupt:
+            logger.info("KeyboardInterrupt - output interim result")
+            if not at_least_one_run:
+                return {}, -1
+            
 
         self.rCVsearch_results = pd.DataFrame(results).sort_values(by=scoring, ascending=False)
-        best_hyperparameters = dict(self.rCVsearch_results.iloc[0])
+        
+        # for-loop to keep dtypes of columns
+        best_hyperparameters = {} 
+        for col in self.rCVsearch_results.columns:
+            best_hyperparameters[col] = self.rCVsearch_results[col].iloc[0]
+
         best_score = best_hyperparameters[scoring]
         best_hyperparameters.pop(scoring)
         
