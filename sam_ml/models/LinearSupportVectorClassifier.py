@@ -33,7 +33,7 @@ class LSVC(Classifier):
             space={
             "penalty": Categorical("penalty", ["l1", "l2"], default="l2"),
             "dual": Categorical("dual", [True, False], default=True),
-            "C": Float("C", (0.00001, 1000000), log=True, default=1),
+            "C": Float("C", (0.1, 1000), log=True, default=1),
             "loss": Categorical("loss", ['squared_hinge', 'hinge'], default="squared_hinge"),
             })
         penalty_loss_dual = ForbiddenAndConjunction(

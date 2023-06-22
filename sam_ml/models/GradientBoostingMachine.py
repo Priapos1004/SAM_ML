@@ -34,7 +34,7 @@ class GBM(Classifier):
             seed=42,
             space={
             "n_estimators": Integer("n_estimators", (20, 1500), log=True),
-            "max_depth": Integer("max_depth", (1, 15), distribution=Normal(4, 4)),
+            "max_depth": Integer("max_depth", (1, 15), distribution=Normal(5, 3)),
             "min_samples_split": Integer("min_samples_split", (2, 100), log=True),
             "min_samples_leaf": Integer("min_samples_leaf", (2, 100), log=True),
             "max_features": Categorical("max_features", ["auto", "sqrt", "log2"]),
