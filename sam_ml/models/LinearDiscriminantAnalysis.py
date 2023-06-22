@@ -1,5 +1,4 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Float, InCondition
-from numpy import arange
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from .main_classifier import Classifier

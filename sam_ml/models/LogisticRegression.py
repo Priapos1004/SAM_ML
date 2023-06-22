@@ -37,7 +37,7 @@ class LR(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "solver": Categorical("solver", ["newton-cg", "lbfgs", "liblinear", "sag", "saga"], default="lbfgs"),
+            "solver": Categorical("solver", ["newton-cg", "lbfgs", "liblinear", "sag", "saga"], weights=[0.15, 0.15, 0.15, 0.15, 0.4], default="lbfgs"),
             "penalty": Categorical("penalty", ["l2", "elasticnet"]),
             "C": Float("C", (0.01, 100), log=True),
             "l1_ratio": Float("l1_ratio", (0.01, 1)),

@@ -56,7 +56,6 @@ class Model:
 
     def fit(self, x_train: pd.DataFrame, y_train: pd.Series):
         self.model.fit(x_train, y_train)
-        self.trained = True
         return self
 
     def predict(self, x_test: pd.DataFrame) -> list:

@@ -38,8 +38,8 @@ class ETC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "n_estimators": Integer("n_estimators", (1, 1000), log=True),
-            "max_depth": Integer("max_depth", (2, 15), distribution=Normal(5, 3)),
+            "n_estimators": Integer("n_estimators", (10, 1000), log=True),
+            "max_depth": Integer("max_depth", (3, 15), distribution=Normal(5, 3)),
             "min_samples_split": Integer("min_samples_split", (2, 10)),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4)),
             "bootstrap": Categorical("bootstrap", [True, False], default=False),
