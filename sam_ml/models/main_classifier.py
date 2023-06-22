@@ -1,14 +1,18 @@
+from copy import copy
 from datetime import timedelta
 from statistics import mean
 from typing import Union
 
 import numpy as np
 import pandas as pd
+from ConfigSpace import Configuration, ConfigurationSpace
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              make_scorer, precision_score, recall_score)
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
                                      cross_validate)
+# from smac import (HyperparameterOptimizationFacade, MultiFidelityFacade,
+#                   RandomFacade, Scenario)
 from tqdm.auto import tqdm
 
 from sam_ml.config import setup_logger
@@ -34,6 +38,7 @@ class Classifier(Model):
         self._grid = grid
         self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
+        self.rCVsearch_results: pd.DataFrame|None = None
 
     def __repr__(self) -> str:
         params: str = ""
@@ -62,16 +67,19 @@ class Classifier(Model):
         """
         return dict(self.grid.sample_configuration(1))
 
-    def update_grid(self, **kwargs):
+    def replace_grid(self, new_grid: ConfigurationSpace):
         """
-        function to update self.grid 
+        function to replace self.grid 
 
         e.g.:
-            - model.grid {"n_estimators": [3, 4, 5]}
-            - model.update_grid(n_estimators = [10, 3, 5], solver = ["sag", "l1"])
-            - model.grid {"n_estimators": [10, 3, 5], "solver": ["sag", "l1"]}
+            ConfigurationSpace(
+                seed=42,
+                space={
+                    "solver": Categorical("solver", ["lsqr", "eigen", "svd"]),
+                    "shrinkage": Float("shrinkage", (0, 1)),
+                })
         """
-        self._grid.update(kwargs)
+        self._grid = new_grid
 
     def evaluate(
         self,
@@ -321,114 +329,196 @@ class Classifier(Model):
         ax.set_ylabel("use of coefficients as importance scores")
         fig.tight_layout()
         plt.show()
+    
+    # def smac_search(
+    #         self,
+    #         x_train: pd.DataFrame, 
+    #         y_train: pd.Series
+    # ):
+    #     # Next, we create an object, holding general information about the run
+    #     scenario = Scenario(
+    #         self.grid,
+    #         n_trials=5,  # We want to run max 50 trials (combination of config and seed)
+    #         deterministic=True,
+    #         min_budget=5,
+    #         max_budget=25,
+    #     )
 
-    def gridsearch(
+    #     # We want to run the facade's default initial design, but we want to change the number
+    #     # of initial configs to 5.
+    #     initial_design = MultiFidelityFacade.get_initial_design(scenario)
+
+    #     # define target function
+    #     def grid_train(config: Configuration, seed: int, budget) -> float:
+    #         print(config)
+    #         print(seed)
+    #         print(budget)
+    #         params = self.get_params()
+    #         #print(params)
+    #         params.update(config)
+    #         #print(params)
+    #         model = type(self)(**params)
+    #         score = model.cross_validation(x_train, y_train, console_out=False, cv_num=2)
+    #         print(1 - score["accuracy"])
+    #         return 1 - score["accuracy"]  # SMAC always minimizes (the smaller the better)
+
+    #     # Now we use SMAC to find the best hyperparameters
+    #     smac = MultiFidelityFacade(
+    #         scenario,
+    #         grid_train,
+    #         initial_design=initial_design,
+    #         overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
+    #     )
+
+    #     incumbent = smac.optimize()
+
+    #     # Get cost of default configuration
+    #     default_cost = smac.validate(self.grid.get_default_configuration())
+    #     print(f"Default cost: {default_cost}")
+
+    #     # Let's calculate the cost of the incumbent
+    #     incumbent_cost = smac.validate(incumbent)
+    #     print(f"Incumbent cost: {incumbent_cost}")
+
+    def randomCVsearch(
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
-        grid: dict = None,
+        n_trails: int = 10,
+        cv_num: int = 5,
         scoring: str = "accuracy",
         avg: str = "macro",
-        pos_label: Union[int, str] = 1,
-        cv_num: int = 10,
-        verbose: int = 0,
-        rand_search: bool = True,
-        n_iter_num: int = 75,
-        console_out: bool = True,
-        train_afterwards: bool = True,
+        pos_label: Union[int, str] = -1,
         secondary_scoring: str = None,
         strength: int = 3,
     ):
-        """
-        @param:
-            x_train: DataFrame with train features
-            y_train: Series with labels
+        results = []
+        configs = self._grid.sample_configuration(n_trails)
+        # remove duplicates
+        configs = list(dict.fromkeys(configs))
 
-            grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
+        for config in tqdm(configs, desc="randomCVsearch"):
+            model = copy(self)
+            model.set_params(**config)
+            score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+            config_dict = dict(config)
+            config_dict[scoring] = score[scoring]
+            results.append(config_dict)
 
-            scoring: metrics to evaluate the models
-            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+        self.rCVsearch_results = pd.DataFrame(results).sort_values(by=scoring, ascending=False)
+        best_hyperparameters = dict(self.rCVsearch_results.iloc[0])
+        best_score = best_hyperparameters[scoring]
+        best_hyperparameters.pop(scoring)
+        
+        return best_hyperparameters, best_score
 
-            rand_search: True: RandomizedSearchCV, False: GridSearchCV
-            n_iter_num: Combinations to try out if rand_search=True
+    # def gridsearch(
+    #     self,
+    #     x_train: pd.DataFrame,
+    #     y_train: pd.Series,
+    #     grid: dict = None,
+    #     scoring: str = "accuracy",
+    #     avg: str = "macro",
+    #     pos_label: Union[int, str] = -1,
+    #     cv_num: int = 10,
+    #     verbose: int = 0,
+    #     rand_search: bool = True,
+    #     n_iter_num: int = 75,
+    #     console_out: bool = True,
+    #     train_afterwards: bool = True,
+    #     secondary_scoring: str = None,
+    #     strength: int = 3,
+    # ):
+    #     """
+    #     @param:
+    #         x_train: DataFrame with train features
+    #         y_train: Series with labels
 
-            cv_num: number of different splits
+    #         grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
 
-            verbose: log level (higher number --> more logs)
-            console_out: output the the results of the different iterations
-            train_afterwards: train the best model after finding it
+    #         scoring: metrics to evaluate the models
+    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+    #         pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
 
-            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+    #         rand_search: True: RandomizedSearchCV, False: GridSearchCV
+    #         n_iter_num: Combinations to try out if rand_search=True
 
-        @return:
-            set self.model = best model from search
-        """
-        if grid is None:
-            grid = self.grid
+    #         cv_num: number of different splits
 
-        if console_out:
-            print()
-            print("grid: ", grid)
-            print()
+    #         verbose: log level (higher number --> more logs)
+    #         console_out: output the the results of the different iterations
+    #         train_afterwards: train the best model after finding it
 
-        if scoring == "precision":
-            scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
-        elif scoring == "recall":
-            scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
-        elif scoring == "s_score":
-            scoring = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        elif scoring == "l_score":
-            scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+    #         secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+    #         strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
-        if rand_search:
-            grid_search = RandomizedSearchCV(
-                estimator=self,
-                param_distributions=grid,
-                n_iter=n_iter_num,
-                cv=cv_num,
-                verbose=verbose,
-                random_state=42,
-                n_jobs=-1,
-                scoring=scoring,
-            )
-        else:
-            grid_search = GridSearchCV(
-                estimator=self,
-                param_grid=grid,
-                n_jobs=-1,
-                cv=cv_num,
-                verbose=verbose,
-                scoring=scoring,
-                error_score=0,
-            )
-        logger.debug(f"hyperparameter tuning {self.model_name} - started")
-        grid_result = grid_search.fit(x_train, y_train)
-        logger.debug(f"hyperparameter tuning {self.model_name} - finished")
+    #     @return:
+    #         set self.model = best model from search
+    #     """
+    #     if grid is None:
+    #         grid = self.grid
 
-        if console_out:
-            means = grid_result.cv_results_["mean_test_score"]
-            stds = grid_result.cv_results_["std_test_score"]
-            params = grid_result.cv_results_["params"]
-            print()
-            for mean, stdev, param in zip(means, stds, params):
-                print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
-            print()
+    #     if console_out:
+    #         print()
+    #         print("grid: ", grid)
+    #         print()
 
-        self.model = grid_result.best_estimator_.model
-        if self.is_pipeline:
-            self.vectorizer = grid_result.best_estimator_.vectorizer
-            self.scaler = grid_result.best_estimator_.scaler
-            self.selector = grid_result.best_estimator_.selector
-            self.sampler = grid_result.best_estimator_.sampler
-            self._classifier = (self.model, self.model_type, self._grid)
+    #     if scoring == "precision":
+    #         scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
+    #     elif scoring == "recall":
+    #         scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
+    #     elif scoring == "s_score":
+    #         scoring = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+    #     elif scoring == "l_score":
+    #         scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
-        print()
-        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-        print()
+    #     if rand_search:
+    #         grid_search = RandomizedSearchCV(
+    #             estimator=self,
+    #             param_distributions=grid,
+    #             n_iter=n_iter_num,
+    #             cv=cv_num,
+    #             verbose=verbose,
+    #             random_state=42,
+    #             n_jobs=-1,
+    #             scoring=scoring,
+    #         )
+    #     else:
+    #         grid_search = GridSearchCV(
+    #             estimator=self,
+    #             param_grid=grid,
+    #             n_jobs=-1,
+    #             cv=cv_num,
+    #             verbose=verbose,
+    #             scoring=scoring,
+    #             error_score=0,
+    #         )
+    #     logger.debug(f"hyperparameter tuning {self.model_name} - started")
+    #     grid_result = grid_search.fit(x_train, y_train)
+    #     logger.debug(f"hyperparameter tuning {self.model_name} - finished")
 
-        if train_afterwards:
-            logger.debug(f"best model training {self.model_name} - started")
-            self.train(x_train, y_train, console_out=False)
-            logger.debug(f"best model training {self.model_name} - finished")
+    #     if console_out:
+    #         means = grid_result.cv_results_["mean_test_score"]
+    #         stds = grid_result.cv_results_["std_test_score"]
+    #         params = grid_result.cv_results_["params"]
+    #         print()
+    #         for mean, stdev, param in zip(means, stds, params):
+    #             print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
+    #         print()
+
+    #     self.model = grid_result.best_estimator_.model
+    #     if self.is_pipeline:
+    #         self.vectorizer = grid_result.best_estimator_.vectorizer
+    #         self.scaler = grid_result.best_estimator_.scaler
+    #         self.selector = grid_result.best_estimator_.selector
+    #         self.sampler = grid_result.best_estimator_.sampler
+    #         self._classifier = (self.model, self.model_type, self._grid)
+
+    #     print()
+    #     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+    #     print()
+
+    #     if train_afterwards:
+    #         logger.debug(f"best model training {self.model_name} - started")
+    #         self.train(x_train, y_train, console_out=False)
+    #         logger.debug(f"best model training {self.model_name} - finished")
