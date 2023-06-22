@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Float
 from sklearn.svm import SVC as svc
 
 from .main_classifier import Classifier
@@ -32,12 +33,14 @@ class SVC(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "kernel": ["rbf", "poly", "sigmoid"],
-            "gamma": [1, 0.1, 0.01, 0.001, 0.0001, "scale", "auto"],
-            "C": [0.1, 1, 10, 100, 1000],
-            "probability": [True, False],
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "kernel": Categorical("kernel", ["rbf", "poly", "sigmoid"]),
+            "gamma": Float("gamma", (0.0001, 1), log=True),
+            "C": Float("C", (0.1, 1000), log=True),
+            "probability": Categorical("probability", [True, False]),
+            })
         super().__init__(model, model_name, model_type, grid)
 
     def feature_importance(self):

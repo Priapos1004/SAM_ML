@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Integer, Normal
 from sklearn.ensemble import ExtraTreesClassifier
 
 from .main_classifier import Classifier
@@ -34,12 +35,14 @@ class ETC(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "n_estimators": [1, 2, 4, 8, 16, 32, 64, 100, 200, 500, 1000],
-            "max_depth": [2, 3, 4, 5, 6, 7, 8, 10, 15],
-            "min_samples_split": [2, 3, 5, 10],
-            "min_samples_leaf": [1, 2, 4],
-            "bootstrap": [True, False],
-            "criterion": ["gini", "entropy"],
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "n_estimators": Integer("n_estimators", (10, 1000), log=True),
+            "max_depth": Integer("max_depth", (3, 15), distribution=Normal(5, 3)),
+            "min_samples_split": Integer("min_samples_split", (2, 10)),
+            "min_samples_leaf": Integer("min_samples_leaf", (1, 4)),
+            "bootstrap": Categorical("bootstrap", [True, False], default=False),
+            "criterion": Categorical("criterion", ["gini", "entropy"]),
+            })
         super().__init__(model, model_name, model_type, grid)

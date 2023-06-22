@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer, Normal
 from sklearn.ensemble import GradientBoostingClassifier
 
 from .main_classifier import Classifier
@@ -29,15 +30,17 @@ class GBM(Classifier):
         """
         model_type = "GBM"
         model = GradientBoostingClassifier(random_state=random_state, **kwargs,)
-        grid = {
-            "n_estimators": list(range(20, 101, 10)) + [200, 500, 1000, 1500],
-            "max_depth": list(range(1, 8)) + [10, 12, 15],
-            "min_samples_split": [2, 4, 6, 8, 10, 20, 40, 60, 100],
-            "min_samples_leaf": [2, 4, 6, 8, 10, 20, 40, 60, 100],
-            "max_features": ["auto", "sqrt", "log2", None],
-            "subsample": [0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
-            "criterion": ["friedman_mse", "mse"],
-            "loss": ["deviance", "exponential"],
-            "learning_rate": [0.1, 0.05, 0.01, 0.005],
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "n_estimators": Integer("n_estimators", (20, 1500), log=True),
+            "max_depth": Integer("max_depth", (1, 15), distribution=Normal(4, 4)),
+            "min_samples_split": Integer("min_samples_split", (2, 100), log=True),
+            "min_samples_leaf": Integer("min_samples_leaf", (2, 100), log=True),
+            "max_features": Categorical("max_features", ["auto", "sqrt", "log2"]),
+            "subsample": Float("subsample", (0.7, 1)),
+            "criterion": Categorical("criterion", ["friedman_mse", "mse"]),
+            "loss": Categorical("loss", ["deviance", "exponential"]),
+            "learning_rate": Float("learning_rate", (0.005, 0.1), log=True),
+            })
         super().__init__(model, model_name, model_type, grid)

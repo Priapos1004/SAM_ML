@@ -18,6 +18,7 @@ from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
+from .XGBoostClassifier import XGBC
 
 __all__ = {
     "model parent class": "Model",
@@ -40,4 +41,5 @@ __all__ = {
     "LinearDiscriminantAnalysis": "LDA",
     "BaggingClassifier": "BC",
     "LinearSupportVectorClassifier": "LSVC",
+    "XGBoostClassifier": "XGBC",
 }

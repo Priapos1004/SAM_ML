@@ -1,3 +1,4 @@
+from ConfigSpace import Categorical, ConfigurationSpace, Float
 from sklearn.svm import LinearSVC
 
 from .main_classifier import Classifier
@@ -26,9 +27,11 @@ class LSVC(Classifier):
             random_state=random_state,
             **kwargs,
         )
-        grid = {
-            "penalty": ["l1", "l2"],
-            "dual": [True, False],
-            "C": [10**i for i in range(-5, 6)]
-        }
+        grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "penalty": Categorical("penalty", ["l1", "l2"]),
+            "dual": Categorical("dual", [True, False]),
+            "C": Float("C", (0.00001, 1000000), log=True),
+            })
         super().__init__(model, model_name, model_type, grid)
