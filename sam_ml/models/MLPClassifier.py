@@ -37,10 +37,10 @@ class MLPC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "hidden_layer_sizes": Categorical("hidden_layer_sizes", ((10, 30, 10), (20,), (10,), (100,), (50,50,50), (50,100,50))),
-            "activation": Categorical("activation", ["tanh", "relu", "logistic"]),
-            "solver": Categorical("solver", ["sgd", "adam"]),
-            "alpha": Float("alpha", (0.0001, 0.05), log=True),
-            "learning_rate": Categorical("learning_rate", ["constant", "adaptive"]),
+            "hidden_layer_sizes": Categorical("hidden_layer_sizes", ((10, 30, 10), (20,), (10,), (100,), (50,50,50), (50,100,50)), default=(100, )),
+            "activation": Categorical("activation", ["tanh", "relu", "logistic"], default="relu"),
+            "solver": Categorical("solver", ["sgd", "adam"], default="adam"),
+            "alpha": Float("alpha", (0.0001, 0.05), log=True, default=0.0001),
+            "learning_rate": Categorical("learning_rate", ["constant", "adaptive"], default="constant"),
             })
         super().__init__(model, model_name, model_type, grid)

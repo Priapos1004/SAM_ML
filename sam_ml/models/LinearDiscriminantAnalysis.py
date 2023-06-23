@@ -22,8 +22,8 @@ class LDA(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "solver": Categorical("solver", ["lsqr", "eigen", "svd"], weights=[0.475, 0.475, 0.05]),
-            "shrinkage": Float("shrinkage", (0, 1)),
+            "solver": Categorical("solver", ["lsqr", "eigen", "svd"], weights=[0.475, 0.475, 0.05], default="svd"),
+            "shrinkage": Float("shrinkage", (0, 1), default=0),
             })
         shrinkage_cond = InCondition(grid["shrinkage"], grid["solver"], ["lsqr", "eigen"])
         grid.add_condition(shrinkage_cond)

@@ -22,6 +22,6 @@ class GNB(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "var_smoothing": Float("var_smoothing", (0.00000000001, 1), log=True)
+            "var_smoothing": Float("var_smoothing", (1e-11, 1), log=True, default=1e-9)
             })
         super().__init__(model, model_name, model_type, grid)

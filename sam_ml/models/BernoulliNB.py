@@ -22,7 +22,7 @@ class BNB(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "fit_prior": Categorical("fit_prior", [True, False]),
-            "binarize": Integer("binarize", (0, 10)),
+            "fit_prior": Categorical("fit_prior", [True, False], default=True),
+            "binarize": Integer("binarize", (0, 10), default=0),
             })
         super().__init__(model, model_name, model_type, grid)

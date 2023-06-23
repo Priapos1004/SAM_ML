@@ -39,17 +39,17 @@ class BC(Classifier):
             **kwargs,
         )
         if type(model.estimator) == RandomForestClassifier:
-            core_estimator = [RandomForestClassifier(max_depth=i, n_estimators=j) for i in range(1,11) for j in (5, 10, 20, 50, 100)]
+            core_estimator = [RandomForestClassifier(max_depth=i, n_estimators=j) for j in (5, 10, 20, 50, 100) for i in range(1,11)]
         else:
             core_estimator = [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]
 
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "estimator": Categorical("estimator", core_estimator+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier(), KNeighborsClassifier()]),
-            "n_estimators": Integer("n_estimators", (3, 3000), distribution=Beta(1, 15)),
-            "max_samples": Float("max_samples", (0.1, 1)),
-            "max_features": Categorical("max_features", [0.5, 1.0, 2, 4]),
+            "estimator": Categorical("estimator", core_estimator+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier(), KNeighborsClassifier()], default=core_estimator[5]),
+            "n_estimators": Integer("n_estimators", (3, 3000), distribution=Beta(1, 15), default=10),
+            "max_samples": Float("max_samples", (0.1, 1), default=1),
+            "max_features": Categorical("max_features", [0.5, 1.0, 2, 4], default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=True),
             "bootstrap_features": Categorical("bootstrap_features", [True, False], default=False),
             })

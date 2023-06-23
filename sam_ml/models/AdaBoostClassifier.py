@@ -31,16 +31,16 @@ class ABC(Classifier):
             **kwargs,
         )
         if type(model.estimator) == RandomForestClassifier:
-            core_estimator = [RandomForestClassifier(max_depth=i, n_estimators=j) for i in range(1,11) for j in (5, 10, 20, 50, 100)]
+            core_estimator = [RandomForestClassifier(max_depth=i, n_estimators=j) for j in  (100, 50, 20, 10, 5) for i in range(1,11)]
         else:
             core_estimator= [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]
         
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "estimator": Categorical("estimator", core_estimator+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier()]),
-            "n_estimators": Integer("n_estimators", (10, 3000), log=True),
-            "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5)),
-            "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"]),
+            "estimator": Categorical("estimator", core_estimator+[SVC(probability=True, kernel='linear'), LogisticRegression(), GradientBoostingClassifier()], default=core_estimator[5]),
+            "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
+            "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
+            "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
             })
         super().__init__(model, model_name, model_type, grid)
