@@ -34,12 +34,10 @@ class LSVC(Classifier):
             "penalty": Categorical("penalty", ["l1", "l2"], default="l2"),
             "dual": Categorical("dual", [True, False], default=True),
             "C": Float("C", (0.1, 1000), log=True, default=1),
-            "loss": Categorical("loss", ['squared_hinge', 'hinge'], default="squared_hinge"),
             })
-        penalty_loss_dual = ForbiddenAndConjunction(
+        penalty_dual = ForbiddenAndConjunction(
             ForbiddenEqualsClause(grid["dual"], True),
             ForbiddenEqualsClause(grid["penalty"], "l1"),
-            ForbiddenEqualsClause(grid["loss"], "squared_hinge"),
         )
-        grid.add_forbidden_clause(penalty_loss_dual)
+        grid.add_forbidden_clause(penalty_dual)
         super().__init__(model, model_name, model_type, grid)
