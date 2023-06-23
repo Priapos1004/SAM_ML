@@ -434,7 +434,7 @@ class Classifier(Model):
                 return {}, -1
             
 
-        self.rCVsearch_results = pd.DataFrame(results).sort_values(by=scoring, ascending=False)
+        self.rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
 
         # for-loop to keep dtypes of columns
         best_hyperparameters = {} 

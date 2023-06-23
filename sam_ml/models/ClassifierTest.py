@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+from copy import copy
 from typing import Union
 
 import pandas as pd
@@ -11,6 +12,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 from pkg_resources import resource_filename
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from tqdm.auto import tqdm
 
 from sam_ml.config import setup_logger
@@ -34,6 +36,7 @@ from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
+from .XGBoostClassifier import XGBC
 
 logger = setup_logger(__name__)
 
@@ -45,13 +48,17 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: Union[str, list[Classifier]] = "all", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
+    def __init__(self, models: Union[str, list[Classifier]] = "search", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
         """
         @params:
             models:
-                list of Wrapperclass models from sam_ml library
-                'all': use all Wrapperclass models (18+ models) from sam_ml library
-                'basic': use basic Wrapperclass models (9 models) from sam_ml library (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
+
+                - list of Wrapperclass models from this library
+
+                - 'all': use all Wrapperclass models (18+ models
+
+                - 'basic': use basic Wrapperclass models (8 models) (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, KNeighborsClassifier)
+
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
@@ -135,21 +142,24 @@ class CTest:
         """
         if kind == "all":
             models = [
-                LR(model_name="LogisticRegression (l2 penalty)"),
-                LR(model_name="LogisticRegression (elasticnet penalty)", penalty="elasticnet", solver="saga", l1_ratio=0.5),
+                LR(),
                 QDA(),
                 LDA(),
                 MLPC(),
                 LSVC(),
                 DTC(),
                 RFC(),
-                SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
+                SVC(),
                 GBM(),
                 
                 ABC(model_name="AdaBoostClassifier (DTC based)"),
                 ABC(
                     estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="AdaBoostClassifier (RFC based)",
+                ),
+                ABC(
+                    estimator=LogisticRegression(),
+                    model_name="AdaBoostClassifier (mixed based)",
                 ),
                 KNC(),
                 ETC(),
@@ -161,6 +171,11 @@ class CTest:
                     estimator=RandomForestClassifier(max_depth=5, random_state=42),
                     model_name="BaggingClassifier (RFC based)",
                 ),
+                BC(
+                    estimator=LogisticRegression(),
+                    model_name="BaggingClassifier (mixed based)",
+                ),
+                XGBC(),
             ]
         elif kind == "basic":
             models = [
@@ -169,9 +184,8 @@ class CTest:
                 LSVC(),
                 DTC(),
                 RFC(),
-                SVC(model_name="SupportVectorClassifier (rbf-kernel)"),
+                SVC(),
                 GBM(),
-                ABC(model_name="AdaBoostClassifier (DTC based)"),
                 KNC(),
             ]
         else:
@@ -232,7 +246,7 @@ class CTest:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        cv_num: int = 10,
+        cv_num: int = 5,
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         small_data_eval: bool = False,
@@ -299,6 +313,43 @@ class CTest:
             scores = None
 
         return scores
+
+    def find_best_model_randomCV(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        n_trails: int = 5,
+        scoring: str = "accuracy",
+        avg: str = "macro",
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        small_data_eval: bool = False,
+        cv_num: int = 3,
+    ) -> dict:
+        for key in tqdm(self.models.keys(), desc="randomCVsearch"):
+            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, True)
+            logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
+            model_best = copy(self.models[key])
+            model_best.set_params(**best_hyperparameters)
+            train_score, train_time = model_best.train(x_train, y_train, console_out=False)
+            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+            
+            scores["train_time"] = train_time
+            scores["train_score"] = train_score
+            scores["best_score (rCVs)"] = best_score
+            scores["best_hyperparameters (rCVs)"] = best_hyperparameters
+            self.scores[key] = scores
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
+        best_model_type = sorted_scores.iloc[0].name
+        best_model_value = sorted_scores.iloc[0][scoring]
+        best_model_hyperparameters = sorted_scores.iloc[0]["best_hyperparameters (rCVs)"]
+        logger.info(f"best model type {best_model_type} - {scoring}: {best_model_value} - parameters: {best_model_hyperparameters}")
+        self.__finish_sound()
+        return self.scores
+
 
     # def find_best_model(
     #     self,
