@@ -55,7 +55,7 @@ class CTest:
 
                 - list of Wrapperclass models from this library
 
-                - 'all': use all Wrapperclass models (18+ models
+                - 'all': use all Wrapperclass models (18+ models)
 
                 - 'basic': use basic Wrapperclass models (8 models) (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, KNeighborsClassifier)
 
