@@ -29,9 +29,9 @@ class DTC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "criterion": Categorical("criterion", ["gini", "entropy"]),
-            "max_depth": Integer("max_depth", (1, 10)),
-            "min_samples_split": Integer("min_samples_split", (2, 10)),
-            "min_samples_leaf": Integer("min_samples_leaf", (1, 5)),
+            "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
+            "max_depth": Integer("max_depth", (1, 10), default=5),
+            "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
+            "min_samples_leaf": Integer("min_samples_leaf", (1, 5), default=1),
             })
         super().__init__(model, model_name, model_type, grid)

@@ -36,10 +36,10 @@ class SVC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "kernel": Categorical("kernel", ["rbf", "poly", "sigmoid"]),
-            "gamma": Float("gamma", (0.0001, 1), log=True),
-            "C": Float("C", (0.1, 1000), log=True),
-            "probability": Categorical("probability", [True, False]),
+            "kernel": Categorical("kernel", ["rbf", "poly", "sigmoid"], default="rbf"),
+            "gamma": Float("gamma", (0.0001, 1), log=True, default=0.001),
+            "C": Float("C", (0.1, 1000), log=True, default=1),
+            "probability": Categorical("probability", [True, False], default=False),
             })
         super().__init__(model, model_name, model_type, grid)
 

@@ -1,4 +1,5 @@
-from ConfigSpace import Categorical, ConfigurationSpace, Float
+from ConfigSpace import (Categorical, ConfigurationSpace, Float,
+                         ForbiddenAndConjunction, ForbiddenEqualsClause)
 from sklearn.svm import LinearSVC
 
 from .main_classifier import Classifier
@@ -30,8 +31,13 @@ class LSVC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "penalty": Categorical("penalty", ["l1", "l2"]),
-            "dual": Categorical("dual", [True, False]),
-            "C": Float("C", (0.00001, 1000000), log=True),
+            "penalty": Categorical("penalty", ["l1", "l2"], default="l2"),
+            "dual": Categorical("dual", [True, False], default=True),
+            "C": Float("C", (0.1, 1000), log=True, default=1),
             })
+        penalty_dual = ForbiddenAndConjunction(
+            ForbiddenEqualsClause(grid["dual"], True),
+            ForbiddenEqualsClause(grid["penalty"], "l1"),
+        )
+        grid.add_forbidden_clause(penalty_dual)
         super().__init__(model, model_name, model_type, grid)

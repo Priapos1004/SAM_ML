@@ -38,9 +38,9 @@ class LR(Classifier):
             seed=42,
             space={
             "solver": Categorical("solver", ["newton-cg", "lbfgs", "liblinear", "sag", "saga"], weights=[0.15, 0.15, 0.15, 0.15, 0.4], default="lbfgs"),
-            "penalty": Categorical("penalty", ["l2", "elasticnet"]),
-            "C": Float("C", (0.01, 100), log=True),
-            "l1_ratio": Float("l1_ratio", (0.01, 1)),
+            "penalty": Categorical("penalty", ["l2", "elasticnet"], default="l2"),
+            "C": Float("C", (0.01, 100), log=True, default=1),
+            "l1_ratio": Float("l1_ratio", (0.01, 1), default=0.1),
             })
         solver_and_penalty = ForbiddenAndConjunction(
             ForbiddenEqualsClause(grid["penalty"], "elasticnet"),

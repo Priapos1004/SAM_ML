@@ -26,7 +26,7 @@ class GPC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "multi_class": Categorical("multi_class", ["one_vs_rest", "one_vs_one"]),
-            "max_iter_predict": Integer("max_iter_predict", (1, 1000), log=True),
+            "multi_class": Categorical("multi_class", ["one_vs_rest", "one_vs_one"], default="one_vs_rest"),
+            "max_iter_predict": Integer("max_iter_predict", (1, 1000), log=True, default=100),
             })
         super().__init__(model, model_name, model_type, grid)

@@ -60,12 +60,31 @@ class Classifier(Model):
         """
         return self._grid
     
-    def get_random_params(self):
+    def get_random_config(self):
         """
         @return;
             set of random parameter from grid
         """
         return dict(self.grid.sample_configuration(1))
+    
+    def get_random_configs(self, n_trails: int) -> list:
+        """
+        @return;
+            n_trails elements in list with sets of random parameterd from grid
+
+        NOTE: filter out duplicates -> could be less than n_trails
+        """
+        if n_trails<1:
+            raise ValueError(f"n_trails has to be greater 0, but {n_trails}<1")
+        
+        configs = [self._grid.get_default_configuration()]
+        if n_trails == 2:
+            configs += [self._grid.sample_configuration(n_trails-1)]
+        else:
+            configs += self._grid.sample_configuration(n_trails-1)
+        # remove duplicates
+        configs = list(dict.fromkeys(configs))
+        return configs
 
     def replace_grid(self, new_grid: ConfigurationSpace):
         """
@@ -203,8 +222,8 @@ class Classifier(Model):
             "recall": score[list(score.keys())[4]],
             "s_score": score[list(score.keys())[8]],
             "l_score": score[list(score.keys())[10]],
-            "avg train score": score[list(score.keys())[7]],
-            "avg train time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+            "train_score": score[list(score.keys())[7]],
+            "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
         }
 
         logger.debug(f"cross validation {self.model_name} - finished")
@@ -279,8 +298,8 @@ class Classifier(Model):
             "recall": recall,
             "s_score": s_score,
             "l_score": l_score,
-            "avg train score": avg_train_score,
-            "avg train time": avg_train_time,
+            "train_score": avg_train_score,
+            "train_time": avg_train_time,
         }
 
         logger.debug(f"cross validation {self.model_name} - finished")
@@ -385,28 +404,45 @@ class Classifier(Model):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_trails: int = 10,
-        cv_num: int = 5,
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         secondary_scoring: str = None,
         strength: int = 3,
-    ):
+        small_data_eval: bool = False,
+        cv_num: int = 5,
+        leave_loadbar: bool = True,
+    ) -> tuple[dict, float]:
         results = []
-        configs = self._grid.sample_configuration(n_trails)
-        # remove duplicates
-        configs = list(dict.fromkeys(configs))
+        configs = self.get_random_configs(n_trails)
+        at_least_one_run: bool = False
+        try:
+            for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
+                model = copy(self)
+                model.set_params(**config)
+                if small_data_eval:
+                    score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                else:
+                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                config_dict = dict(config)
+                config_dict[scoring] = score[scoring]
+                results.append(config_dict)
+                at_least_one_run = True
+        except KeyboardInterrupt:
+            logger.info("KeyboardInterrupt - output interim result")
+            if not at_least_one_run:
+                return {}, -1
+            
 
-        for config in tqdm(configs, desc="randomCVsearch"):
-            model = copy(self)
-            model.set_params(**config)
-            score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-            config_dict = dict(config)
-            config_dict[scoring] = score[scoring]
-            results.append(config_dict)
+        self.rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
 
-        self.rCVsearch_results = pd.DataFrame(results).sort_values(by=scoring, ascending=False)
-        best_hyperparameters = dict(self.rCVsearch_results.iloc[0])
+        # for-loop to keep dtypes of columns
+        best_hyperparameters = {} 
+        for col in self.rCVsearch_results.columns:
+            value = self.rCVsearch_results[col].iloc[0]
+            if str(value) != "nan":
+                best_hyperparameters[col] = value
+
         best_score = best_hyperparameters[scoring]
         best_hyperparameters.pop(scoring)
         

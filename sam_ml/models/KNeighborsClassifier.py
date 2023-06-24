@@ -26,9 +26,9 @@ class KNC(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "n_neighbors": Integer("n_neighbors", (1, 30)),
-            "p": Integer("p", (1, 5)),
-            "leaf_size": Integer("leaf_size", (1, 50)),
-            "weights": Categorical("weights", ["uniform", "distance"]),
+            "n_neighbors": Integer("n_neighbors", (1, 30), default=5),
+            "p": Integer("p", (1, 5), default=2),
+            "leaf_size": Integer("leaf_size", (1, 50), default=30),
+            "weights": Categorical("weights", ["uniform", "distance"], default="uniform"),
             })
         super().__init__(model, model_name, model_type, grid)

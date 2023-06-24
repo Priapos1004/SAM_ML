@@ -25,6 +25,6 @@ class QDA(Classifier):
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "reg_param": Float("reg_param", (0, 1)),
+            "reg_param": Float("reg_param", (0, 1), default=0),
             })
         super().__init__(model, model_name, model_type, grid)
