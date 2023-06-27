@@ -347,7 +347,7 @@ class CTest:
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 
-            cv_num: number of different splits per crossvalidation
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
             leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
         """
