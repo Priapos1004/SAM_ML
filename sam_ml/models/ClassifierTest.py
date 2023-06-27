@@ -1,7 +1,7 @@
 import os
 import sys
 import warnings
-from copy import copy
+from copy import deepcopy
 from typing import Union
 
 import pandas as pd
@@ -354,16 +354,17 @@ class CTest:
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
             best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
-            model_best = copy(self.models[key])
-            model_best.set_params(**best_hyperparameters)
-            train_score, train_time = model_best.train(x_train, y_train, console_out=False)
-            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
-            
-            scores["train_time"] = train_time
-            scores["train_score"] = train_score
-            scores["best_score (rCVs)"] = best_score
-            scores["best_hyperparameters (rCVs)"] = best_hyperparameters
-            self.scores[key] = scores
+            if best_hyperparameters != {}:
+                model_best = deepcopy(self.models[key])
+                model_best.set_params(**best_hyperparameters)
+                train_score, train_time = model_best.train(x_train, y_train, console_out=False)
+                scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+                
+                scores["train_time"] = train_time
+                scores["train_score"] = train_score
+                scores["best_score (rCVs)"] = best_score
+                scores["best_hyperparameters (rCVs)"] = best_hyperparameters
+                self.scores[key] = scores
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
