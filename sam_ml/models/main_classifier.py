@@ -362,7 +362,7 @@ class Classifier(Model):
         elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC", "XGBC"):
             importances = self.model.feature_importances_
         elif self.model_type in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
-            logger.warning(f"{self.model_name} does not have a feature importance")
+            logger.warning(f"{self.model_type} does not have a feature importance")
             return
         else:
             importances = self.model.coef_[0]  # "normal"
