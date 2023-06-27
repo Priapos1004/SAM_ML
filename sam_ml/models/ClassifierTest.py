@@ -47,7 +47,7 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: Union[str, list[Classifier]] = "search", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
+    def __init__(self, models: Union[str, list[Classifier]] = "all", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
         """
         @params:
             models:
