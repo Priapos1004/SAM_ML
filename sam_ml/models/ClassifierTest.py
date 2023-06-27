@@ -1,7 +1,6 @@
 import os
 import sys
 import warnings
-from copy import deepcopy
 from typing import Union
 
 import pandas as pd
@@ -355,7 +354,7 @@ class CTest:
             best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
             if best_hyperparameters != {}:
-                model_best = deepcopy(self.models[key])
+                model_best = self.models[key].get_deepcopy()
                 model_best.set_params(**best_hyperparameters)
                 train_score, train_time = model_best.train(x_train, y_train, console_out=False)
                 scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)

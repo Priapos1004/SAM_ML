@@ -1,5 +1,6 @@
 import pickle
 import time
+from copy import deepcopy
 from datetime import timedelta
 from typing import Union
 
@@ -77,6 +78,9 @@ class Model:
         if console_out:
             print("Test score: ", self.test_score)
         return self.test_score
+    
+    def get_deepcopy(self):
+        return deepcopy(self)
 
     def save_model(self, path: str, only_estimator: bool = False):
         """ 
