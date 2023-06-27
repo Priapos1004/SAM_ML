@@ -150,6 +150,44 @@ class Classifier(Model):
         }
 
         return self.test_score
+    
+    def evaluate_score(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        scoring: str = "accuracy",
+        avg: str = None,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+    ) -> dict[str, float]:
+        """
+        @param:
+            x_test, y_test: Data to evaluate model
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+
+            avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+        """
+        pred = self.predict(x_test)
+
+        # Calculate score
+        if scoring == "accuracy":
+            score = accuracy_score(y_test, pred)
+        elif scoring == "precision":
+            score = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "recall":
+            score = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "s_score":
+            score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif scoring == "l_score":
+            score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        else:
+            raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score' ")
+
+        return score
 
     def cross_validation(
         self,
@@ -176,7 +214,7 @@ class Classifier(Model):
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
-            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
         """
         logger.debug(f"cross validation {self.model_name} - started")
 
@@ -261,7 +299,7 @@ class Classifier(Model):
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
-            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
         """
         logger.debug(f"cross validation {self.model_name} - started")
 
@@ -413,6 +451,25 @@ class Classifier(Model):
         cv_num: int = 5,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with labels
+
+            n_trails: number of parameter sets to test
+
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+
+            cv_num: number of different splits per crossvalidation
+
+            leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
+        """
         results = []
         configs = self.get_random_configs(n_trails)
         at_least_one_run: bool = False
@@ -447,114 +504,3 @@ class Classifier(Model):
         best_hyperparameters.pop(scoring)
         
         return best_hyperparameters, best_score
-
-    # def gridsearch(
-    #     self,
-    #     x_train: pd.DataFrame,
-    #     y_train: pd.Series,
-    #     grid: dict = None,
-    #     scoring: str = "accuracy",
-    #     avg: str = "macro",
-    #     pos_label: Union[int, str] = -1,
-    #     cv_num: int = 10,
-    #     verbose: int = 0,
-    #     rand_search: bool = True,
-    #     n_iter_num: int = 75,
-    #     console_out: bool = True,
-    #     train_afterwards: bool = True,
-    #     secondary_scoring: str = None,
-    #     strength: int = 3,
-    # ):
-    #     """
-    #     @param:
-    #         x_train: DataFrame with train features
-    #         y_train: Series with labels
-
-    #         grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
-
-    #         scoring: metrics to evaluate the models
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-
-    #         rand_search: True: RandomizedSearchCV, False: GridSearchCV
-    #         n_iter_num: Combinations to try out if rand_search=True
-
-    #         cv_num: number of different splits
-
-    #         verbose: log level (higher number --> more logs)
-    #         console_out: output the the results of the different iterations
-    #         train_afterwards: train the best model after finding it
-
-    #         secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-    #         strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
-
-    #     @return:
-    #         set self.model = best model from search
-    #     """
-    #     if grid is None:
-    #         grid = self.grid
-
-    #     if console_out:
-    #         print()
-    #         print("grid: ", grid)
-    #         print()
-
-    #     if scoring == "precision":
-    #         scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
-    #     elif scoring == "recall":
-    #         scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
-    #     elif scoring == "s_score":
-    #         scoring = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-    #     elif scoring == "l_score":
-    #         scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-
-    #     if rand_search:
-    #         grid_search = RandomizedSearchCV(
-    #             estimator=self,
-    #             param_distributions=grid,
-    #             n_iter=n_iter_num,
-    #             cv=cv_num,
-    #             verbose=verbose,
-    #             random_state=42,
-    #             n_jobs=-1,
-    #             scoring=scoring,
-    #         )
-    #     else:
-    #         grid_search = GridSearchCV(
-    #             estimator=self,
-    #             param_grid=grid,
-    #             n_jobs=-1,
-    #             cv=cv_num,
-    #             verbose=verbose,
-    #             scoring=scoring,
-    #             error_score=0,
-    #         )
-    #     logger.debug(f"hyperparameter tuning {self.model_name} - started")
-    #     grid_result = grid_search.fit(x_train, y_train)
-    #     logger.debug(f"hyperparameter tuning {self.model_name} - finished")
-
-    #     if console_out:
-    #         means = grid_result.cv_results_["mean_test_score"]
-    #         stds = grid_result.cv_results_["std_test_score"]
-    #         params = grid_result.cv_results_["params"]
-    #         print()
-    #         for mean, stdev, param in zip(means, stds, params):
-    #             print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
-    #         print()
-
-    #     self.model = grid_result.best_estimator_.model
-    #     if self.is_pipeline:
-    #         self.vectorizer = grid_result.best_estimator_.vectorizer
-    #         self.scaler = grid_result.best_estimator_.scaler
-    #         self.selector = grid_result.best_estimator_.selector
-    #         self.sampler = grid_result.best_estimator_.sampler
-    #         self._classifier = (self.model, self.model_type, self._grid)
-
-    #     print()
-    #     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-    #     print()
-
-    #     if train_afterwards:
-    #         logger.debug(f"best model training {self.model_name} - started")
-    #         self.train(x_train, y_train, console_out=False)
-    #         logger.debug(f"best model training {self.model_name} - finished")
