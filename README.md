@@ -8,7 +8,7 @@ a library created by Samuel Brinkmann
 
 0. pre-installations *(needed for [smac](https://github.com/automl/SMAC3) library)*
 
-You need to install `swig` for the *smag* library that used for hyperparameter tuning.
+You need to install `swig` for the *smag* library that is used for hyperparameter tuning.
 
 Linux *(see [smac installation guide](https://automl.github.io/SMAC3/main/1_installation.html))*:
 
