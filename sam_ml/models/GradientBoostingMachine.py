@@ -40,7 +40,7 @@ class GBM(Classifier):
             "max_features": Categorical("max_features", ["auto", "sqrt", "log2"], default="auto"),
             "subsample": Float("subsample", (0.7, 1), default=1),
             "criterion": Categorical("criterion", ["friedman_mse", "squared_error"], default="friedman_mse"),
-            "loss": Categorical("loss", ["log_loss", "deviance", "exponential"], default="log_loss"),
+            "loss": Categorical("loss", ["log_loss", "deviance"], default="log_loss"),
             "learning_rate": Float("learning_rate", (0.005, 0.3), log=True, default=0.1),
             })
         super().__init__(model, model_name, model_type, grid)
