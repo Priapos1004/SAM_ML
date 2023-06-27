@@ -23,17 +23,16 @@ logger = setup_logger(__name__)
 class Classifier(Model):
     """ Classifier parent class """
 
-    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}, is_pipeline: bool = False):
+    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: ConfigurationSpace = ConfigurationSpace()):
         """
         @params:
-            model_object: model with 'fit' and 'predict' method
+            model_object: model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
             model_name: name of the model
             model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
             grid: hyperparameter grid for the model
         """
         super().__init__(model_object, model_name, model_type)
         self._grid = grid
-        self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
         self.rCVsearch_results: pd.DataFrame|None = None
 
@@ -118,6 +117,8 @@ class Classifier(Model):
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+        @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score'
         """
         pred = self.predict(x_test)
 
@@ -157,7 +158,7 @@ class Classifier(Model):
         pos_label: Union[int, str] = -1,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> dict[str, float]:
+    ) -> float:
         """
         @param:
             x_test, y_test: Data to evaluate model
@@ -167,6 +168,8 @@ class Classifier(Model):
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+        @return: score as float
         """
         pred = self.predict(x_test)
 
@@ -415,6 +418,8 @@ class Classifier(Model):
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             
             walltime_limit: the maximum time in seconds that SMAC is allowed to run
+
+        @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
         """
         logger.debug("starting smac_search")
         # NormalInteger in grid are not supported and Classifier in Categorical
@@ -487,6 +492,8 @@ class Classifier(Model):
             cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
             leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
+
+        @return: dictionary with best hyperparameters and float of best_score
         """
         logger.debug("starting randomCVsearch")
         results = []

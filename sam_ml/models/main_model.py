@@ -16,9 +16,9 @@ class Model:
     def __init__(self, model_object = None, model_name: str = "model", model_type: str = "Model"):
         """
         @params:
-            model_object: model with 'fit' and 'predict' method
+            model_object: model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
             model_name: name of the model
-            model_type: kind of estimator  (e.g. 'RFC' for RandomForestClassifier)
+            model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
         """
         self.model = model_object
         self.model_name = model_name
@@ -80,6 +80,7 @@ class Model:
         return self.test_score
     
     def get_deepcopy(self):
+        """function to create a deepcopy of object"""
         return deepcopy(self)
 
     def save_model(self, path: str, only_estimator: bool = False):
