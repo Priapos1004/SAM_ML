@@ -1,4 +1,3 @@
-from copy import copy
 from datetime import timedelta
 from statistics import mean
 from typing import Union
@@ -9,10 +8,8 @@ from ConfigSpace import Configuration, ConfigurationSpace
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              make_scorer, precision_score, recall_score)
-from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
-                                     cross_validate)
-# from smac import (HyperparameterOptimizationFacade, MultiFidelityFacade,
-#                   RandomFacade, Scenario)
+from sklearn.model_selection import cross_validate
+from smac import HyperparameterOptimizationFacade, Scenario
 from tqdm.auto import tqdm
 
 from sam_ml.config import setup_logger
@@ -387,55 +384,76 @@ class Classifier(Model):
         fig.tight_layout()
         plt.show()
     
-    # def smac_search(
-    #         self,
-    #         x_train: pd.DataFrame, 
-    #         y_train: pd.Series
-    # ):
-    #     # Next, we create an object, holding general information about the run
-    #     scenario = Scenario(
-    #         self.grid,
-    #         n_trials=5,  # We want to run max 50 trials (combination of config and seed)
-    #         deterministic=True,
-    #         min_budget=5,
-    #         max_budget=25,
-    #     )
+    def smac_search(
+        self,
+        x_train: pd.DataFrame, 
+        y_train: pd.Series,
+        n_trails: int = 50,
+        cv_num: int = 5,
+        scoring: str = "accuracy",
+        avg: str = "macro",
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        small_data_eval: bool = False,
+        walltime_limit: float = 600,
+    ) -> Configuration:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-    #     # We want to run the facade's default initial design, but we want to change the number
-    #     # of initial configs to 5.
-    #     initial_design = MultiFidelityFacade.get_initial_design(scenario)
+            n_trails: max number of parameter sets to test
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-    #     # define target function
-    #     def grid_train(config: Configuration, seed: int, budget) -> float:
-    #         print(config)
-    #         print(seed)
-    #         print(budget)
-    #         params = self.get_params()
-    #         #print(params)
-    #         params.update(config)
-    #         #print(params)
-    #         model = type(self)(**params)
-    #         score = model.cross_validation(x_train, y_train, console_out=False, cv_num=2)
-    #         print(1 - score["accuracy"])
-    #         return 1 - score["accuracy"]  # SMAC always minimizes (the smaller the better)
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
-    #     # Now we use SMAC to find the best hyperparameters
-    #     smac = MultiFidelityFacade(
-    #         scenario,
-    #         grid_train,
-    #         initial_design=initial_design,
-    #         overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
-    #     )
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+            
+            walltime_limit: the maximum time in seconds that SMAC is allowed to run
+        """
+        logger.debug("starting smac_search")
+        # NormalInteger in grid are not supported and Classifier in Categorical
+        if self.model_type in ("RFC", "ABC", "BC", "ETC", "GBM", "XGBC"):
+            logger.error(f"The model type '{self.model_type}' is currently not supported")
+            return {}
 
-    #     incumbent = smac.optimize()
+        scenario = Scenario(
+            self.grid,
+            n_trials=n_trails,
+            deterministic=True,
+            walltime_limit=walltime_limit,
+        )
 
-    #     # Get cost of default configuration
-    #     default_cost = smac.validate(self.grid.get_default_configuration())
-    #     print(f"Default cost: {default_cost}")
+        initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
+        logger.debug(f"initial_design: {initial_design.select_configurations()}")
 
-    #     # Let's calculate the cost of the incumbent
-    #     incumbent_cost = smac.validate(incumbent)
-    #     print(f"Incumbent cost: {incumbent_cost}")
+        # define target function
+        def grid_train(config: Configuration, seed: int) -> float:
+            logger.debug(f"config: {config}")
+            model = self.get_deepcopy()
+            model.set_params(**config)
+            if small_data_eval:
+                score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+            else:
+                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+            return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
+
+        # use SMAC to find the best hyperparameters
+        smac = HyperparameterOptimizationFacade(
+            scenario,
+            grid_train,
+            initial_design=initial_design,
+            overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
+        )
+
+        incumbent = smac.optimize()
+        logger.debug("finished smac_search")
+        return incumbent
 
     def randomCVsearch(
         self,
@@ -466,16 +484,18 @@ class Classifier(Model):
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 
-            cv_num: number of different splits per crossvalidation
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
             leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
         """
+        logger.debug("starting randomCVsearch")
         results = []
         configs = self.get_random_configs(n_trails)
         at_least_one_run: bool = False
         try:
             for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
-                model = copy(self)
+                logger.debug(f"config: {config}")
+                model = self.get_deepcopy()
                 model.set_params(**config)
                 if small_data_eval:
                     score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
@@ -502,5 +522,7 @@ class Classifier(Model):
 
         best_score = best_hyperparameters[scoring]
         best_hyperparameters.pop(scoring)
+
+        logger.debug("finished randomCVsearch")
         
         return best_hyperparameters, best_score
