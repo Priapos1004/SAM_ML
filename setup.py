@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="sam_ml-py",
-    version="0.6.0",
+    version="0.7.0",
     description="a library for ML programing created by Samuel Brinkmann",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -28,7 +28,7 @@ setup(
         "sentence-transformers",
         "xgboost",
         "ConfigSpace", # for hyperparameter tuning spaces
-        #"smac", # for hyperparameter tuning
+        "smac", # for hyperparameter tuning
     ],
     extras_require={"test": ["pytest", "pylint!=2.5.0", "isort", "refurb", "black"],},
     author="Samuel Brinkmann",

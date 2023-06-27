@@ -1,4 +1,3 @@
-from copy import copy
 from datetime import timedelta
 from statistics import mean
 from typing import Union
@@ -9,10 +8,8 @@ from ConfigSpace import Configuration, ConfigurationSpace
 from matplotlib import pyplot as plt
 from sklearn.metrics import (accuracy_score, classification_report,
                              make_scorer, precision_score, recall_score)
-from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
-                                     cross_validate)
-# from smac import (HyperparameterOptimizationFacade, MultiFidelityFacade,
-#                   RandomFacade, Scenario)
+from sklearn.model_selection import cross_validate
+from smac import HyperparameterOptimizationFacade, Scenario
 from tqdm.auto import tqdm
 
 from sam_ml.config import setup_logger
@@ -26,17 +23,16 @@ logger = setup_logger(__name__)
 class Classifier(Model):
     """ Classifier parent class """
 
-    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: dict[str, list] = {}, is_pipeline: bool = False):
+    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: ConfigurationSpace = ConfigurationSpace()):
         """
         @params:
-            model_object: model with 'fit' and 'predict' method
+            model_object: model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
             model_name: name of the model
             model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
             grid: hyperparameter grid for the model
         """
         super().__init__(model_object, model_name, model_type)
         self._grid = grid
-        self.is_pipeline = is_pipeline
         self.cv_scores: dict[str, float] = {}
         self.rCVsearch_results: pd.DataFrame|None = None
 
@@ -121,6 +117,8 @@ class Classifier(Model):
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+        @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score'
         """
         pred = self.predict(x_test)
 
@@ -150,6 +148,46 @@ class Classifier(Model):
         }
 
         return self.test_score
+    
+    def evaluate_score(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        scoring: str = "accuracy",
+        avg: str = None,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+    ) -> float:
+        """
+        @param:
+            x_test, y_test: Data to evaluate model
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+
+            avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+        @return: score as float
+        """
+        pred = self.predict(x_test)
+
+        # Calculate score
+        if scoring == "accuracy":
+            score = accuracy_score(y_test, pred)
+        elif scoring == "precision":
+            score = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "recall":
+            score = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "s_score":
+            score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif scoring == "l_score":
+            score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        else:
+            raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score' ")
+
+        return score
 
     def cross_validation(
         self,
@@ -176,7 +214,7 @@ class Classifier(Model):
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
-            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
         """
         logger.debug(f"cross validation {self.model_name} - started")
 
@@ -261,7 +299,7 @@ class Classifier(Model):
             strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
-            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", "avg train score", "avg train time"
+            dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
         """
         logger.debug(f"cross validation {self.model_name} - started")
 
@@ -349,55 +387,78 @@ class Classifier(Model):
         fig.tight_layout()
         plt.show()
     
-    # def smac_search(
-    #         self,
-    #         x_train: pd.DataFrame, 
-    #         y_train: pd.Series
-    # ):
-    #     # Next, we create an object, holding general information about the run
-    #     scenario = Scenario(
-    #         self.grid,
-    #         n_trials=5,  # We want to run max 50 trials (combination of config and seed)
-    #         deterministic=True,
-    #         min_budget=5,
-    #         max_budget=25,
-    #     )
+    def smac_search(
+        self,
+        x_train: pd.DataFrame, 
+        y_train: pd.Series,
+        n_trails: int = 50,
+        cv_num: int = 5,
+        scoring: str = "accuracy",
+        avg: str = "macro",
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        small_data_eval: bool = False,
+        walltime_limit: float = 600,
+    ) -> Configuration:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-    #     # We want to run the facade's default initial design, but we want to change the number
-    #     # of initial configs to 5.
-    #     initial_design = MultiFidelityFacade.get_initial_design(scenario)
+            n_trails: max number of parameter sets to test
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-    #     # define target function
-    #     def grid_train(config: Configuration, seed: int, budget) -> float:
-    #         print(config)
-    #         print(seed)
-    #         print(budget)
-    #         params = self.get_params()
-    #         #print(params)
-    #         params.update(config)
-    #         #print(params)
-    #         model = type(self)(**params)
-    #         score = model.cross_validation(x_train, y_train, console_out=False, cv_num=2)
-    #         print(1 - score["accuracy"])
-    #         return 1 - score["accuracy"]  # SMAC always minimizes (the smaller the better)
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
-    #     # Now we use SMAC to find the best hyperparameters
-    #     smac = MultiFidelityFacade(
-    #         scenario,
-    #         grid_train,
-    #         initial_design=initial_design,
-    #         overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
-    #     )
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+            
+            walltime_limit: the maximum time in seconds that SMAC is allowed to run
 
-    #     incumbent = smac.optimize()
+        @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
+        """
+        logger.debug("starting smac_search")
+        # NormalInteger in grid are not supported and Classifier in Categorical
+        if self.model_type in ("RFC", "ABC", "BC", "ETC", "GBM", "XGBC"):
+            logger.error(f"The model type '{self.model_type}' is currently not supported")
+            return {}
 
-    #     # Get cost of default configuration
-    #     default_cost = smac.validate(self.grid.get_default_configuration())
-    #     print(f"Default cost: {default_cost}")
+        scenario = Scenario(
+            self.grid,
+            n_trials=n_trails,
+            deterministic=True,
+            walltime_limit=walltime_limit,
+        )
 
-    #     # Let's calculate the cost of the incumbent
-    #     incumbent_cost = smac.validate(incumbent)
-    #     print(f"Incumbent cost: {incumbent_cost}")
+        initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
+        logger.debug(f"initial_design: {initial_design.select_configurations()}")
+
+        # define target function
+        def grid_train(config: Configuration, seed: int) -> float:
+            logger.debug(f"config: {config}")
+            model = self.get_deepcopy()
+            model.set_params(**config)
+            if small_data_eval:
+                score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+            else:
+                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+            return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
+
+        # use SMAC to find the best hyperparameters
+        smac = HyperparameterOptimizationFacade(
+            scenario,
+            grid_train,
+            initial_design=initial_design,
+            overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
+        )
+
+        incumbent = smac.optimize()
+        logger.debug("finished smac_search")
+        return incumbent
 
     def randomCVsearch(
         self,
@@ -413,12 +474,35 @@ class Classifier(Model):
         cv_num: int = 5,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with labels
+
+            n_trails: number of parameter sets to test
+
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+
+            leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
+
+        @return: dictionary with best hyperparameters and float of best_score
+        """
+        logger.debug("starting randomCVsearch")
         results = []
         configs = self.get_random_configs(n_trails)
         at_least_one_run: bool = False
         try:
             for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
-                model = copy(self)
+                logger.debug(f"config: {config}")
+                model = self.get_deepcopy()
                 model.set_params(**config)
                 if small_data_eval:
                     score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
@@ -445,116 +529,7 @@ class Classifier(Model):
 
         best_score = best_hyperparameters[scoring]
         best_hyperparameters.pop(scoring)
+
+        logger.debug("finished randomCVsearch")
         
         return best_hyperparameters, best_score
-
-    # def gridsearch(
-    #     self,
-    #     x_train: pd.DataFrame,
-    #     y_train: pd.Series,
-    #     grid: dict = None,
-    #     scoring: str = "accuracy",
-    #     avg: str = "macro",
-    #     pos_label: Union[int, str] = -1,
-    #     cv_num: int = 10,
-    #     verbose: int = 0,
-    #     rand_search: bool = True,
-    #     n_iter_num: int = 75,
-    #     console_out: bool = True,
-    #     train_afterwards: bool = True,
-    #     secondary_scoring: str = None,
-    #     strength: int = 3,
-    # ):
-    #     """
-    #     @param:
-    #         x_train: DataFrame with train features
-    #         y_train: Series with labels
-
-    #         grid: dictonary of parameters to tune (default: default parameter dictionary self.grid)
-
-    #         scoring: metrics to evaluate the models
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-
-    #         rand_search: True: RandomizedSearchCV, False: GridSearchCV
-    #         n_iter_num: Combinations to try out if rand_search=True
-
-    #         cv_num: number of different splits
-
-    #         verbose: log level (higher number --> more logs)
-    #         console_out: output the the results of the different iterations
-    #         train_afterwards: train the best model after finding it
-
-    #         secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-    #         strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
-
-    #     @return:
-    #         set self.model = best model from search
-    #     """
-    #     if grid is None:
-    #         grid = self.grid
-
-    #     if console_out:
-    #         print()
-    #         print("grid: ", grid)
-    #         print()
-
-    #     if scoring == "precision":
-    #         scoring = make_scorer(precision_score, average=avg, pos_label=pos_label)
-    #     elif scoring == "recall":
-    #         scoring = make_scorer(recall_score, average=avg, pos_label=pos_label)
-    #     elif scoring == "s_score":
-    #         scoring = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-    #     elif scoring == "l_score":
-    #         scoring = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-
-    #     if rand_search:
-    #         grid_search = RandomizedSearchCV(
-    #             estimator=self,
-    #             param_distributions=grid,
-    #             n_iter=n_iter_num,
-    #             cv=cv_num,
-    #             verbose=verbose,
-    #             random_state=42,
-    #             n_jobs=-1,
-    #             scoring=scoring,
-    #         )
-    #     else:
-    #         grid_search = GridSearchCV(
-    #             estimator=self,
-    #             param_grid=grid,
-    #             n_jobs=-1,
-    #             cv=cv_num,
-    #             verbose=verbose,
-    #             scoring=scoring,
-    #             error_score=0,
-    #         )
-    #     logger.debug(f"hyperparameter tuning {self.model_name} - started")
-    #     grid_result = grid_search.fit(x_train, y_train)
-    #     logger.debug(f"hyperparameter tuning {self.model_name} - finished")
-
-    #     if console_out:
-    #         means = grid_result.cv_results_["mean_test_score"]
-    #         stds = grid_result.cv_results_["std_test_score"]
-    #         params = grid_result.cv_results_["params"]
-    #         print()
-    #         for mean, stdev, param in zip(means, stds, params):
-    #             print("mean: %f (stdev: %f) with: %r" % (mean, stdev, param))
-    #         print()
-
-    #     self.model = grid_result.best_estimator_.model
-    #     if self.is_pipeline:
-    #         self.vectorizer = grid_result.best_estimator_.vectorizer
-    #         self.scaler = grid_result.best_estimator_.scaler
-    #         self.selector = grid_result.best_estimator_.selector
-    #         self.sampler = grid_result.best_estimator_.sampler
-    #         self._classifier = (self.model, self.model_type, self._grid)
-
-    #     print()
-    #     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-    #     print()
-
-    #     if train_afterwards:
-    #         logger.debug(f"best model training {self.model_name} - started")
-    #         self.train(x_train, y_train, console_out=False)
-    #         logger.debug(f"best model training {self.model_name} - finished")

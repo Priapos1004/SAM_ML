@@ -1,7 +1,6 @@
 import os
 import sys
 import warnings
-from copy import copy
 from typing import Union
 
 import pandas as pd
@@ -48,7 +47,7 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: Union[str, list[Classifier]] = "search", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
+    def __init__(self, models: Union[str, list[Classifier]] = "all", vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None):
         """
         @params:
             models:
@@ -328,20 +327,43 @@ class CTest:
         strength: int = 3,
         small_data_eval: bool = False,
         cv_num: int = 3,
+        leave_loadbar: bool = True,
     ) -> dict:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with train labels
+            x_test: DataFrame with test features
+            y_test: Series with test labels
+
+            n_trails: number of parameter sets to test
+
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+
+            leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
+        """
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
-            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, True)
+            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
-            model_best = copy(self.models[key])
-            model_best.set_params(**best_hyperparameters)
-            train_score, train_time = model_best.train(x_train, y_train, console_out=False)
-            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
-            
-            scores["train_time"] = train_time
-            scores["train_score"] = train_score
-            scores["best_score (rCVs)"] = best_score
-            scores["best_hyperparameters (rCVs)"] = best_hyperparameters
-            self.scores[key] = scores
+            if best_hyperparameters != {}:
+                model_best = self.models[key].get_deepcopy()
+                model_best.set_params(**best_hyperparameters)
+                train_score, train_time = model_best.train(x_train, y_train, console_out=False)
+                scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+                
+                scores["train_time"] = train_time
+                scores["train_score"] = train_score
+                scores["best_score (rCVs)"] = best_score
+                scores["best_hyperparameters (rCVs)"] = best_hyperparameters
+                self.scores[key] = scores
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
@@ -349,90 +371,3 @@ class CTest:
         logger.info(f"best model type {best_model_type} - {scoring}: {best_model_value} - parameters: {best_model_hyperparameters}")
         self.__finish_sound()
         return self.scores
-
-
-    # def find_best_model(
-    #     self,
-    #     x_train: pd.DataFrame,
-    #     y_train: pd.Series,
-    #     x_test: pd.DataFrame,
-    #     y_test: pd.Series,
-    #     cv_kind: str = "no",
-    #     scoring: str = "accuracy",
-    #     avg: str = "macro",
-    #     pos_label: Union[int, str] = -1,
-    #     rand_search: bool = True,
-    #     n_iter_num: int = 75,
-    #     cv_num: int = 10,
-    #     console_out: bool = False,
-    #     secondary_scoring: str = None,
-    #     strength: int = 3,
-    # ) -> Pipeline:
-    #     """
-    #     @param:
-    #         cv_kind: which kind of cross validation shall be used to create the scores to find the best model type
-    #             'no': use eval_models on x_train, y_train, x_test, y_test
-    #             'small': use eval_models_cv with small_data_eval=True on x_train, y_train
-    #             'multi': use eval_models_cv with small_data_eval=False on x_train, y_train
-    #         scoring: "accuracy" / "precision" / "recall" / "s_score" / "l_score"
-
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-    #         rand_search: True: RandomizedSearchCV, False: GridSearchCV
-    #         n_iter_num: Combinations to try out if rand_search=True
-    #         cv_num: number of different splits
-    #         console_out: outputs intermidiate results into the console
-    #         secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-    #         strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
-
-    #     @return:
-    #         - prints parameters and metrics of best model
-    #         - saves best model in self.best_model
-    #         - returns best model
-    #     """
-
-    #     if cv_kind == "no":
-    #         logger.debug("creating scores using 'eval_models()'")
-    #         self.eval_models(x_train, y_train, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-    #     elif cv_kind == "small":
-    #         logger.debug("creating scores using 'eval_models_cv(small_data_eval=True)'")
-    #         self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=True, secondary_scoring=secondary_scoring, strength=strength)
-    #     elif cv_kind == "multi":
-    #         logger.debug("creating scores using 'eval_models_cv(small_data_eval=False)'")
-    #         self.eval_models_cv(x_train, y_train, avg=avg, pos_label=pos_label, small_data_eval=False, secondary_scoring=secondary_scoring, strength=strength, cv_num=cv_num)
-    #     else:
-    #         logger.error(f"wrong input '{cv_kind}' for cv_kind")
-    #         return
-
-    #     sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score"])
-    #     best_model_type = sorted_scores.iloc[0].name
-    #     best_model_value = sorted_scores.iloc[0][scoring]
-
-    #     print()
-    #     print(f"best model type ({scoring}): ", best_model_type, " - ", best_model_value)
-    #     print()
-
-    #     logger.info(f"hyperparametertuning for best model type (rand_search = {rand_search}) - started")
-    #     self.models[best_model_type].gridsearch(
-    #         x_train,
-    #         y_train,
-    #         scoring=scoring,
-    #         train_afterwards=True,
-    #         avg=avg,
-    #         pos_label=pos_label,
-    #         rand_search=rand_search,
-    #         n_iter_num=n_iter_num,
-    #         cv_num=cv_num,
-    #         console_out=console_out,
-    #         secondary_scoring=secondary_scoring,
-    #         strength=strength,
-    #     )
-    #     logger.info(f"hyperparametertuning for best model type (rand_search = {rand_search}) - finished")
-
-    #     # Set self.best_model = hyperparameter tuned model
-    #     self.best_model = self.models[best_model_type]
-
-    #     self.best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label)
-    #     self.best_model.feature_importance()
-    #     self.__finish_sound()
-    #     return self.best_model

@@ -22,16 +22,16 @@ class Pipeline(Classifier):
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
             sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
-            model: Classifier class object or tuple (sklearn model, model_type, hyperparameter grid)
+            model: Classifier class object or tuple (model, model_type, hyperparameter grid)
             model_name: name of the model
         """
         self._classifier: tuple
 
         if issubclass(type(model), Classifier):
-            super().__init__(model.model, model_name, model.model_type, model.grid, is_pipeline = True)
+            super().__init__(model.model, model_name, model.model_type, model.grid)
             self._classifier = (model.model, model.model_type, model.grid)
         else:
-            super().__init__(model[0], model_name, model[1], model[2], is_pipeline = True)
+            super().__init__(model[0], model_name, model[1], model[2])
             self._classifier = model
 
         if vectorizer in Embeddings_builder.params()["vec"]:
@@ -92,41 +92,6 @@ class Pipeline(Classifier):
     @property
     def steps(self) -> list[tuple[str, any]]:
         return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self._classifier)]
-
-    # @property
-    # def grid(self) -> dict[str, list]:
-    #     pre_grid = {}
-    #     if self.vectorizer is not None:
-    #         vectorizer_grid = {f"vectorizer__{k}": v for k, v in self.vectorizer._grid.items()}
-    #         pre_grid.update(vectorizer_grid)
-    #     if self.scaler is not None:
-    #         scaler_grid = {f"scaler__{k}": v for k, v in self.scaler._grid.items()}
-    #         pre_grid.update(scaler_grid)
-    #     if self.selector is not None:
-    #         selector_grid = {f"selector__{k}": v for k, v in self.selector._grid.items()}
-    #         pre_grid.update(selector_grid)
-    #     if self.sampler is not None:
-    #         sampler_grid = {f"sampler__{k}": v for k, v in self.sampler._grid.items()}
-    #         pre_grid.update(sampler_grid)
-    #     model_grid = {f"model__{k}": v for k, v in self._grid.items()}
-    #     pre_grid.update(model_grid)
-    #     return pre_grid
-
-    # def update_grid(self, **kwargs) -> None:
-    #     if self.vectorizer is not None:
-    #         vectorizer_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "vectorizer"])
-    #         self.vectorizer._grid.update(vectorizer_params)
-    #     if self.scaler is not None:
-    #         scaler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "scaler"])
-    #         self.scaler._grid.update(scaler_params)
-    #     if self.selector is not None:
-    #         selector_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "selector"])
-    #         self.selector._grid.update(selector_params)
-    #     if self.sampler is not None:
-    #         sampler_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "sampler"])
-    #         self.sampler._grid.update(sampler_params)
-    #     model_params = dict([[i.split("__")[1], kwargs[i]] for i in list(kwargs.keys()) if i.split("__")[0] == "model"])
-    #     super().update_grid(**model_params)
     
     def __auto_vectorizing(self, X: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         """ detects string columns, creates a vectorizer for each, and vectorizes them """
@@ -168,20 +133,3 @@ class Pipeline(Classifier):
 
     def get_params(self, deep: bool = True) -> dict[str, any]:
         return dict(self.steps)
-
-    # def set_params(self, **params):
-    #     if self.vectorizer is not None:
-    #         vec_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "vectorizer"])
-    #         self.vectorizer.set_params(**vec_params)
-    #     if self.scaler is not None:
-    #         scaler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "scaler"])
-    #         self.scaler.set_params(**scaler_params)
-    #     if self.selector is not None:
-    #         selector_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "selector"])
-    #         self.selector.set_params(**selector_params)
-    #     if self.sampler is not None:
-    #         sampler_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "sampler"])
-    #         self.sampler.set_params(**sampler_params)
-    #     model_params = dict([[i.split("__")[1], params[i]] for i in list(params.keys()) if i.split("__")[0] == "model"])
-    #     super().set_params(**model_params)
-    #     return self
