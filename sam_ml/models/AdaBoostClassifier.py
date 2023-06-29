@@ -1,4 +1,5 @@
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
+from sklearn.base import ClassifierMixin
 from sklearn.ensemble import (
     AdaBoostClassifier,
     GradientBoostingClassifier,
@@ -18,6 +19,7 @@ class ABC(Classifier):
         self,
         model_name: str = "AdaBoostClassifier",
         random_state: int = 42,
+        estimator: ClassifierMixin = DecisionTreeClassifier(max_depth=1),
         **kwargs,
     ):
         """
@@ -31,30 +33,22 @@ class ABC(Classifier):
         model_type = "ABC"
         model = AdaBoostClassifier(
             random_state=random_state,
+            estimator=estimator,
             **kwargs,
         )
-        if type(model.estimator) == RandomForestClassifier:
-            core_estimator = [RandomForestClassifier(max_depth=i, n_estimators=j) for j in  (100, 50, 20, 10, 5) for i in range(1,11)]
-        elif type(model.estimator) == DecisionTreeClassifier or model.estimator is None:
-            core_estimator = [DecisionTreeClassifier(max_depth=i) for i in range(1,11)]
-        else:
-            core_estimator = [SVC(probability=True, kernel='linear'), GradientBoostingClassifier(), LogisticRegression()]
         
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "estimator": Categorical("estimator", core_estimator, default=core_estimator[2]),
             "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
             "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
             "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
             })
         
-        # workaround for now -> Problems with estimator parameter and JSON format (in smac_search)
-        self.smac_grid = ConfigurationSpace(
-            seed=42,
-            space={
-            "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
-            "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
-            "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
-            })
+        if type(model.estimator) == RandomForestClassifier:
+            grid.add_hyperparameter(Integer("estimator__max_depth", (1, 11), default=5))
+            grid.add_hyperparameter(Integer("estimator__n_estimators", (5, 100), log=True, default=50))
+        elif type(model.estimator) == DecisionTreeClassifier:
+            grid.add_hyperparameter(Integer("estimator__max_depth", (1, 11), default=1))
+        
         super().__init__(model, model_name, model_type, grid)

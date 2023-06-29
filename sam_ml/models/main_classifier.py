@@ -430,8 +430,8 @@ class Classifier(Model):
         @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
         """
         logger.debug("starting smac_search")
-        # NormalInteger in grid are not supported and Classifier in Categorical (using workaround for now)
-        if self.model_type in ("RFC", "ETC", "GBM", "XGBC", "ABC", "BC"):
+        # NormalInteger in grid are not supported (using workaround for now)
+        if self.model_type in ("RFC", "ETC", "GBM", "XGBC"):
             grid = self.smac_grid
         else:
             grid = self.grid

@@ -158,7 +158,7 @@ class CTest:
                 ),
                 ABC(
                     estimator=LogisticRegression(),
-                    model_name="AdaBoostClassifier (mixed based)",
+                    model_name="AdaBoostClassifier (LR based)",
                 ),
                 KNC(),
                 ETC(),
@@ -172,7 +172,7 @@ class CTest:
                 ),
                 BC(
                     estimator=LogisticRegression(),
-                    model_name="BaggingClassifier (mixed based)",
+                    model_name="BaggingClassifier (LR based)",
                 ),
                 XGBC(),
             ]
