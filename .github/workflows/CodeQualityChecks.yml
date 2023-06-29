@@ -24,11 +24,6 @@ jobs:
           pip install refurb
           refurb . --quiet
 
-      - name: Test with pytest
-        run: |
-          pip install pytest
-          pytest
-
   ubuntu-latest:
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +34,11 @@ jobs:
 
       - name: Test environment
         run: pip install -e .
+
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
 
   windows-latest:
     runs-on: windows-latest
@@ -51,6 +51,11 @@ jobs:
       - name: Test environment
         run: pip install -e .
 
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
+
   macos-latest:
     runs-on: macos-latest
     steps:
@@ -61,3 +66,8 @@ jobs:
 
       - name: Test environment
         run: pip install -e .
+
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
