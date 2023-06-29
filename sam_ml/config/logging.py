@@ -18,6 +18,7 @@ def setup_logger(name=__name__):
         else:
             raise ValueError("not supported content of global variable SAM_ML_LOG_LEVEL")
     except:
+        os.environ["SAM_ML_LOG_LEVEL"] = "info"
         logger.setLevel(logging.INFO)
 
     c_handler = logging.StreamHandler(sys.stdout)
