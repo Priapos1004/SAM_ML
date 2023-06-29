@@ -26,6 +26,7 @@ jobs:
 
   different-OS:
     runs-on: ${{ matrix.os }}
+    needs: [code-checks]
 
     strategy:
       matrix:
