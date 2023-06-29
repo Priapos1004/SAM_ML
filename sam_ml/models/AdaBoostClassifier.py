@@ -45,4 +45,13 @@ class ABC(Classifier):
             "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
             "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
             })
+        
+        # workaround for now -> Problems with estimator parameter and JSON format (in smac_search)
+        self.smac_grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
+            "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
+            "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
+            })
         super().__init__(model, model_name, model_type, grid)
