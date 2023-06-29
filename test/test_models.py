@@ -1,5 +1,26 @@
 import pandas as pd
-from sam_ml.models import ABC, BC, BNB, DTC, ETC, GNB, GPC, GBM, KNC, LDA, LSVC, LR, Pipeline, MLPC, QDA, RFC, SVC, XGBC
+
+from sam_ml.models import (
+    ABC,
+    BC,
+    BNB,
+    DTC,
+    ETC,
+    GBM,
+    GNB,
+    GPC,
+    KNC,
+    LDA,
+    LR,
+    LSVC,
+    MLPC,
+    QDA,
+    RFC,
+    SVC,
+    XGBC,
+    Pipeline,
+)
+
 
 def test_models():
     models = [ABC(), BC(), BNB(), DTC(), ETC(), GNB(), GPC(), GBM(), KNC(), LDA(), LSVC(), LR(), Pipeline(), MLPC(), QDA(), RFC(), SVC(), XGBC()]
