@@ -24,6 +24,11 @@ jobs:
           pip install refurb
           refurb . --quiet
 
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
+
   ubuntu-latest:
     runs-on: ubuntu-latest
     steps:
