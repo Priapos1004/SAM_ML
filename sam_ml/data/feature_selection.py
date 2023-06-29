@@ -2,9 +2,14 @@ import pandas as pd
 import statsmodels.api as sm
 from sklearn.decomposition import PCA
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.feature_selection import (RFE, RFECV, SelectFromModel,
-                                       SelectKBest, SequentialFeatureSelector,
-                                       chi2)
+from sklearn.feature_selection import (
+    RFE,
+    RFECV,
+    SelectFromModel,
+    SelectKBest,
+    SequentialFeatureSelector,
+    chi2,
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 

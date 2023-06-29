@@ -6,8 +6,13 @@ import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
 from matplotlib import pyplot as plt
-from sklearn.metrics import (accuracy_score, classification_report,
-                             make_scorer, precision_score, recall_score)
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    make_scorer,
+    precision_score,
+    recall_score,
+)
 from sklearn.model_selection import cross_validate
 from smac import HyperparameterOptimizationFacade, Scenario
 from tqdm.auto import tqdm

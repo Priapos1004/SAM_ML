@@ -1,7 +1,13 @@
 import numpy as np
-from ConfigSpace import (Categorical, ConfigurationSpace, EqualsCondition,
-                         Float, ForbiddenAndConjunction, ForbiddenEqualsClause,
-                         ForbiddenInClause)
+from ConfigSpace import (
+    Categorical,
+    ConfigurationSpace,
+    EqualsCondition,
+    Float,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenInClause,
+)
 from sklearn.linear_model import LogisticRegression
 
 from .main_classifier import Classifier

@@ -1,8 +1,11 @@
 import warnings
 
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
-from sklearn.ensemble import (BaggingClassifier, GradientBoostingClassifier,
-                              RandomForestClassifier)
+from sklearn.ensemble import (
+    BaggingClassifier,
+    GradientBoostingClassifier,
+    RandomForestClassifier,
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC

@@ -24,40 +24,13 @@ jobs:
           pip install refurb
           refurb . --quiet
 
-  ubuntu-latest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  different-OS:
+    runs-on: ${{ matrix.os }}
 
-      - name: Setup Python
-        uses: actions/setup-python@v3
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
-      - name: Test environment
-        run: pip install -e .
-
-      - name: Test with pytest
-        run: |
-          pip install pytest
-          pytest
-
-  windows-latest:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v3
-
-      - name: Test environment
-        run: pip install -e .
-
-      - name: Test with pytest
-        run: |
-          pip install pytest
-          pytest
-
-  macos-latest:
-    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
 
