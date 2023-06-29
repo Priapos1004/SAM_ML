@@ -28,6 +28,10 @@ class Pipeline(Classifier):
         self._classifier: tuple
 
         if issubclass(type(model), Classifier):
+            try:
+                self.smac_grid = model.smac_grid
+            except:
+                pass
             super().__init__(model.model, model_name, model.model_type, model.grid)
             self._classifier = (model.model, model.model_type, model.grid)
         else:

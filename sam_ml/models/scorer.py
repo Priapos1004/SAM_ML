@@ -24,7 +24,7 @@ def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = 
             pos_label > 0: take <scoring> in class <pos_label> more into account
             pos_label = -1: handle all classes the same
 
-        strength: higher strength means a higher weight for the prefered scoring/pos_label
+        strength: higher strength means a higher weight for the preferred scoring/pos_label
 
         score_func: function to use for scoring (default: samuel_function)
 
