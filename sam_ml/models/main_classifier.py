@@ -1,3 +1,6 @@
+import os
+import sys
+import warnings
 from datetime import timedelta
 from statistics import mean
 from typing import Union
@@ -23,6 +26,10 @@ from .main_model import Model
 from .scorer import l_scoring, s_scoring
 
 logger = setup_logger(__name__)
+
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affects subprocesses
 
 
 class Classifier(Model):
