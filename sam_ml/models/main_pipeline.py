@@ -1,4 +1,5 @@
 import copy
+from contextlib import suppress
 from typing import Union
 
 import pandas as pd
@@ -28,10 +29,8 @@ class Pipeline(Classifier):
         self._classifier: tuple
 
         if issubclass(type(model), Classifier):
-            try:
+            with suppress(BaseException):
                 self.smac_grid = model.smac_grid
-            except:
-                pass
             super().__init__(model.model, model_name, model.model_type, model.grid)
             self._classifier = (model.model, model.model_type, model.grid)
         else:
