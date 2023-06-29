@@ -1,5 +1,10 @@
-from ConfigSpace import (Categorical, ConfigurationSpace, Float,
-                         ForbiddenAndConjunction, ForbiddenEqualsClause)
+from ConfigSpace import (
+    Categorical,
+    ConfigurationSpace,
+    Float,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
+)
 from sklearn.svm import LinearSVC
 
 from .main_classifier import Classifier

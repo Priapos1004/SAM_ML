@@ -6,8 +6,13 @@ import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
 from matplotlib import pyplot as plt
-from sklearn.metrics import (accuracy_score, classification_report,
-                             make_scorer, precision_score, recall_score)
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    make_scorer,
+    precision_score,
+    recall_score,
+)
 from sklearn.model_selection import cross_validate
 from smac import HyperparameterOptimizationFacade, Scenario
 from tqdm.auto import tqdm
@@ -116,7 +121,7 @@ class Classifier(Model):
             console_out: shall the result be printed into the console
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score'
         """
@@ -167,7 +172,7 @@ class Classifier(Model):
             avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return: score as float
         """
@@ -199,7 +204,7 @@ class Classifier(Model):
         console_out: bool = True,
         secondary_scoring: str = None,
         strength: int = 3,
-    ) -> Union[dict[str, float], pd.DataFrame]:
+    ) -> dict[str, float]:
         """
         @param:
             X, y: data to cross validate on
@@ -211,7 +216,7 @@ class Classifier(Model):
             console_out: shall the result be printed into the console
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
@@ -296,7 +301,7 @@ class Classifier(Model):
             console_out: shall the result be printed into the console
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
@@ -400,6 +405,7 @@ class Classifier(Model):
         strength: int = 3,
         small_data_eval: bool = False,
         walltime_limit: float = 600,
+        log_level: int = 20,
     ) -> Configuration:
         """
         @params:
@@ -413,22 +419,25 @@ class Classifier(Model):
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             
             walltime_limit: the maximum time in seconds that SMAC is allowed to run
 
+            log_level: 10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
+
         @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
         """
         logger.debug("starting smac_search")
-        # NormalInteger in grid are not supported and Classifier in Categorical
-        if self.model_type in ("RFC", "ABC", "BC", "ETC", "GBM", "XGBC"):
-            logger.error(f"The model type '{self.model_type}' is currently not supported")
-            return {}
+        # NormalInteger in grid are not supported and Classifier in Categorical (using workaround for now)
+        if self.model_type in ("RFC", "ETC", "GBM", "XGBC", "ABC", "BC"):
+            grid = self.smac_grid
+        else:
+            grid = self.grid
 
         scenario = Scenario(
-            self.grid,
+            grid,
             n_trials=n_trails,
             deterministic=True,
             walltime_limit=walltime_limit,
@@ -454,6 +463,7 @@ class Classifier(Model):
             grid_train,
             initial_design=initial_design,
             overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
+            logging_level=log_level,
         )
 
         incumbent = smac.optimize()
@@ -485,7 +495,7 @@ class Classifier(Model):
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-            strength: higher strength means a higher weight for the prefered secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 

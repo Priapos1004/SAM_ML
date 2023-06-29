@@ -1,7 +1,13 @@
 import pandas as pd
-from sklearn.preprocessing import (MaxAbsScaler, MinMaxScaler, Normalizer,
-                                   PowerTransformer, QuantileTransformer,
-                                   RobustScaler, StandardScaler)
+from sklearn.preprocessing import (
+    MaxAbsScaler,
+    MinMaxScaler,
+    Normalizer,
+    PowerTransformer,
+    QuantileTransformer,
+    RobustScaler,
+    StandardScaler,
+)
 
 from sam_ml.config import setup_logger
 

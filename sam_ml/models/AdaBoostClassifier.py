@@ -1,6 +1,9 @@
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
-from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingClassifier,
-                              RandomForestClassifier)
+from sklearn.ensemble import (
+    AdaBoostClassifier,
+    GradientBoostingClassifier,
+    RandomForestClassifier,
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -41,6 +44,15 @@ class ABC(Classifier):
             seed=42,
             space={
             "estimator": Categorical("estimator", core_estimator, default=core_estimator[2]),
+            "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
+            "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
+            "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
+            })
+        
+        # workaround for now -> Problems with estimator parameter and JSON format (in smac_search)
+        self.smac_grid = ConfigurationSpace(
+            seed=42,
+            space={
             "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
             "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
             "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),

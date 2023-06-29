@@ -6,19 +6,42 @@ on:
     tags: ["*"]
 
 jobs:
-  test:
+  code-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v2
-
-      - name: Test environment
-        run: pip install -e ."[test]"
+        uses: actions/setup-python@v3
 
       - name: Test with isort
-        run: isort --check-only --diff .
+        run: |
+          pip install isort
+          isort --check-only --diff .
 
       - name: Test with refurb
-        run: refurb . --quiet
+        run: |
+          pip install refurb
+          refurb . --quiet
+
+  different-OS:
+    runs-on: ${{ matrix.os }}
+    needs: [code-checks]
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+
+      - name: Test environment
+        run: pip install -e .
+
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest

@@ -1,8 +1,11 @@
 import warnings
 
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
-from sklearn.ensemble import (BaggingClassifier, GradientBoostingClassifier,
-                              RandomForestClassifier)
+from sklearn.ensemble import (
+    BaggingClassifier,
+    GradientBoostingClassifier,
+    RandomForestClassifier,
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -49,6 +52,17 @@ class BC(Classifier):
             seed=42,
             space={
             "estimator": Categorical("estimator", core_estimator, default=core_estimator[3]),
+            "n_estimators": Integer("n_estimators", (3, 3000), distribution=Beta(1, 15), default=10),
+            "max_samples": Float("max_samples", (0.1, 1), default=1),
+            "max_features": Categorical("max_features", [0.5, 0.9, 1.0, 2, 4], default=1.0),
+            "bootstrap": Categorical("bootstrap", [True, False], default=True),
+            "bootstrap_features": Categorical("bootstrap_features", [True, False], default=False),
+            })
+        
+        # workaround for now -> Problems with estimator parameter and JSON format (in smac_search)
+        self.smac_grid = ConfigurationSpace(
+            seed=42,
+            space={
             "n_estimators": Integer("n_estimators", (3, 3000), distribution=Beta(1, 15), default=10),
             "max_samples": Float("max_samples", (0.1, 1), default=1),
             "max_features": Categorical("max_features", [0.5, 0.9, 1.0, 2, 4], default=1.0),
