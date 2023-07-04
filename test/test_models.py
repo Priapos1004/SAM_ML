@@ -78,11 +78,11 @@ def test_pipelines_randomCVsearch():
 
 def test_classifier_smac_search():
     for classifier in MODELS:
-        best_param = classifier.smac_search(X, Y, n_trails=5, cv_num=3)
+        best_param = classifier.smac_search(X, Y, n_trails=10, cv_num=3)
         assert best_param != {}, "should always find a parameter combination"
 
 def test_pipelines_smac_search():
     for classifier in MODELS:
         model = Pipeline(model=classifier, model_name=classifier.model_name)
-        best_param = model.smac_search(X, Y, n_trails=5, cv_num=3)
+        best_param = model.smac_search(X, Y, n_trails=10, cv_num=3)
         assert best_param != {}, "should always find a parameter combination"
