@@ -1,6 +1,8 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn.gaussian_process import GaussianProcessClassifier
 
+from sam_ml.config import get_n_jobs
+
 from .main_classifier import Classifier
 
 
@@ -10,7 +12,7 @@ class GPC(Classifier):
     def __init__(
         self,
         model_name: str = "GaussianProcessClassifier",
-        n_jobs: int = -1,
+        n_jobs: int = get_n_jobs(),
         random_state: int = 42,
         **kwargs,
     ):

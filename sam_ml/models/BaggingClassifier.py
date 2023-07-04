@@ -5,6 +5,8 @@ from sklearn.base import ClassifierMixin
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
+from sam_ml.config import get_n_jobs
+
 from .main_classifier import Classifier
 
 warnings. filterwarnings('ignore')
@@ -17,7 +19,7 @@ class BC(Classifier):
         self,
         model_name: str = "BaggingClassifier",
         random_state: int = 42,
-        n_jobs: int = -1,
+        n_jobs: int = get_n_jobs(),
         estimator: ClassifierMixin = DecisionTreeClassifier(max_depth=1),
         **kwargs,
     ):

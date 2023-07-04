@@ -20,7 +20,7 @@ from sklearn.model_selection import cross_validate
 from smac import HyperparameterOptimizationFacade, Scenario
 from tqdm.auto import tqdm
 
-from sam_ml.config import setup_logger
+from sam_ml.config import get_n_jobs, setup_logger
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
@@ -259,7 +259,7 @@ class Classifier(Model):
             scoring=scorer,
             cv=cv_num,
             return_train_score=True,
-            n_jobs=-1,
+            n_jobs=get_n_jobs(),
         )
 
         pd_scores = pd.DataFrame(cv_scores).transpose()
