@@ -1,12 +1,6 @@
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
 from sklearn.base import ClassifierMixin
-from sklearn.ensemble import (
-    AdaBoostClassifier,
-    GradientBoostingClassifier,
-    RandomForestClassifier,
-)
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from .main_classifier import Classifier
