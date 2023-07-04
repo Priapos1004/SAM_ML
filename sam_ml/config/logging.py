@@ -5,19 +5,17 @@ import sys
 
 def setup_logger(name=__name__):
     logger = logging.getLogger(name)
-    try:
-        log_level = os.environ["SAM_ML_LOG_LEVEL"].lower()
-        if log_level == "debug":
-            logger.setLevel(logging.DEBUG)
-        elif log_level == "info":
-            logger.setLevel(logging.INFO)
-        elif log_level == "warning":
-            logger.setLevel(logging.WARNING)
-        elif log_level == "error":
-            logger.setLevel(logging.ERROR)
-        else:
-            raise ValueError("not supported content of global variable SAM_ML_LOG_LEVEL")
-    except:
+    
+    log_level = str(os.getenv("SAM_ML_LOG_LEVEL")).lower()
+    if log_level == "debug":
+        logger.setLevel(logging.DEBUG)
+    elif log_level == "info":
+        logger.setLevel(logging.INFO)
+    elif log_level == "warning":
+        logger.setLevel(logging.WARNING)
+    elif log_level == "error":
+        logger.setLevel(logging.ERROR)
+    else:
         os.environ["SAM_ML_LOG_LEVEL"] = "info"
         logger.setLevel(logging.INFO)
 
