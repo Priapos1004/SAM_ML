@@ -16,7 +16,7 @@ setup(
     package_data={},
     scripts=[],
     install_requires=[
-        "scikit-learn",
+        "scikit-learn<1.3", # version 1.3 has some issues currently
         "pandas",
         "matplotlib",
         "numpy",
