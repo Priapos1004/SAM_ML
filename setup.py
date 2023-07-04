@@ -16,7 +16,7 @@ setup(
     package_data={},
     scripts=[],
     install_requires=[
-        "scikit-learn<1.3", # version 1.3 has some issues currently
+        "scikit-learn<1.3", # version 1.3 has some issues currently (04/07/2023)
         "pandas",
         "matplotlib",
         "numpy",
@@ -30,9 +30,9 @@ setup(
         "ConfigSpace", # for hyperparameter tuning spaces
         "smac", # for hyperparameter tuning
     ],
-    extras_require={"test": ["pytest", "pylint!=2.5.0", "isort", "refurb", "black"],},
+    extras_require={"test": ["pytest", "pylint", "isort", "refurb", "black"],},
     author="Samuel Brinkmann",
     license="MIT",
-    tests_require=["pytest==4.4.1"],
+    tests_require=["pytest"],
     setup_requires=["pytest-runner"],
 )

@@ -40,7 +40,7 @@ class XGBC(Classifier):
             "learning_rate": Float("learning_rate", bounds=(0.001, 0.30), log=True, default=0.1),
             })
         
-        # workaround for now -> Problems with Normal distribution (in smac_search)
+        # workaround for now -> Problems with Normal distribution (in smac_search) (04/07/2023)
         self.smac_grid = ConfigurationSpace(
             seed=42,
             space={

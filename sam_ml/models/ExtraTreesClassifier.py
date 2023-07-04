@@ -48,7 +48,7 @@ class ETC(Classifier):
             "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
             })
         
-        # workaround for now -> Problems with Normal distribution (in smac_search)
+        # workaround for now -> Problems with Normal distribution (in smac_search) (04/07/2023)
         self.smac_grid = ConfigurationSpace(
             seed=42,
             space={

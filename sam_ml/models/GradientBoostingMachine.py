@@ -44,7 +44,7 @@ class GBM(Classifier):
             "learning_rate": Float("learning_rate", (0.005, 0.3), log=True, default=0.1),
             })
         
-        # workaround for now -> Problems with Normal distribution (in smac_search)
+        # workaround for now -> Problems with Normal distribution (in smac_search) (04/07/2023)
         self.smac_grid = ConfigurationSpace(
             seed=42,
             space={
