@@ -38,6 +38,8 @@ pip install sam-ml-py[with_swig]
 pip install sam-ml-py
 ```
 
+## start using it
+
 2. now you can import the package, e.g.:
 
 ```

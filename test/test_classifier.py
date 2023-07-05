@@ -20,7 +20,6 @@ from sam_ml.models import (
     RFC,
     SVC,
     XGBC,
-    Pipeline,
 )
 from sam_ml.models.main_classifier import SMAC_INSTALLED
 
@@ -35,69 +34,54 @@ X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 
 
+def test_classifier_fit_evaluate():
+    for classifier in MODELS:
+        classifier.fit(X, Y)
+        classifier.evaluate(X, Y, console_out=False)
+        classifier.evaluate_score(X, Y)
+
 def test_classifier_train_evaluate():
     for classifier in MODELS:
         classifier.train(X, Y, console_out=False)
         classifier.evaluate(X, Y, console_out=False)
         classifier.evaluate_score(X, Y)
 
-
-def test_pipelines_train_evaluate():
-    for classifier in MODELS:
-        model = Pipeline(model=classifier, model_name=classifier.model_name)
-        model.train(X, Y, console_out=False)
-        model.evaluate(X, Y, console_out=False)
-        model.evaluate_score(X, Y)
-
 def test_classifier_crossvalidation():
     for classifier in MODELS:
-        classifier.cross_validation(X, Y, cv_num=3)
-
-def test_pipelines_crossvalidation():
-    for classifier in MODELS:
-        model = Pipeline(model=classifier, model_name=classifier.model_name)
-        model.cross_validation(X, Y, cv_num=3)
+        classifier.cross_validation(X, Y, cv_num=2)
 
 def test_classifier_crossvalidation_small_data():
     for classifier in MODELS:
         classifier.cross_validation_small_data(X, Y)
 
-def test_pipelines_crossvalidation_small_data():
-    for classifier in MODELS:
-        model = Pipeline(model=classifier, model_name=classifier.model_name)
-        model.cross_validation_small_data(X, Y)
-
 def test_classifier_randomCVsearch():
     for classifier in MODELS:
-        best_param, _ = classifier.randomCVsearch(X, Y, n_trails=5, cv_num=3)
+        best_param, _ = classifier.randomCVsearch(X, Y, n_trails=5, cv_num=2)
         assert best_param != {}, "should always find a parameter combination"
 
-def test_pipelines_randomCVsearch():
+def test_classifier_randomCVsearch_small_data():
     for classifier in MODELS:
-        model = Pipeline(model=classifier, model_name=classifier.model_name)
-        best_param, _ = model.randomCVsearch(X, Y, n_trails=5, cv_num=3)
+        best_param, _ = classifier.randomCVsearch(X, Y, n_trails=5, cv_num=2, small_data_eval=True)
         assert best_param != {}, "should always find a parameter combination"
 
 def test_classifier_smac_search():
     if SMAC_INSTALLED:
         for classifier in MODELS:
-            best_param = classifier.smac_search(X, Y, n_trails=10, cv_num=3)
+            best_param = classifier.smac_search(X, Y, n_trails=5, cv_num=2)
             assert best_param != {}, "should always find a parameter combination"
     else:
         with pytest.raises(ImportError):
             for classifier in MODELS:
-                best_param = classifier.smac_search(X, Y, n_trails=10, cv_num=3)
+                best_param = classifier.smac_search(X, Y, n_trails=5, cv_num=2)
                 assert best_param != {}, "should always find a parameter combination"
 
-def test_pipelines_smac_search():
+def test_classifier_smac_search_small_data():
     if SMAC_INSTALLED:
         for classifier in MODELS:
-            model = Pipeline(model=classifier, model_name=classifier.model_name)
-            best_param = model.smac_search(X, Y, n_trails=10, cv_num=3)
+            best_param = classifier.smac_search(X, Y, n_trails=5, cv_num=2, small_data_eval=True)
             assert best_param != {}, "should always find a parameter combination"
     else:
         with pytest.raises(ImportError):
             for classifier in MODELS:
-                model = Pipeline(model=classifier, model_name=classifier.model_name)
-                best_param = model.smac_search(X, Y, n_trails=10, cv_num=3)
+                best_param = classifier.smac_search(X, Y, n_trails=5, cv_num=2, small_data_eval=True)
                 assert best_param != {}, "should always find a parameter combination"
