@@ -4,7 +4,7 @@
 
 a library created by Samuel Brinkmann
 
-## getting started
+## getting started (with SMAC3 library)
 
 0. pre-installations *(needed for [smac](https://github.com/automl/SMAC3) library)*
 
@@ -21,6 +21,16 @@ MacOS (with [homebrew](https://formulae.brew.sh/formula/swig)):
 ```
 brew install swig
 ```
+
+Windows (see [swigwin](https://www.swig.org/download.html))
+
+1. install the package to your activated virtual environment *(python version 3.10 and higher is needed)*
+
+```
+pip install sam-ml-py[with_swig]
+```
+
+## getting started (without SMAC3 library)
 
 1. install the package to your activated virtual environment *(python version 3.10 and higher is needed)*
 

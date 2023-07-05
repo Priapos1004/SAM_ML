@@ -55,4 +55,13 @@ class LR(Classifier):
         l1_ratio_cond = EqualsCondition(grid["l1_ratio"], grid["penalty"], "elasticnet")
         grid.add_forbidden_clause(solver_and_penalty)
         grid.add_condition(l1_ratio_cond)
+
+        # workaround for now -> Problems with EqualsCondition (KeyError: 'l1_ratio') (04/07/2023)
+        self.smac_grid = ConfigurationSpace(
+            seed=42,
+            space={
+            "solver": Categorical("solver", ["newton-cg", "lbfgs", "liblinear", "sag", "saga"], default="lbfgs"),
+            "penalty": Categorical("penalty", ["l2"], default="l2"),
+            "C": Float("C", (0.01, 100), log=True, default=1),
+            })
         super().__init__(model, model_name, model_type, grid)

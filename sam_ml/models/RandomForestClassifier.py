@@ -1,6 +1,8 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Integer, Normal
 from sklearn.ensemble import RandomForestClassifier
 
+from sam_ml.config import get_n_jobs
+
 from .main_classifier import Classifier
 
 
@@ -10,7 +12,7 @@ class RFC(Classifier):
     def __init__(
         self,
         model_name: str = "RandomForestClassifier",
-        n_jobs: int = -1, 
+        n_jobs: int = get_n_jobs(), 
         random_state: int = 42,
         **kwargs,
     ):
@@ -46,7 +48,7 @@ class RFC(Classifier):
             "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
             })
         
-        # workaround for now -> Problems with Normal distribution (in smac_search)
+        # workaround for now -> Problems with Normal distribution (in smac_search) (04/07/2023)
         self.smac_grid = ConfigurationSpace(
             seed=42,
             space={

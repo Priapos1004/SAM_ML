@@ -17,13 +17,19 @@ from sklearn.metrics import (
     recall_score,
 )
 from sklearn.model_selection import cross_validate
-from smac import HyperparameterOptimizationFacade, Scenario
 from tqdm.auto import tqdm
 
-from sam_ml.config import setup_logger
+from sam_ml.config import get_n_jobs, setup_logger
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
+
+SMAC_INSTALLED: bool
+try:
+    from smac import HyperparameterOptimizationFacade, Scenario
+    SMAC_INSTALLED = True
+except:
+    SMAC_INSTALLED = False
 
 logger = setup_logger(__name__)
 
@@ -259,7 +265,7 @@ class Classifier(Model):
             scoring=scorer,
             cv=cv_num,
             return_train_score=True,
-            n_jobs=-1,
+            n_jobs=get_n_jobs(),
         )
 
         pd_scores = pd.DataFrame(cv_scores).transpose()
@@ -436,9 +442,12 @@ class Classifier(Model):
 
         @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
         """
+        if not SMAC_INSTALLED:
+            raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
+
         logger.debug("starting smac_search")
-        # NormalInteger in grid are not supported (using workaround for now)
-        if self.model_type in ("RFC", "ETC", "GBM", "XGBC"):
+        # NormalInteger and EqualsCondition in grid are not supported (using workaround for now) (04/07/2023)
+        if self.model_type in ("RFC", "ETC", "GBM", "XGBC", "LR"):
             grid = self.smac_grid
         else:
             grid = self.grid
