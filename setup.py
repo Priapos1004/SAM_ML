@@ -28,9 +28,9 @@ setup(
         "sentence-transformers",
         "xgboost",
         "ConfigSpace", # for hyperparameter tuning spaces
-        "smac", # for hyperparameter tuning
     ],
-    extras_require={"test": ["pytest", "pylint", "isort", "refurb", "black"],},
+    extras_require={"test": ["pytest", "pylint", "isort", "refurb", "black"],
+                    "with_swig": ["smac"]},
     author="Samuel Brinkmann",
     license="MIT",
     tests_require=["pytest"],

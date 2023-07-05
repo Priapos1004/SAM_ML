@@ -45,3 +45,25 @@ jobs:
         run: |
           pip install pytest
           pytest
+
+  different-OS-with-swig:
+    runs-on: ${{ matrix.os }}
+    needs: [code-checks]
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+
+      - name: Test environment
+        run: pip install -e ."[with_swig]"
+
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
