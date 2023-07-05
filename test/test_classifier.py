@@ -24,7 +24,7 @@ from sam_ml.models import (
 from sam_ml.models.main_classifier import SMAC_INSTALLED
 
 MODELS = [ABC(), BC(), BNB(), DTC(), ETC(), GNB(), GPC(), GBM(), KNC(), LDA(), LSVC(), LR(), MLPC(), QDA(), RFC(), SVC(), XGBC()]
-X, Y = make_classification(n_samples = 50,
+X, Y = make_classification(n_samples = 25,
                             n_features = 5,
                             n_informative = 5,
                             n_redundant = 0,

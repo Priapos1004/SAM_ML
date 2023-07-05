@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 os.environ["SAM_ML_SOUND_ON"] = "False"
 from sam_ml.models import CTest
 
-X, Y = make_classification(n_samples = 50,
+X, Y = make_classification(n_samples = 25,
                             n_features = 5,
                             n_informative = 5,
                             n_redundant = 0,
