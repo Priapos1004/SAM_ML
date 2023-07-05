@@ -371,7 +371,7 @@ class Classifier(Model):
         """
         feature_importance() generates a matplotlib plot of the feature importance from self.model
         """
-        if not self.trained:
+        if not self.feature_names:
             logger.error("You have to first train the classifier before getting the feature importance")
             return
 

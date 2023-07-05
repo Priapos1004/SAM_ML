@@ -64,6 +64,7 @@ def test_classifier_randomCVsearch_small_data():
         best_param, _ = classifier.randomCVsearch(X, Y, n_trails=5, cv_num=2, small_data_eval=True)
         assert best_param != {}, "should always find a parameter combination"
 
+@pytest.mark.with_swig
 def test_classifier_smac_search():
     if SMAC_INSTALLED:
         for classifier in MODELS:
@@ -75,6 +76,7 @@ def test_classifier_smac_search():
                 best_param = classifier.smac_search(X, Y, n_trails=5, cv_num=2)
                 assert best_param != {}, "should always find a parameter combination"
 
+@pytest.mark.with_swig
 def test_classifier_smac_search_small_data():
     if SMAC_INSTALLED:
         for classifier in MODELS:

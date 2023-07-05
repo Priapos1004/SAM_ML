@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from tqdm.auto import tqdm
 
-from sam_ml.config import setup_logger
+from sam_ml.config import get_sound_on, setup_logger
 from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
 
 from .AdaBoostClassifier import ABC
@@ -195,10 +195,37 @@ class CTest:
 
     def __finish_sound(self):
         """ little function to play a microwave sound """
-        filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
-        pygame.mixer.init()
-        pygame.mixer.music.load(filepath)
-        pygame.mixer.music.play()
+        if get_sound_on():
+            filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
+            pygame.mixer.init()
+            pygame.mixer.music.load(filepath)
+            pygame.mixer.music.play()
+
+    def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
+        """
+        @param:
+            sorted_by:
+                'index': sort index ascending=True
+                'precision'/'recall'/'accuracy'/'train_score'/'train_time': sort by these columns ascending=False
+
+                e.g. ['precision', 'recall'] - sort first by 'precision' and then by 'recall'
+        """
+        if self.scores != {}:
+            if sort_by == "index":
+                scores = pd.DataFrame.from_dict(self.scores, orient="index").sort_index(ascending=True)
+            else:
+                scores = (
+                    pd.DataFrame.from_dict(self.scores, orient="index")
+                    .sort_values(by=sort_by, ascending=False)
+                )
+
+            if console_out:
+                print(scores)
+        else:
+            logger.warning("no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
+            scores = None
+
+        return scores
 
     def eval_models(
         self,
@@ -286,32 +313,6 @@ class CTest:
         except KeyboardInterrupt:
             logger.info("KeyboardInterrupt - output interim result")
             return self.scores
-
-    def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
-        """
-        @param:
-            sorted_by:
-                'index': sort index ascending=True
-                'precision'/'recall'/'accuracy'/'train_score'/'train_time': sort by these columns ascending=False
-
-                e.g. ['precision', 'recall'] - sort first by 'precision' and then by 'recall'
-        """
-        if self.scores != {}:
-            if sort_by == "index":
-                scores = pd.DataFrame.from_dict(self.scores, orient="index").sort_index(ascending=True)
-            else:
-                scores = (
-                    pd.DataFrame.from_dict(self.scores, orient="index")
-                    .sort_values(by=sort_by, ascending=False)
-                )
-
-            if console_out:
-                print(scores)
-        else:
-            logger.warning("no scores are created -> use 'eval_models()'/'eval_models_cv()' to create scores")
-            scores = None
-
-        return scores
 
     def find_best_model_randomCV(
         self,

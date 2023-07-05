@@ -1,6 +1,15 @@
 import os
 
 
+def get_sound_on() -> bool:
+    sound_on = os.getenv("SAM_ML_SOUND_ON")
+    if str(sound_on).lower() == "true" or sound_on is None:
+        return True
+    elif str(sound_on).lower() == "false":
+        return False
+    else:
+        raise ValueError(f"SAM_ML_SOUND_ON cannot be '{sound_on}' -> has to be 'True' or 'False'")
+
 def get_n_jobs() -> int|None:
     n_jobs = os.getenv("SAM_ML_N_JOBS")
     if str(n_jobs) == "-1" or n_jobs is None:

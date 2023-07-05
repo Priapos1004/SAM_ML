@@ -1,7 +1,10 @@
+import os
+
 import pandas as pd
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 
+os.environ["SAM_ML_SOUND_ON"] = "False"
 from sam_ml.models import CTest
 
 X, Y = make_classification(n_samples = 50,
