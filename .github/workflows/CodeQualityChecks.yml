@@ -61,7 +61,7 @@ jobs:
         uses: actions/setup-python@v3
 
       - name: Test environment
-        run: pip install -e ."[with_swig]"
+        run: pip install -e ".[with_swig]"
 
       - name: Test with pytest
         run: |
