@@ -23,11 +23,10 @@ class Model:
         self.model = model_object
         self.model_name = model_name
         self.model_type = model_type
-        self.trained: bool = False
         self.train_score: float = None
         self.train_time: str = None
         self.test_score: Union[float, dict[str, float]] = None
-        self.feature_names: list = None
+        self.feature_names: list = []
 
     def __repr__(self) -> str:
         return f"Model(model_object={self.model.__str__()}, model_name='{self.model_name}', model_type='{self.model_type}')"
@@ -50,8 +49,6 @@ class Model:
             print("Train score: ", self.train_score, " - Train time: ", self.train_time)
             
         logger.debug(f"training {self.model_name} - finished")
-
-        self.trained = True
 
         return self.train_score, self.train_time
 
