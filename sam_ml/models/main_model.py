@@ -52,8 +52,8 @@ class Model:
 
         return self.train_score, self.train_time
 
-    def fit(self, x_train: pd.DataFrame, y_train: pd.Series):
-        self.model.fit(x_train, y_train)
+    def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
+        self.model.fit(x_train, y_train, **kwargs)
         return self
 
     def predict(self, x_test: pd.DataFrame) -> list:

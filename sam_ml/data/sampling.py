@@ -76,7 +76,7 @@ class Sampler:
         if algorithm == "SMOTE":
             self.sampler = SMOTE(random_state=random_state, **kwargs)
         elif algorithm == "rus":
-            self.sampler = RandomUnderSampler(random_state=random_state, replacement=True, **kwargs)
+            self.sampler = RandomUnderSampler(random_state=random_state, **kwargs)
         elif algorithm == "ros":
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
         elif algorithm == "tl":
