@@ -453,7 +453,8 @@ class CTest:
             for key in tqdm(model_dict.keys(), desc=f"split {split_idx+1}", leave=leave_loadbar):
                 # train data classes in first split on all train data
                 if split_idx == 0:
-                    model_dict[key]._Pipeline__data_prepare(x_train, y_train)
+                    pre_x, _ = model_dict[key]._Pipeline__data_prepare(x_train, y_train)
+                    logger.debug(f"total length of train data after pipeline pre-processing: {len(pre_x)} ({key})")
 
                 # XGBoostClassifier has different warm_start implementation
                 if model_dict[key].model_type != "XGBC" or split_idx==0:

@@ -37,35 +37,27 @@ class Scaler:
         self._grid: dict[str, list] = {} # for pipeline structure
 
         if scaler == "standard":
-            logger.debug("using StandardScaler as scaler")
             self.scaler = StandardScaler(**kwargs)
 
         elif scaler == "minmax":
-            logger.debug("using MinMaxScaler as scaler")
             self.scaler = MinMaxScaler(**kwargs)
 
         elif scaler == "maxabs":
-            logger.debug("using MaxAbsScaler as scaler")
             self.scaler = MaxAbsScaler(**kwargs)
 
         elif scaler == "robust":
-            logger.debug("using RobustScaler as scaler")
             self.scaler = RobustScaler(**kwargs)
             
         elif scaler == "normalizer":
-            logger.debug("using Normalizer as scaler")
             self.scaler = Normalizer(**kwargs)
 
         elif scaler == "power":
-            logger.debug("using PowerTransformer as scaler")
             self.scaler = PowerTransformer(**kwargs)
 
         elif scaler == "quantile":
-            logger.debug("using QuantileTransformer as scaler")
             self.scaler = QuantileTransformer(**kwargs)
 
         elif scaler == "quantile_normal":
-            logger.debug("using QuantileTransformer with output_distribution='normal' as scaler")
             self.scaler = QuantileTransformer(output_distribution="normal", **kwargs)
 
         else:

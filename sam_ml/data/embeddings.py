@@ -29,15 +29,12 @@ class Embeddings_builder:
         self._grid: dict[str, list] = {} # for pipeline structure
 
         if vec == "bert":
-            logger.debug("using quora-distilbert-multilingual model as vectorizer")
             self.vectorizer = SentenceTransformer("quora-distilbert-multilingual")
 
         elif vec == "count":
-            logger.debug("using CountVectorizer as vectorizer")
             self.vectorizer = CountVectorizer(**kwargs)
 
         elif vec == "tfidf":
-            logger.debug("using TfidfVectorizer as vectorizer")
             self.vectorizer = TfidfVectorizer(**kwargs)
 
         else:
