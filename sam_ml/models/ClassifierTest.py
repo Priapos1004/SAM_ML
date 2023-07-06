@@ -446,8 +446,9 @@ class CTest:
             x_train_test = x_train[(split_idx+1)*split_size:]
             y_train_train = y_train[split_idx*split_size:(split_idx+1)*split_size]
             y_train_test = y_train[(split_idx+1)*split_size:]
-            logger.info(f"length x_train/y_train {len(x_train_train)}/{len(y_train_train)}, length x_test/y_test {len(x_train_test)}/{len(y_train_test)}")
+            logger.info(f"split {split_idx+1}: length x_train/y_train {len(x_train_train)}/{len(y_train_train)}, length x_test/y_test {len(x_train_test)}/{len(y_train_test)}")
             split_scores: dict = {}
+            best_score: float = -1
             # train models in model_dict
             for key in tqdm(model_dict.keys(), desc=f"split {split_idx+1}", leave=leave_loadbar):
                 # train data classes in first split on all train data
@@ -467,7 +468,12 @@ class CTest:
                 score["train_score"] = tscore
                 score["train_time"] = ttime
                 split_scores[key] = score
-            sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["s_score"], item[1]["train_time"]), reverse=True))
+                sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["s_score"], item[1]["train_time"]), reverse=True))
+                if score[scoring] > best_score:
+                    best_model_name = list(sorted_split_scores.keys())[0]
+                    logger.info(f"new best {scoring}: {best_score} -> {score[scoring]} ({best_model_name})")
+                    best_score = score[scoring]
+
             sorted_split_scores_pd = pd.DataFrame(sorted_split_scores).transpose()
 
             # save model scores
