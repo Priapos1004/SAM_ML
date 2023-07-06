@@ -433,9 +433,9 @@ class CTest:
         logger.info(f"total number of models: {total_model_num}")
         split_num = int(np.log2(total_model_num))+1
         split_size =int(1/split_num*len(x_train))
+        logger.info(f"split number: {split_num-1}, split_size (x_train): {split_size}")
         if split_size < 300:
             raise RuntimeError(f"not enough data for the amout of models. Data per split should be over 300, but {split_size} < 300")
-        logger.info(f"split number: {split_num}, split_size (x_train): {split_size}")
 
         # shuffle x_train/y_train
         x_train = x_train.sample(frac=1, random_state=42)
@@ -478,7 +478,7 @@ class CTest:
 
             # save model scores
             if save_results_path is not None:
-                sorted_split_scores_pd.to_csv(save_results_path.split(".")[0]+f"_split{split_idx}."+save_results_path.split(".")[1])
+                sorted_split_scores_pd.to_csv(save_results_path.split(".")[0]+f"_split{split_idx+1}."+save_results_path.split(".")[1])
 
             logger.info(f"Split scores (top 5): \n{sorted_split_scores_pd.head(5)}")
 

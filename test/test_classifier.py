@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 from sklearn.datasets import make_classification
+from sklearn.exceptions import NotFittedError
 
 from sam_ml.models import (
     ABC,
@@ -39,6 +40,16 @@ def test_classifier_fit_evaluate():
         classifier.fit(X, Y)
         classifier.evaluate(X, Y, console_out=False)
         classifier.evaluate_score(X, Y)
+
+def test_get_train_score_error():
+    with pytest.raises(NotFittedError):
+        for classifier in MODELS:
+            classifier.get_train_score(X,Y)
+
+def test_get_train_score():
+    for classifier in MODELS:
+        classifier.train(X, Y)
+        classifier.get_train_score(X,Y)
 
 def test_classifier_train_evaluate():
     for classifier in MODELS:

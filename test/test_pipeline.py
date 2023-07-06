@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 from sklearn.datasets import make_classification
+from sklearn.exceptions import NotFittedError
 
 from sam_ml.models import (
     ABC,
@@ -40,6 +41,36 @@ def test_pipelines_fit_evaluate():
         model.fit(X, Y)
         model.evaluate(X, Y, console_out=False)
         model.evaluate_score(X, Y)
+
+def test_get_train_score_error():
+    with pytest.raises(NotFittedError):
+        for classifier in MODELS:
+            model = Pipeline(model=classifier, model_name=classifier.model_name)
+            model.get_train_score(X,Y)
+
+def test_get_train_score():
+    for classifier in MODELS:
+        model = Pipeline(model=classifier, model_name=classifier.model_name)
+        model.train(X, Y)
+        model.get_train_score(X,Y)
+
+def test_pipelines_train_warm_start():
+    for classifier in MODELS:
+        model = Pipeline(model=classifier, model_name=classifier.model_name)
+        assert model._data_classes_trained == False, "should be False with no training"
+        model.train_warm_start(X, Y, console_out=False)
+        assert model._data_classes_trained == True, "should be True after first training"
+        model.train_warm_start(X, Y, console_out=False)
+        assert model._data_classes_trained == True, "should still be True after second training"
+
+def test_pipelines_train_warm_start():
+    for classifier in MODELS:
+        model = Pipeline(model=classifier, model_name=classifier.model_name)
+        assert model._data_classes_trained == False, "should be False with no training"
+        model.fit_warm_start(X, Y)
+        assert model._data_classes_trained == True, "should be True after first training"
+        model.fit_warm_start(X, Y)
+        assert model._data_classes_trained == True, "should still be True after second training"
 
 def test_pipelines_train_evaluate():
     for classifier in MODELS:
