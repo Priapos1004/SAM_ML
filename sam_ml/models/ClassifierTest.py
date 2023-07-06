@@ -461,7 +461,7 @@ class CTest:
                     start = time.time()
                     model_dict[key].fit_warm_start(x_train_train, y_train_train, xgb_model=model_dict[key].model)
                     end = time.time()
-                    tscore, ttime = model_dict[key].score(x_train_train, y_train_train), str(timedelta(seconds=int(end-start)))
+                    tscore, ttime = model_dict[key].get_train_score(x_train_train, y_train_train), str(timedelta(seconds=int(end-start)))
                 
                 score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength)
                 score["train_score"] = tscore

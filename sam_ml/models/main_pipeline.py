@@ -141,6 +141,10 @@ class Pipeline(Classifier):
     def fit_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
         x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self.data_classes_trained)
         return super().fit(x_train_pre, y_train_pre, **kwargs)
+    
+    def get_train_score(self, x_train: pd.DataFrame, y_train: pd.Series) -> float:
+        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self.data_classes_trained)
+        return super().get_train_score(x_train_pre, y_train_pre)
 
     def predict(self, x_test: pd.DataFrame) -> list:
         x_test_pre, _ = self.__data_prepare(x_test, None, train_on=False)
