@@ -52,8 +52,8 @@ class Model:
 
         return self.train_score, self.train_time
 
-    def fit(self, x_train: pd.DataFrame, y_train: pd.Series):
-        self.model.fit(x_train, y_train)
+    def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
+        self.model.fit(x_train, y_train, **kwargs)
         return self
 
     def predict(self, x_test: pd.DataFrame) -> list:
@@ -69,6 +69,10 @@ class Model:
     def set_params(self, **params):
         self.model.set_params(**params)
         return self
+    
+    def get_train_score(self, x_train: pd.DataFrame, y_train: pd.Series) -> float:
+        score = self.model.score(x_train, y_train)
+        return score
 
     def evaluate(self, x_test: pd.DataFrame, y_test: pd.Series, console_out: bool = True) -> float:
         self.test_score = self.model.score(x_test, y_test)
