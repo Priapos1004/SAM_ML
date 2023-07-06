@@ -1,8 +1,11 @@
 import os
 import sys
+import time
 import warnings
+from datetime import timedelta
 from typing import Union
 
+import numpy as np
 import pandas as pd
 
 # to deactivate pygame promt 
@@ -276,7 +279,7 @@ class CTest:
             saves metrics in dict self.scores and also outputs them
         """
         try:
-            for key in tqdm(self.models.keys(), desc="Crossvalidation"):
+            for key in tqdm(self.models.keys(), desc="Evaluation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
                 score = self.models[key].evaluate(
                     x_test, y_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
@@ -396,3 +399,97 @@ class CTest:
         logger.info(f"best model type {best_model_type} - {scoring}: {best_model_value} - parameters: {best_model_hyperparameters}")
         self.__finish_sound()
         return self.scores
+    
+    def find_best_model_mass_search(self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        n_trails: int = 10,
+        scoring: str = "accuracy",
+        avg: str = "macro",
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        leave_loadbar: bool = True,
+        save_results_path: str | None = "find_best_model_mass_search_results.csv",
+    ) -> dict:
+        model_dict = {}
+        for key in self.models.keys():
+            model = self.models[key]
+            configs = model.get_random_configs(n_trails)
+            try:
+                for config in configs:
+                    model_new = model.get_deepcopy()
+                    model_new = model_new.set_params(**config)
+                    if model_new.model_type != "XGBC":
+                        model_new = model_new.set_params(**{"warm_start": True})
+                    model_name = f"{key} {dict(config)}"
+                    model_dict[model_name] = model_new
+            except:
+                logger.warning(f"modeltype in '{key}' is not supported for this search -> will be skipped")
+
+        total_model_num = len(model_dict)
+        logger.info(f"total number of models: {total_model_num}")
+        split_num = int(np.log2(total_model_num))+1
+        split_size =int(1/split_num*len(x_train))
+        if split_size < 300:
+            raise RuntimeError(f"not enough data for the amout of models. Data per split should be over 300, but {split_size} < 300")
+        logger.info(f"split number: {split_num}, split_size (x_train): {split_size}")
+
+        # shuffle x_train/y_train
+        x_train = x_train.sample(frac=1, random_state=42)
+        y_train = y_train.sample(frac=1, random_state=42)
+
+        for split_idx in tqdm(range(split_num-1), desc="splits"):
+            x_train_train = x_train[split_idx*split_size:(split_idx+1)*split_size]
+            x_train_test = x_train[(split_idx+1)*split_size:]
+            y_train_train = y_train[split_idx*split_size:(split_idx+1)*split_size]
+            y_train_test = y_train[(split_idx+1)*split_size:]
+            logger.info(f"length x_train/y_train {len(x_train_train)}/{len(y_train_train)}, length x_test/y_test {len(x_train_test)}/{len(y_train_test)}")
+            split_scores: dict = {}
+            # train models in model_dict
+            for key in tqdm(model_dict.keys(), desc=f"split {split_idx+1}", leave=leave_loadbar):
+                # train data classes in first split on all train data
+                if split_idx == 0:
+                    model_dict[key]._Pipeline__data_prepare(x_train, y_train)
+
+                # XGBoostClassifier has different warm_start implementation
+                if model_dict[key].model_type != "XGBC" or split_idx==0:
+                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, console_out=False)
+                else:
+                    start = time.time()
+                    model_dict[key].fit_warm_start(x_train_train, y_train_train, xgb_model=model_dict[key].model)
+                    end = time.time()
+                    tscore, ttime = model_dict[key].score(x_train_train, y_train_train), str(timedelta(seconds=int(end-start)))
+                
+                score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength)
+                score["train_score"] = tscore
+                score["train_time"] = ttime
+                split_scores[key] = score
+            sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["s_score"], item[1]["train_time"]), reverse=True))
+            sorted_split_scores_pd = pd.DataFrame(sorted_split_scores).transpose()
+
+            # save model scores
+            if save_results_path is not None:
+                sorted_split_scores_pd.to_csv(save_results_path.split(".")[0]+f"_split{split_idx}."+save_results_path.split(".")[1])
+
+            logger.info(f"Split scores (top 5): \n{sorted_split_scores_pd.head(5)}")
+
+            # only keep better half of the models
+            for key in list(sorted_split_scores.keys())[int(len(sorted_split_scores)/2):]:
+                del model_dict[key]
+
+            logger.info(f"removed {len(sorted_split_scores)-len(model_dict)} models")
+            
+            best_model_name = list(sorted_split_scores.keys())[0]
+            best_model = model_dict[list(sorted_split_scores.keys())[0]]
+
+        logger.info(f"Evaluating best model: \n\n{best_model_name}\n")
+        x_train_train = x_train[int(split_idx*1/split_num*len(x_train)):]
+        y_train_train = y_train[int(split_idx*1/split_num*len(y_train)):]
+        tscore, ttime = best_model.train_warm_start(x_train_train, y_train_train, console_out=False)
+        score = best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, console_out=True, secondary_scoring=secondary_scoring, strength=strength)
+        score["train_score"] = tscore
+        score["train_time"] = ttime
+        return best_model_name, score

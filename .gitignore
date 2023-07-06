@@ -137,5 +137,6 @@ dmypy.json
 mlruns/
 *.pkl
 /examples/ex_*.ipynb
+/examples/*.csv
 */smac3_output/*
 smac3_output/*
