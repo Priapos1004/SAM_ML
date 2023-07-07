@@ -25,6 +25,7 @@ from sam_ml.models import (
 )
 from sam_ml.models.main_classifier import SMAC_INSTALLED
 
+
 def get_models() -> list:
     return [ABC(), BC(), BNB(), DTC(), ETC(), GNB(), GPC(), GBM(), KNC(), LDA(), LSVC(), LR(), MLPC(), QDA(), RFC(), SVC(), XGBC()]
 
