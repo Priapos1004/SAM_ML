@@ -82,7 +82,7 @@ class Pipeline(Classifier):
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
 
         # keep track if model was trained for warm_start
-        self.data_classes_trained: bool = False
+        self._data_classes_trained: bool = False
 
     def __repr__(self) -> str:
         params: str = ""
@@ -123,7 +123,7 @@ class Pipeline(Classifier):
             X = self.selector.select(X, y, train_on=train_on)
         if self.sampler is not None and train_on:
             X, y = self.sampler.sample(X, y)
-        self.data_classes_trained = True
+        self._data_classes_trained = True
         return X, y
 
     def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
@@ -131,7 +131,7 @@ class Pipeline(Classifier):
         return super().train(x_train_pre, y_train_pre, console_out)
     
     def train_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
-        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self.data_classes_trained)
+        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
         return super().train(x_train_pre, y_train_pre, console_out)
 
     def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
@@ -139,11 +139,11 @@ class Pipeline(Classifier):
         return super().fit(x_train_pre, y_train_pre, **kwargs)
     
     def fit_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
-        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self.data_classes_trained)
+        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
         return super().fit(x_train_pre, y_train_pre, **kwargs)
     
     def get_train_score(self, x_train: pd.DataFrame, y_train: pd.Series) -> float:
-        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self.data_classes_trained)
+        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
         return super().get_train_score(x_train_pre, y_train_pre)
 
     def predict(self, x_test: pd.DataFrame) -> list:
