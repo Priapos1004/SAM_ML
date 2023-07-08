@@ -491,13 +491,13 @@ class Classifier(Model):
         x_train: pd.DataFrame,
         y_train: pd.Series,
         n_trails: int = 10,
+        cv_num: int = 5,
         scoring: str = "accuracy",
         avg: str = "macro",
         pos_label: Union[int, str] = -1,
         secondary_scoring: str = None,
         strength: int = 3,
         small_data_eval: bool = False,
-        cv_num: int = 5,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:
         """

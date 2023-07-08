@@ -379,7 +379,7 @@ class CTest:
             leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
         """
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
-            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, leave_loadbar)
+            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, leave_loadbar=leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
             if best_hyperparameters != {}:
                 model_best = self.models[key].get_deepcopy()
