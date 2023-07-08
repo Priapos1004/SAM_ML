@@ -14,7 +14,7 @@ logger = setup_logger(__name__)
 class Embeddings_builder:
     """ Vectorizer Wrapper class """
 
-    def __init__(self, vec: str = "count", **kwargs):
+    def __init__(self, vec: str = "tfidf", **kwargs):
         """
         @param:
             vec:

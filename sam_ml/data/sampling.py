@@ -2,7 +2,13 @@ from typing import Union
 
 import pandas as pd
 from imblearn.over_sampling import SMOTE, RandomOverSampler
-from imblearn.under_sampling import NearMiss, RandomUnderSampler, TomekLinks
+from imblearn.under_sampling import (
+    ClusterCentroids,
+    NearMiss,
+    OneSidedSelection,
+    RandomUnderSampler,
+    TomekLinks,
+)
 from sklearn.utils import resample
 
 from sam_ml.config import setup_logger
@@ -64,8 +70,10 @@ class Sampler:
                 ros: RandomOverSampler (upsampling) (default)
                 tl: TomekLinks (downsampling)
                 nm: NearMiss (downsampling)
+                cc: ClusterCentroids (downsampling)
+                oss: OneSidedSelection (downsampling)
             
-            random_state: seed for Random...Sampler
+            random_state: seed for random sampling
 
             **kwargs:
                 additional parameters for sampler
@@ -80,9 +88,13 @@ class Sampler:
         elif algorithm == "ros":
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
         elif algorithm == "tl":
-            self.sampler = TomekLinks(sampling_strategy="majority", **kwargs)
+            self.sampler = TomekLinks(**kwargs)
         elif algorithm == "nm":
             self.sampler = NearMiss(**kwargs)
+        elif algorithm == "cc":
+            self.sampler = ClusterCentroids(random_state=random_state, **kwargs)
+        elif algorithm == "oss":
+            self.sampler = OneSidedSelection(random_state=random_state, **kwargs)
         else:
             logger.error(f"type='{algorithm}' does not exist --> using RandomOverSampler")
             self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
@@ -104,7 +116,7 @@ class Sampler:
         @return:
             possible values for the parameters
         """
-        param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm"]}
+        param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm", "cc", "oss"]}
         return param
 
     def get_params(self, deep: bool = True):
