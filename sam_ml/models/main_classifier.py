@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
 from matplotlib import pyplot as plt
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -372,8 +373,7 @@ class Classifier(Model):
         feature_importance() generates a matplotlib plot of the feature importance from self.model
         """
         if not self.feature_names:
-            logger.error("You have to first train the classifier before getting the feature importance")
-            return
+            raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
 
         if self.model_type == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier

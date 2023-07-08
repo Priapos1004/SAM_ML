@@ -1,7 +1,7 @@
 from typing import Union
 
 import pandas as pd
-from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.over_sampling import SMOTE, BorderlineSMOTE, RandomOverSampler
 from imblearn.under_sampling import (
     ClusterCentroids,
     NearMiss,
@@ -61,19 +61,22 @@ def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int,
 class Sampler:
     """ sample algorithm Wrapper class """
 
-    def __init__(self, algorithm: str = "ros", random_state: int = 42, **kwargs):
+    def __init__(self, algorithm: str = "ros", random_state: int = 42, sampling_strategy="auto", **kwargs):
         """
         @param:
             algorithm: which sampling algorithm to use:
                 SMOTE: Synthetic Minority Oversampling Technique (upsampling)
-                rus: RandomUnderSampler (downsampling)
+                BSMOTE: BorderlineSMOTE (upsampling)
                 ros: RandomOverSampler (upsampling) (default)
-                tl: TomekLinks (downsampling)
+                rus: RandomUnderSampler (downsampling)
+                tl: TomekLinks (cleaning downsampling)
                 nm: NearMiss (downsampling)
                 cc: ClusterCentroids (downsampling)
-                oss: OneSidedSelection (downsampling)
+                oss: OneSidedSelection (cleaning downsampling)
             
             random_state: seed for random sampling
+
+            sampling_strategy: percentage of minority class size of majority class size
 
             **kwargs:
                 additional parameters for sampler
@@ -82,23 +85,23 @@ class Sampler:
         self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "SMOTE":
-            self.sampler = SMOTE(random_state=random_state, **kwargs)
+            self.sampler = SMOTE(random_state=random_state, sampling_strategy=sampling_strategy, **kwargs)
+        elif algorithm == "BSMOTE":
+            self.sampler = BorderlineSMOTE(random_state=random_state, sampling_strategy=sampling_strategy, **kwargs)
         elif algorithm == "rus":
-            self.sampler = RandomUnderSampler(random_state=random_state, **kwargs)
+            self.sampler = RandomUnderSampler(random_state=random_state, sampling_strategy=sampling_strategy, **kwargs)
         elif algorithm == "ros":
-            self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
+            self.sampler = RandomOverSampler(random_state=random_state, sampling_strategy=sampling_strategy, **kwargs)
         elif algorithm == "tl":
             self.sampler = TomekLinks(**kwargs)
         elif algorithm == "nm":
-            self.sampler = NearMiss(**kwargs)
+            self.sampler = NearMiss(sampling_strategy=sampling_strategy, **kwargs)
         elif algorithm == "cc":
-            self.sampler = ClusterCentroids(random_state=random_state, **kwargs)
+            self.sampler = ClusterCentroids(sampling_strategy=sampling_strategy, random_state=random_state, **kwargs)
         elif algorithm == "oss":
             self.sampler = OneSidedSelection(random_state=random_state, **kwargs)
         else:
-            logger.error(f"type='{algorithm}' does not exist --> using RandomOverSampler")
-            self.sampler = RandomOverSampler(random_state=random_state, **kwargs)
-            self.algorithm = "ros"
+            raise ValueError(f"type='{algorithm}' is not supported")
 
     def __repr__(self) -> str:
         sampler_params: str = ""
@@ -116,7 +119,7 @@ class Sampler:
         @return:
             possible values for the parameters
         """
-        param = {"algorithm": ["SMOTE", "rus", "ros", "tl", "nm", "cc", "oss"]}
+        param = {"algorithm": ["SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"]}
         return param
 
     def get_params(self, deep: bool = True):
