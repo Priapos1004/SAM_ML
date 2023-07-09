@@ -61,9 +61,7 @@ class Scaler:
             self.scaler = QuantileTransformer(output_distribution="normal", **kwargs)
 
         else:
-            logger.error(f"scaler='{scaler}' is no valid input -> using StandardScaler")
-            self.scaler = StandardScaler()
-            self.scaler_type = "standard"
+            raise ValueError(f"scaler='{scaler}' is not supported")
 
     def __repr__(self) -> str:
         scaler_params: str = ""

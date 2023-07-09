@@ -14,7 +14,7 @@ logger = setup_logger(__name__)
 class Embeddings_builder:
     """ Vectorizer Wrapper class """
 
-    def __init__(self, vec: str = "count", **kwargs):
+    def __init__(self, vec: str = "tfidf", **kwargs):
         """
         @param:
             vec:
@@ -38,9 +38,7 @@ class Embeddings_builder:
             self.vectorizer = TfidfVectorizer(**kwargs)
 
         else:
-            logger.error(f"the entered vectorizer '{vec}' cannot be used --> using CountVectorizer as vectorizer")
-            self.vectorizer = CountVectorizer()
-            self.vec_type = "count"
+            raise ValueError(f"the entered vectorizer '{vec}' is not supported")
 
     def __repr__(self) -> str:
         vec_params: str = ""

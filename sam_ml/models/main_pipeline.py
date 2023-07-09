@@ -3,9 +3,10 @@ from contextlib import suppress
 from typing import Union
 
 import pandas as pd
+from ConfigSpace import ConfigurationSpace
 
 from sam_ml.config import setup_logger
-from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
+from sam_ml.data import Embeddings_builder, Sampler, SamplerPipeline, Scaler, Selector
 
 from .main_classifier import Classifier
 from .RandomForestClassifier import RFC
@@ -16,7 +17,7 @@ logger = setup_logger(__name__)
 class Pipeline(Classifier):
     """ classifier pipeline class """
 
-    def __init__(self, vectorizer: Union[str, Embeddings_builder] = None, scaler: Union[str, Scaler] = None, selector: Union[str, Selector] = None, sampler: Union[str, Sampler] = None, model: Union[tuple, Classifier] = RFC(), model_name: str = "pipe"):
+    def __init__(self, vectorizer: str | Embeddings_builder = None, scaler: str | Scaler = None, selector: str | Selector = None, sampler: str | Sampler | SamplerPipeline = None, model: tuple[any, str, ConfigurationSpace] | Classifier = RFC(), model_name: str = "pipe"):
         """
         @params:
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
@@ -42,42 +43,30 @@ class Pipeline(Classifier):
         elif type(vectorizer) == Embeddings_builder or vectorizer is None:
             self.vectorizer = vectorizer
         else:
-            logger.error(f"wrong input '{vectorizer}' for vectorizer -> vectorizer = None")
-            self.vectorizer = None
+            raise ValueError(f"wrong input '{vectorizer}' for vectorizer")
 
         if scaler in Scaler.params()["scaler"]:
             self.scaler = Scaler(scaler=scaler)
         elif type(scaler) == Scaler or scaler is None:
             self.scaler = scaler
         else:
-            logger.error(f"wrong input '{scaler}' for scaler -> scaler = None")
-            self.scaler = None
+            raise ValueError(f"wrong input '{scaler}' for scaler")
 
         if selector in Selector.params()["algorithm"]:
             self.selector = Selector(algorithm=selector)
         elif type(selector) == Selector or selector is None:
             self.selector = selector
         else:
-            logger.error(f"wrong input '{selector}' for selector -> selector = None")
-            self.selector = None
+            raise ValueError(f"wrong input '{selector}' for selector")
 
         if sampler in Sampler.params()["algorithm"]:
             self.sampler = Sampler(algorithm=sampler)
-        elif type(sampler) == Sampler or sampler is None:
+        elif type(sampler) ==str and SamplerPipeline.check_is_valid_algorithm(sampler):
+            self.sampler = SamplerPipeline(algorithm=sampler)
+        elif type(sampler) in (Sampler, SamplerPipeline) or sampler is None:
             self.sampler = sampler
         else:
-            logger.error(f"wrong input '{sampler}' for sampler -> sampler = None")
-            self.sampler = None
-
-        # check for incompatible sampler-model combination
-        if self.sampler is not None:
-            sampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
-            if self.sampler.algorithm == "SMOTE" and self.model_type in sampling_problems:
-                logger.warning(self.model_type+" does not work with sampling='SMOTE' --> going on with sampling='ros'")
-                self.sampler = Sampler(algorithm="ros")
-            elif self.sampler.algorithm in ("nm", "tl") and self.model_type in sampling_problems:
-                logger.warning(self.model_type+f" does not work with sampling='{self.sampler.algorithm}' --> going on with sampling='rus'")
-                self.sampler = Sampler(algorithm="rus")
+            raise ValueError(f"wrong input '{sampler}' for sampler")
 
         self.vectorizer_dict: dict[str, Embeddings_builder] = {}
 
@@ -126,13 +115,33 @@ class Pipeline(Classifier):
         self._data_classes_trained = True
         return X, y
 
-    def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series, 
+        scoring: str = "accuracy",
+        avg: str = None,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        console_out: bool = True
+    ) -> tuple[float, str]:
         x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
-        return super().train(x_train_pre, y_train_pre, console_out)
+        return super().train(x_train_pre, y_train_pre, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=console_out)
     
-    def train_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True) -> tuple[float, str]:
+    def train_warm_start(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series, 
+        scoring: str = "accuracy",
+        avg: str = None,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        console_out: bool = True
+    ) -> tuple[float, str]:
         x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
-        return super().train(x_train_pre, y_train_pre, console_out)
+        return super().train(x_train_pre, y_train_pre, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=console_out)
 
     def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
         x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
@@ -141,10 +150,6 @@ class Pipeline(Classifier):
     def fit_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
         x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
         return super().fit(x_train_pre, y_train_pre, **kwargs)
-    
-    def get_train_score(self, x_train: pd.DataFrame, y_train: pd.Series) -> float:
-        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
-        return super().get_train_score(x_train_pre, y_train_pre)
 
     def predict(self, x_test: pd.DataFrame) -> list:
         x_test_pre, _ = self.__data_prepare(x_test, None, train_on=False)

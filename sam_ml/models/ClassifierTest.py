@@ -18,7 +18,7 @@ from sklearn.linear_model import LogisticRegression
 from tqdm.auto import tqdm
 
 from sam_ml.config import get_sound_on, setup_logger
-from sam_ml.data import Embeddings_builder, Sampler, Scaler, Selector
+from sam_ml.data import Embeddings_builder, Sampler, SamplerPipeline, Scaler, Selector
 
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
@@ -50,7 +50,7 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: str | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | Selector | None  | list[str | Selector | None] = None, sampler: str | Sampler | None  | list[str | Sampler | None] = None):
+    def __init__(self, models: str | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | Selector | None  | list[str | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
         """
         @params:
             models:
@@ -150,13 +150,7 @@ class CTest:
             for scal in self._scaler:
                 for sel in self._selector:
                     for sam in self._sampler:
-                        sampling_problems = ["QDA", "LDA", "LR", "MLPC", "LSVC"]
-                        if model.model_type in sampling_problems and sam == "SMOTE":
-                            model_pipe_name = model.model_name+f" (vec={vec}, scaler={scal}, selector={sel}, sampler=ros)"
-                        elif model.model_type in sampling_problems and sam in ("nm", "tl"):
-                            model_pipe_name = model.model_name+f" (vec={vec}, scaler={scal}, selector={sel}, sampler=rus)"
-                        else:
-                            model_pipe_name = model.model_name+f" (vec={vec}, scaler={scal}, selector={sel}, sampler={sam})"
+                        model_pipe_name = model.model_name+f" (vec={vec}, scaler={scal}, selector={sel}, sampler={sam})"
                         self.models[model_pipe_name] = Pipeline(vec,  scal, sel, sam, model, model_pipe_name)
 
     def model_combs(self, kind: str):
@@ -379,7 +373,7 @@ class CTest:
             leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
         """
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
-            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails, scoring, avg, pos_label, secondary_scoring, strength, small_data_eval, cv_num, leave_loadbar)
+            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, leave_loadbar=leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
             if best_hyperparameters != {}:
                 model_best = self.models[key].get_deepcopy()
@@ -458,12 +452,12 @@ class CTest:
 
                 # XGBoostClassifier has different warm_start implementation
                 if model_dict[key].model_type != "XGBC" or split_idx==0:
-                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, console_out=False)
+                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
                 else:
                     start = time.time()
                     model_dict[key].fit_warm_start(x_train_train, y_train_train, xgb_model=model_dict[key].model)
                     end = time.time()
-                    tscore, ttime = model_dict[key].get_train_score(x_train_train, y_train_train), str(timedelta(seconds=int(end-start)))
+                    tscore, ttime = model_dict[key].evaluate_score(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength), str(timedelta(seconds=int(end-start)))
                 
                 score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength)
                 score["train_score"] = tscore

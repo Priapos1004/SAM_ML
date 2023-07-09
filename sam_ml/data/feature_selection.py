@@ -61,9 +61,7 @@ class Selector:
         elif algorithm == "rfecv":
             self.selector = RFECV(estimator, min_features_to_select=num_features, **kwargs)
         else:
-            logger.error(f"algorithm='{algorithm}' does not exist -> using SelectKBest algorithm instead")
-            self.selector = SelectKBest(k=num_features)
-            self.algorithm = "kbest"
+            raise ValueError(f"algorithm='{algorithm}' is not supported")
 
     def __repr__(self) -> str:
         selector_params: str = ""
