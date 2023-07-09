@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import warnings
 from datetime import timedelta
 from statistics import mean
@@ -114,6 +115,37 @@ class Classifier(Model):
                 })
         """
         self._grid = new_grid
+
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series, 
+        scoring: str = "accuracy",
+        avg: str = None,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        console_out: bool = True
+    ) -> tuple[float, str]:
+        """
+        @return:
+            tuple of train score and train time
+        """
+        logger.debug(f"training {self.model_name} - started")
+
+        start_time = time.time()
+        self.model.fit(x_train, y_train)
+        end_time = time.time()
+        self.feature_names = list(x_train.columns)
+        self.train_score = self.evaluate_score(x_train, y_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+        self.train_time = str(timedelta(seconds=int(end_time-start_time)))
+
+        if console_out:
+            print("Train score: ", self.train_score, " - Train time: ", self.train_time)
+            
+        logger.debug(f"training {self.model_name} - finished")
+
+        return self.train_score, self.train_time
 
     def evaluate(
         self,

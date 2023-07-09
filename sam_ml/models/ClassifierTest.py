@@ -452,12 +452,12 @@ class CTest:
 
                 # XGBoostClassifier has different warm_start implementation
                 if model_dict[key].model_type != "XGBC" or split_idx==0:
-                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, console_out=False)
+                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
                 else:
                     start = time.time()
                     model_dict[key].fit_warm_start(x_train_train, y_train_train, xgb_model=model_dict[key].model)
                     end = time.time()
-                    tscore, ttime = model_dict[key].get_train_score(x_train_train, y_train_train), str(timedelta(seconds=int(end-start)))
+                    tscore, ttime = model_dict[key].evaluate_score(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength), str(timedelta(seconds=int(end-start)))
                 
                 score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength)
                 score["train_score"] = tscore

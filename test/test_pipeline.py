@@ -45,17 +45,17 @@ def test_pipelines_fit_evaluate():
         model.evaluate(X, Y, console_out=False)
         model.evaluate_score(X, Y)
 
-def test_get_train_score_error():
+def test_evaluate_score_error():
     with pytest.raises(NotFittedError):
         for classifier in get_models():
             model = Pipeline(model=classifier, model_name=classifier.model_name)
-            model.get_train_score(X,Y)
+            model.evaluate_score(X, Y)
 
-def test_get_train_score():
+def test_evaluate_score():
     for classifier in get_models():
         model = Pipeline(model=classifier, model_name=classifier.model_name)
         model.train(X, Y)
-        model.get_train_score(X,Y)
+        model.evaluate_score(X, Y)
 
 def test_pipelines_train_warm_start():
     for classifier in get_models():
