@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sam_ml.data import Sampler, Scaler, Selector
 
 os.environ["SAM_ML_SOUND_ON"] = "False"
+os.environ["SAM_ML_LOG_LEVEL"] = "debug"
 from sam_ml.models import CTest
 
 X, Y = make_classification(n_samples = 50,

@@ -1,8 +1,11 @@
+import os
+
 import pandas as pd
 import pytest
 from sklearn.datasets import make_classification
 from sklearn.exceptions import NotFittedError
 
+os.environ["SAM_ML_LOG_LEVEL"] = "debug"
 from sam_ml.models import (
     ABC,
     BC,
