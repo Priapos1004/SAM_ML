@@ -137,12 +137,12 @@ class Classifier(Model):
         self.model.fit(x_train, y_train)
         end_time = time.time()
         self.feature_names = list(x_train.columns)
-        self.train_score = self.evaluate_score(x_train, y_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+        self.train_score = self.model.score(x_train, y_train) #evaluate_score(x_train, y_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
         if console_out:
             print("Train score: ", self.train_score, " - Train time: ", self.train_time)
-            
+        
         logger.debug(f"training {self.model_name} - finished")
 
         return self.train_score, self.train_time
