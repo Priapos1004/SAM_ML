@@ -131,21 +131,24 @@ class Classifier(Model):
         @return:
             tuple of train score and train time
         """
-        logger.debug(f"training {self.model_name} - started")
-
-        start_time = time.time()
-        self.model.fit(x_train, y_train)
-        end_time = time.time()
-        self.feature_names = list(x_train.columns)
-        self.train_score = self.model.score(x_train, y_train) #evaluate_score(x_train, y_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-        self.train_time = str(timedelta(seconds=int(end_time-start_time)))
-
-        if console_out:
-            print("Train score: ", self.train_score, " - Train time: ", self.train_time)
-        
-        logger.debug(f"training {self.model_name} - finished")
-
-        return self.train_score, self.train_time
+        return super().train(x_train, y_train, console_out, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+    
+    def train_warm_start(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series, 
+        scoring: str = "accuracy",
+        avg: str = None,
+        pos_label: Union[int, str] = -1,
+        secondary_scoring: str = None,
+        strength: int = 3,
+        console_out: bool = True
+    ) -> tuple[float, str]:
+        """
+        @return:
+            tuple of train score and train time
+        """
+        return super().train_warm_start(x_train, y_train, console_out, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
 
     def evaluate(
         self,
@@ -190,7 +193,7 @@ class Classifier(Model):
             print("classification report: ")
             print(classification_report(y_test, pred))
 
-        self.test_score = {
+        scores = {
             "accuracy": accuracy,
             "precision": precision,
             "recall": recall,
@@ -198,7 +201,7 @@ class Classifier(Model):
             "l_score": l_score,
         }
 
-        return self.test_score
+        return scores
     
     def evaluate_score(
         self,
