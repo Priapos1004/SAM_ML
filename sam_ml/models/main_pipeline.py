@@ -17,7 +17,7 @@ logger = setup_logger(__name__)
 class Pipeline(Classifier):
     """ classifier pipeline class """
 
-    def __init__(self, vectorizer: str | Embeddings_builder = None, scaler: str | Scaler = None, selector: str | Selector = None, sampler: str | Sampler | SamplerPipeline = None, model: tuple[any, str, ConfigurationSpace] | Classifier = RFC(), model_name: str = "pipe"):
+    def __init__(self, vectorizer: str | Embeddings_builder | None = None, scaler: str | Scaler | None = None, selector: str | tuple[str, int] | Selector | None = None, sampler: str | Sampler | SamplerPipeline | None = None, model: tuple[any, str, ConfigurationSpace] | Classifier = RFC(), model_name: str = "pipe"):
         """
         @params:
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
@@ -54,6 +54,14 @@ class Pipeline(Classifier):
 
         if selector in Selector.params()["algorithm"]:
             self.selector = Selector(algorithm=selector)
+        elif type(selector) == tuple and len(selector) == 2:
+            if selector[0] in Selector.params()["algorithm"] and type(selector[1])==int:
+                if selector[1] > 0:
+                    self.selector = Selector(algorithm=selector[0], num_features=selector[1])
+                else:
+                    raise ValueError(f"wrong input '{selector}' for selector -> integer in tuple has to be greater 0")
+            else:
+                raise ValueError(f"wrong input '{selector}' for selector -> tuple incorrect")
         elif type(selector) == Selector or selector is None:
             self.selector = selector
         else:
