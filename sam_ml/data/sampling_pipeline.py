@@ -7,7 +7,7 @@ from .sampling import Sampler
 logger = setup_logger(__name__)
 
 class SamplerPipeline:
-    def __init__(self, algorithm: str | list[Sampler] = "ros_rus_20_50"):
+    def __init__(self, algorithm: str | list[Sampler] = "SMOTE_rus_20_50"):
         """
         Class uses multplie up- and down-sampling algorithms instead of only one
 

@@ -59,6 +59,8 @@ class CTest:
 
                 - 'all': use all Wrapperclass models (18+ models)
 
+                - 'big_data': use all Wrapperclass models except the ones that take too much space or time on big data (>200.000 data points)
+
                 - 'basic': use basic Wrapperclass models (8 models) (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, KNeighborsClassifier)
 
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
@@ -207,6 +209,39 @@ class CTest:
                 SVC(),
                 GBM(),
                 KNC(),
+            ]
+        elif kind == "big_data":
+            models = [
+                LR(),
+                QDA(),
+                LDA(),
+                LSVC(),
+                DTC(),
+                RFC(),
+                GBM(),
+                
+                ABC(model_name="AdaBoostClassifier (DTC based)"),
+                ABC(
+                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
+                    model_name="AdaBoostClassifier (RFC based)",
+                ),
+                ABC(
+                    estimator=LogisticRegression(),
+                    model_name="AdaBoostClassifier (LR based)",
+                ),
+                ETC(),
+                GNB(),
+                BNB(),
+                BC(model_name="BaggingClassifier (DTC based)"),
+                BC(
+                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
+                    model_name="BaggingClassifier (RFC based)",
+                ),
+                BC(
+                    estimator=LogisticRegression(),
+                    model_name="BaggingClassifier (LR based)",
+                ),
+                XGBC(),
             ]
         else:
             print(f"Cannot find model combination '{kind}' --> using all models")

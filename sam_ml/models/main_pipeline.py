@@ -115,34 +115,6 @@ class Pipeline(Classifier):
         self._data_classes_trained = True
         return X, y
 
-    def train(
-        self,
-        x_train: pd.DataFrame,
-        y_train: pd.Series, 
-        scoring: str = "accuracy",
-        avg: str = None,
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
-        console_out: bool = True
-    ) -> tuple[float, str]:
-        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
-        return super().train(x_train_pre, y_train_pre, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=console_out)
-    
-    def train_warm_start(
-        self,
-        x_train: pd.DataFrame,
-        y_train: pd.Series, 
-        scoring: str = "accuracy",
-        avg: str = None,
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
-        console_out: bool = True
-    ) -> tuple[float, str]:
-        x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
-        return super().train(x_train_pre, y_train_pre, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=console_out)
-
     def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
         x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
         return super().fit(x_train_pre, y_train_pre, **kwargs)
