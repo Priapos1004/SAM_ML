@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="sam_ml-py",
-    version="0.10.3",
+    version="0.11.0rc1",
     description="a library for ML programing created by Samuel Brinkmann",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -28,6 +28,7 @@ setup(
         "sentence-transformers",
         "xgboost",
         "ConfigSpace", # for hyperparameter tuning spaces
+        "geopandas", # for regio data (e.g. germany map plot)
     ],
     extras_require={"test": ["pytest", "pylint", "isort", "refurb", "black"],
                     "with_swig": ["smac"]},
