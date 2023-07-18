@@ -75,7 +75,7 @@ X_5500 = pd.DataFrame(X_5500, columns=["col1", "col2", "col3", "col4", "col5"])
 Y_5500 = pd.Series(Y_5500)
 x_train_5500, x_test_5500, y_train_5500, y_test_5500 = train_test_split(X_5500,Y_5500, train_size=0.80, random_state=42)
 
-@pytest.mark.current
+
 def test_eval_models_samplers():
     samplers = Sampler.params()["algorithm"]
     ctest = CTest(models="all", sampler=samplers)
