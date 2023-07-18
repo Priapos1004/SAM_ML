@@ -3,6 +3,7 @@ import warnings
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 
 from sam_ml.config import get_n_jobs
@@ -20,12 +21,12 @@ class BC(Classifier):
         model_name: str = "BaggingClassifier",
         random_state: int = 42,
         n_jobs: int = get_n_jobs(),
-        estimator: ClassifierMixin = DecisionTreeClassifier(max_depth=1),
+        estimator: str | ClassifierMixin = "DTC",
         **kwargs,
     ):
         """
         @param (important one):
-            estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
+            estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1), also possible is string 'DTC', 'RFC', and 'LR'
             n_estimator: number of boosting stages to perform
             max_samples: the number of samples to draw from X to train each base estimator
             max_features: the number of features to draw from X to train each base estimator
@@ -33,6 +34,17 @@ class BC(Classifier):
             bootstrap_features: whether features are drawn with replacement
         """
         model_type = "BC"
+        if type(estimator) == str:
+            model_name += f" ({estimator} based)"
+            if estimator == "DTC":
+                estimator = DecisionTreeClassifier(max_depth=1)
+            elif estimator == "RFC":
+                estimator = RandomForestClassifier(max_depth=5, random_state=42)
+            elif estimator == "LR":
+                estimator = LogisticRegression()
+            else:
+                raise ValueError(f"invalid string input ('{estimator}') for estimator -> use 'DTC', 'RFC', or 'LR'")
+
         model = BaggingClassifier(
             random_state=random_state,
             n_jobs=n_jobs,

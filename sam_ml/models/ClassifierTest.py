@@ -13,8 +13,6 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 import pygame
 from pkg_resources import resource_filename
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
 from tqdm.auto import tqdm
 
 from sam_ml.config import get_sound_on, setup_logger
@@ -50,7 +48,7 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: str | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | Selector | None  | list[str | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
+    def __init__(self, models: str | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
         """
         @params:
             models:
@@ -79,7 +77,7 @@ class CTest:
         if type(scaler) in (str, Scaler) or scaler is None:
             scaler = [scaler]
 
-        if type(selector) in (str, Selector) or selector is None:
+        if type(selector) in (str, tuple, Selector) or selector is None:
             selector = [selector]
 
         if type(sampler) in (str, Sampler) or sampler is None:
@@ -173,30 +171,17 @@ class CTest:
                 RFC(),
                 SVC(),
                 GBM(),
-                
-                ABC(model_name="AdaBoostClassifier (DTC based)"),
-                ABC(
-                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
-                    model_name="AdaBoostClassifier (RFC based)",
-                ),
-                ABC(
-                    estimator=LogisticRegression(),
-                    model_name="AdaBoostClassifier (LR based)",
-                ),
+                ABC(estimator="DTC"),
+                ABC(estimator="RFC"),
+                ABC(estimator="LR"),
                 KNC(),
                 ETC(),
                 GNB(),
                 BNB(),
                 GPC(),
-                BC(model_name="BaggingClassifier (DTC based)"),
-                BC(
-                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
-                    model_name="BaggingClassifier (RFC based)",
-                ),
-                BC(
-                    estimator=LogisticRegression(),
-                    model_name="BaggingClassifier (LR based)",
-                ),
+                BC(estimator="DTC"),
+                BC(estimator="RFC"),
+                BC(estimator="LR"),
                 XGBC(),
             ]
         elif kind == "basic":
@@ -219,28 +204,15 @@ class CTest:
                 DTC(),
                 RFC(),
                 GBM(),
-                
-                ABC(model_name="AdaBoostClassifier (DTC based)"),
-                ABC(
-                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
-                    model_name="AdaBoostClassifier (RFC based)",
-                ),
-                ABC(
-                    estimator=LogisticRegression(),
-                    model_name="AdaBoostClassifier (LR based)",
-                ),
+                ABC(estimator="DTC"),
+                ABC(estimator="RFC"),
+                ABC(estimator="LR"),
                 ETC(),
                 GNB(),
                 BNB(),
-                BC(model_name="BaggingClassifier (DTC based)"),
-                BC(
-                    estimator=RandomForestClassifier(max_depth=5, random_state=42),
-                    model_name="BaggingClassifier (RFC based)",
-                ),
-                BC(
-                    estimator=LogisticRegression(),
-                    model_name="BaggingClassifier (LR based)",
-                ),
+                BC(estimator="DTC"),
+                BC(estimator="RFC"),
+                BC(estimator="LR"),
                 XGBC(),
             ]
         else:

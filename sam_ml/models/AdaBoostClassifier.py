@@ -1,6 +1,7 @@
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 
 from .main_classifier import Classifier
@@ -13,18 +14,29 @@ class ABC(Classifier):
         self,
         model_name: str = "AdaBoostClassifier",
         random_state: int = 42,
-        estimator: ClassifierMixin = DecisionTreeClassifier(max_depth=1),
+        estimator: str | ClassifierMixin = "DTC",
         **kwargs,
     ):
         """
         @param (important one):
-            estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
+            estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1), also possible is string 'DTC', 'RFC', and 'LR'
             n_estimator: number of boosting stages to perform
             learning_rate: shrinks the contribution of each tree by learning rate
             algorithm: boosting algorithm
             random_state: random_state for model
         """
         model_type = "ABC"
+        if type(estimator) == str:
+            model_name += f" ({estimator} based)"
+            if estimator == "DTC":
+                estimator = DecisionTreeClassifier(max_depth=1)
+            elif estimator == "RFC":
+                estimator = RandomForestClassifier(max_depth=5, random_state=42)
+            elif estimator == "LR":
+                estimator = LogisticRegression()
+            else:
+                raise ValueError(f"invalid string input ('{estimator}') for estimator -> use 'DTC', 'RFC', or 'LR'")
+
         model = AdaBoostClassifier(
             random_state=random_state,
             estimator=estimator,

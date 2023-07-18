@@ -40,7 +40,6 @@ class Model:
         start_time = time.time()
         self.fit(x_train, y_train)
         end_time = time.time()
-        self.feature_names = list(x_train.columns)
         self.train_score = self.evaluate_score(x_train, y_train, **kwargs)
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
@@ -61,7 +60,6 @@ class Model:
         start_time = time.time()
         self.fit_warm_start(x_train, y_train)
         end_time = time.time()
-        self.feature_names = list(x_train.columns)
         self.train_score = self.evaluate_score(x_train, y_train, **kwargs)
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
@@ -73,10 +71,12 @@ class Model:
         return self.train_score, self.train_time
 
     def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
+        self.feature_names = list(x_train.columns)
         self.model.fit(x_train, y_train, **kwargs)
         return self
     
     def fit_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
+        self.feature_names = list(x_train.columns)
         self.model.fit(x_train, y_train, **kwargs)
         return self
 
