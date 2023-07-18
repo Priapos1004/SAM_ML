@@ -16,7 +16,13 @@ from pkg_resources import resource_filename
 from tqdm.auto import tqdm
 
 from sam_ml.config import get_sound_on, setup_logger
-from sam_ml.data import Embeddings_builder, Sampler, SamplerPipeline, Scaler, Selector
+from sam_ml.data.preprocessing import (
+    Embeddings_builder,
+    Sampler,
+    SamplerPipeline,
+    Scaler,
+    Selector,
+)
 
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC

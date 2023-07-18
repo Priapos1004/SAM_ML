@@ -6,7 +6,13 @@ import pandas as pd
 from ConfigSpace import ConfigurationSpace
 
 from sam_ml.config import setup_logger
-from sam_ml.data import Embeddings_builder, Sampler, SamplerPipeline, Scaler, Selector
+from sam_ml.data.preprocessing import (
+    Embeddings_builder,
+    Sampler,
+    SamplerPipeline,
+    Scaler,
+    Selector,
+)
 
 from .main_classifier import Classifier
 from .RandomForestClassifier import RFC
