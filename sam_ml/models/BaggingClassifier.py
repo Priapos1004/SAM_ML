@@ -39,7 +39,7 @@ class BC(Classifier):
             if estimator == "DTC":
                 estimator = DecisionTreeClassifier(max_depth=1)
             elif estimator == "RFC":
-                estimator = RandomForestClassifier(max_depth=5, random_state=42)
+                estimator = RandomForestClassifier(max_depth=5, n_estimators=50, random_state=42)
             elif estimator == "LR":
                 estimator = LogisticRegression()
             else:

@@ -14,7 +14,7 @@ def visualise_plz(plz_region_df: pd.DataFrame, plot_col_name: str, plot_path: st
         plot_col_name: column to plot
         plot_path: path for saving plot
 
-    @soruce: https://www.suche-postleitzahl.org/downloads, 18/07/2023
+    @soruce: https://www.suche-postleitzahl.org/downloads, 18/07/2023, Genauigkeit: mittel
     """
     filepath = resource_filename(__name__, 'plz-5stellig.shp')
     plz_shape_df = gpd.read_file(filepath, dtype={'plz': str})
