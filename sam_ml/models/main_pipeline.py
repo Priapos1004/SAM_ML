@@ -1,6 +1,5 @@
 import copy
 from contextlib import suppress
-from typing import Union
 
 import pandas as pd
 from ConfigSpace import ConfigurationSpace

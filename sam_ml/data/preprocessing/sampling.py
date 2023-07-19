@@ -1,5 +1,3 @@
-from typing import Union
-
 import pandas as pd
 from imblearn.over_sampling import SMOTE, BorderlineSMOTE, RandomOverSampler
 from imblearn.under_sampling import (
@@ -16,7 +14,7 @@ from sam_ml.config import setup_logger
 logger = setup_logger(__name__)
 
 
-def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: Union[int, str] = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
+def simple_upsample(x_train: pd.DataFrame, y_train: pd.Series, label: int | str = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     function written by Sughu
 
