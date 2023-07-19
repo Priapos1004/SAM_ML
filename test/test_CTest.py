@@ -53,10 +53,19 @@ def test_find_best_model_randomCV_small_data():
 def test_find_best_model_smac():
     ctest = CTest(models="all")
     if SMAC_INSTALLED:
-        ctest.find_best_model_randomCV(x_train, y_train, x_test, y_test)
+        ctest.find_best_model_smac(x_train, y_train, x_test, y_test)
     else:
         with pytest.raises(ImportError):
-            ctest.find_best_model_randomCV(x_train, y_train, x_test, y_test)
+            ctest.find_best_model_smac(x_train, y_train, x_test, y_test)
+
+@pytest.mark.with_swig
+def test_find_best_model_smac_small_data():
+    ctest = CTest(models="all")
+    if SMAC_INSTALLED:
+        ctest.find_best_model_smac(x_train, y_train, x_test, y_test, small_data_eval=True)
+    else:
+        with pytest.raises(ImportError):
+            ctest.find_best_model_smac(x_train, y_train, x_test, y_test, small_data_eval=True)
 
 def test_find_best_model_mass_search_error():
     with pytest.raises(RuntimeError):
