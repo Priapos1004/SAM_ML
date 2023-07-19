@@ -1,10 +1,8 @@
 import os
 import sys
-import time
 import warnings
 from datetime import timedelta
 from statistics import mean
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -21,7 +19,15 @@ from sklearn.metrics import (
 from sklearn.model_selection import cross_validate
 from tqdm.auto import tqdm
 
-from sam_ml.config import get_n_jobs, setup_logger
+from sam_ml.config import (
+    get_avg,
+    get_n_jobs,
+    get_pos_label,
+    get_scoring,
+    get_secondary_scoring,
+    get_strength,
+    setup_logger,
+)
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
@@ -120,11 +126,11 @@ class Classifier(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = "accuracy",
-        avg: str = None,
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
         console_out: bool = True
     ) -> tuple[float, str]:
         """
@@ -137,11 +143,11 @@ class Classifier(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = "accuracy",
-        avg: str = None,
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
         console_out: bool = True
     ) -> tuple[float, str]:
         """
@@ -154,11 +160,11 @@ class Classifier(Model):
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        avg: str = None,
-        pos_label: Union[int, str] = -1,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
         console_out: bool = True,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
     ) -> dict[str, float]:
         """
         @param:
@@ -207,11 +213,11 @@ class Classifier(Model):
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        scoring: str = "accuracy",
-        avg: str = None,
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
     ) -> float:
         """
         @param:
@@ -248,11 +254,11 @@ class Classifier(Model):
         X: pd.DataFrame,
         y: pd.Series,
         cv_num: int = 10,
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
         console_out: bool = True,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
     ) -> dict[str, float]:
         """
         @param:
@@ -330,12 +336,12 @@ class Classifier(Model):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
         leave_loadbar: bool = True,
         console_out: bool = True,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
     ) -> dict[str, float]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
@@ -446,11 +452,11 @@ class Classifier(Model):
         y_train: pd.Series,
         n_trails: int = 50,
         cv_num: int = 5,
-        scoring: str = "accuracy",
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
         small_data_eval: bool = False,
         walltime_limit: float = 600,
         log_level: int = 20,
@@ -527,11 +533,11 @@ class Classifier(Model):
         y_train: pd.Series,
         n_trails: int = 10,
         cv_num: int = 5,
-        scoring: str = "accuracy",
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
         small_data_eval: bool = False,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:

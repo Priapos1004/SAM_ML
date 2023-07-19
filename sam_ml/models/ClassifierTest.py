@@ -3,7 +3,6 @@ import sys
 import time
 import warnings
 from datetime import timedelta
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -15,7 +14,15 @@ import pygame
 from pkg_resources import resource_filename
 from tqdm.auto import tqdm
 
-from sam_ml.config import get_sound_on, setup_logger
+from sam_ml.config import (
+    get_avg,
+    get_pos_label,
+    get_scoring,
+    get_secondary_scoring,
+    get_sound_on,
+    get_strength,
+    setup_logger,
+)
 from sam_ml.data.preprocessing import (
     Embeddings_builder,
     Sampler,
@@ -235,7 +242,7 @@ class CTest:
             pygame.mixer.music.load(filepath)
             pygame.mixer.music.play()
 
-    def output_scores_as_pd(self, sort_by: Union[str, list[str]] = "index", console_out: bool = True) -> pd.DataFrame:
+    def output_scores_as_pd(self, sort_by: str | list[str] = "index", console_out: bool = True) -> pd.DataFrame:
         """
         @param:
             sorted_by:
@@ -267,10 +274,10 @@ class CTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
     ) -> dict[str, dict]:
         """
         @param:
@@ -307,11 +314,11 @@ class CTest:
         X: pd.DataFrame,
         y: pd.Series,
         cv_num: int = 5,
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
         small_data_eval: bool = False,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
     ) -> dict[str, dict]:
         """
         @param:
@@ -355,11 +362,11 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str = "accuracy",
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
         small_data_eval: bool = False,
         cv_num: int = 3,
         leave_loadbar: bool = True,
@@ -413,11 +420,11 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 10,
-        scoring: str = "accuracy",
-        avg: str = "macro",
-        pos_label: Union[int, str] = -1,
-        secondary_scoring: str = None,
-        strength: int = 3,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
         leave_loadbar: bool = True,
         save_results_path: str | None = "find_best_model_mass_search_results.csv",
     ) -> dict:

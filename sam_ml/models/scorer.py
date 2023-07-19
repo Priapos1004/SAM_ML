@@ -10,7 +10,7 @@ def lewis_function(x: float) -> float:
     return 1-(0.5-0.5*math.cos((x-1)*math.pi))**4
 
 
-def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = -1, strength: int = 2, score_func = samuel_function) -> float:
+def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = -1, strength: int = 3, score_func = samuel_function) -> float:
     """
     @param:
         y_true, y_pred: data to evaluate on
@@ -31,6 +31,9 @@ def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = 
     @return:
         score as float between 0 and 1
     """
+    if strength < 1:
+        raise ValueError(f"strength has to be positiv integer greater-equal 1, but strength={strength}")
+
     prec = precision_score(y_true, y_pred, average=None)
     rec = recall_score(y_true, y_pred, average=None)
 
