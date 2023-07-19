@@ -2,7 +2,6 @@ import pickle
 import time
 from copy import deepcopy
 from datetime import timedelta
-from typing import Union
 
 import pandas as pd
 
