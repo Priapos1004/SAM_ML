@@ -378,7 +378,7 @@ class CTest:
             x_test: DataFrame with test features
             y_test: Series with test labels
 
-            n_trails: number of parameter sets to test
+            n_trails: number of parameter sets to test per modeltype
 
             scoring: metrics to evaluate the models
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
@@ -395,7 +395,7 @@ class CTest:
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
             best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, leave_loadbar=leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
-            if best_hyperparameters != {}:
+            if best_hyperparameters:
                 model_best = self.models[key].get_deepcopy()
                 model_best.set_params(**best_hyperparameters)
                 train_score, train_time = model_best.train(x_train, y_train, console_out=False)
@@ -414,6 +414,67 @@ class CTest:
         self.__finish_sound()
         return self.scores
     
+    def find_best_model_smac(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        n_trails: int = 5,
+        scoring: str = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: str = get_secondary_scoring(),
+        strength: int = get_strength(),
+        small_data_eval: bool = False,
+        cv_num: int = 3,
+        smac_log_level: int = 30,
+        walltime_limit_per_modeltype: int = 600,
+    ) -> dict:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with train labels
+            x_test: DataFrame with test features
+            y_test: Series with test labels
+
+            n_trails: max number of parameter sets to test per modeltype
+
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+
+            smac_log_level: 10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
+
+            walltime_limit_per_modeltype: the maximum time in seconds that SMAC is allowed to run for each modeltype
+        """
+        for key in tqdm(self.models.keys(), desc="smac_search"):
+            best_hyperparameters = self.models[key].smac_search(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, walltime_limit=walltime_limit_per_modeltype, log_level=smac_log_level)
+            logger.info(f"{self.models[key].model_name} - parameters: {best_hyperparameters}")
+            
+            model_best = self.models[key].get_deepcopy()
+            model_best.set_params(**best_hyperparameters)
+            train_score, train_time = model_best.train(x_train, y_train, console_out=False)
+            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+            
+            scores["train_time"] = train_time
+            scores["train_score"] = train_score
+            scores["best_hyperparameters"] = best_hyperparameters
+            self.scores[key] = scores
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
+        best_model_type = sorted_scores.iloc[0].name
+        best_model_value = sorted_scores.iloc[0][scoring]
+        best_model_hyperparameters = sorted_scores.iloc[0]["best_hyperparameters"]
+        logger.info(f"best model type {best_model_type} - {scoring}: {best_model_value} - parameters: {best_model_hyperparameters}")
+        self.__finish_sound()
+        return self.scores
+    
     def find_best_model_mass_search(self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
@@ -428,6 +489,25 @@ class CTest:
         leave_loadbar: bool = True,
         save_results_path: str | None = "find_best_model_mass_search_results.csv",
     ) -> dict:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with train labels
+            x_test: DataFrame with test features
+            y_test: Series with test labels
+
+            n_trails: number of parameter sets to test per modeltype
+
+            scoring: metrics to evaluate the models
+            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
+            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+
+            leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
+
+            save_result_path: path to use for saving the results after each step
+        """
         model_dict = {}
         for key in self.models.keys():
             model = self.models[key]

@@ -26,21 +26,46 @@ class ABC(Classifier):
             random_state: random_state for model
         """
         model_type = "ABC"
+
+        kwargs_estimator = {}
+        kwargs_ABC = {}
+        for key in kwargs:
+            if key.startswith("estimator__"):
+                new_key = key.removeprefix("estimator__")
+                kwargs_estimator[new_key] = kwargs[key]
+            else:
+                kwargs_ABC[key] = kwargs[key]
+
         if type(estimator) == str:
             model_name += f" ({estimator} based)"
             if estimator == "DTC":
-                estimator = DecisionTreeClassifier(max_depth=1)
+                if not kwargs_estimator:
+                    estimator = DecisionTreeClassifier(max_depth=1)
+                else:
+                    estimator = DecisionTreeClassifier(**kwargs_estimator)
             elif estimator == "RFC":
-                estimator = RandomForestClassifier(max_depth=5, n_estimators=50, random_state=42)
+                if not kwargs_estimator:
+                    estimator = RandomForestClassifier(max_depth=5, n_estimators=50, random_state=42)
+                else:
+                    if not "random_state" in kwargs_estimator:
+                        estimator = RandomForestClassifier(**kwargs_estimator, random_state=42)
+                    else:
+                        estimator = RandomForestClassifier(**kwargs_estimator)
             elif estimator == "LR":
-                estimator = LogisticRegression()
+                if not kwargs_estimator:
+                    estimator = LogisticRegression(random_state=42)
+                else:
+                    if not "random_state" in kwargs_estimator:
+                        estimator = LogisticRegression(**kwargs_estimator, random_state=42)
+                    else:
+                        estimator = LogisticRegression(**kwargs_estimator)
             else:
                 raise ValueError(f"invalid string input ('{estimator}') for estimator -> use 'DTC', 'RFC', or 'LR'")
 
         model = AdaBoostClassifier(
             random_state=random_state,
             estimator=estimator,
-            **kwargs,
+            **kwargs_ABC,
         )
         
         grid = ConfigurationSpace(
