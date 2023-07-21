@@ -1,4 +1,5 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Integer
+from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 
 from .main_classifier import Classifier
@@ -35,3 +36,6 @@ class DTC(Classifier):
             "min_samples_leaf": Integer("min_samples_leaf", (1, 5), default=1),
             })
         super().__init__(model, model_name, model_type, grid)
+    
+    def plot_tree(self):
+        return tree.plot_tree(self.model)
