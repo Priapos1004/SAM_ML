@@ -58,14 +58,14 @@ class Pipeline(Classifier):
             raise ValueError(f"wrong input '{model}' for model")
 
         if vectorizer in Embeddings_builder.params()["vec"]:
-            self.vectorizer = Embeddings_builder(vec=vectorizer)
+            self.vectorizer = Embeddings_builder(algorithm=vectorizer)
         elif type(vectorizer) == Embeddings_builder or vectorizer is None:
             self.vectorizer = vectorizer
         else:
             raise ValueError(f"wrong input '{vectorizer}' for vectorizer")
 
         if scaler in Scaler.params()["scaler"]:
-            self.scaler = Scaler(scaler=scaler)
+            self.scaler = Scaler(algorithm=scaler)
         elif type(scaler) == Scaler or scaler is None:
             self.scaler = scaler
         else:
