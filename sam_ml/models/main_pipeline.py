@@ -32,8 +32,6 @@ class Pipeline(Classifier):
             model: Classifier class object
             model_name: name of the model
         """
-        self.__classifier: Classifier
-
         if issubclass(type(model), Classifier):
             super().__init__()
 
@@ -46,6 +44,12 @@ class Pipeline(Classifier):
                     setattr(self, attribute_name, attribute_value)
                 elif not attribute_name.startswith("__"):
                     self.__dict__[attribute_name] = attribute_value
+
+            pipeline_methods = [method for method in dir(Pipeline) if callable(getattr(Pipeline, method)) and not method.startswith("__")]
+
+            # Inherit methods from the Pipeline class itself
+            for method_name in pipeline_methods:
+                setattr(self, method_name, getattr(Pipeline, method_name))
 
             self.model_name = model_name
             self.__class__.__name__ = model.__class__.__name__

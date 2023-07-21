@@ -103,6 +103,7 @@ class Embeddings_builder:
         indices = data.index
         logger.debug("creating embeddings - started")
         if self.vec_type == "bert":
+        if self.algorithm == "bert":
             message_embeddings = self.create_parallel_bert_embeddings(list(data))
             emb_ar = np.asarray(message_embeddings)
 
