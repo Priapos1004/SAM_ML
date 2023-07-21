@@ -21,7 +21,6 @@ class KNC(Classifier):
             p: number of metric that is used (manhattan, euclidean, minkowski)
             n_jobs: the number of parallel jobs to run for neighbors search [problem with n_jobs = -1 --> kernel dies]
         """
-        model_type = "KNC"
         model = KNeighborsClassifier(**kwargs,)
         grid = ConfigurationSpace(
             seed=42,
@@ -31,4 +30,4 @@ class KNC(Classifier):
             "leaf_size": Integer("leaf_size", (1, 50), default=30),
             "weights": Categorical("weights", ["uniform", "distance"], default="uniform"),
             })
-        super().__init__(model, model_name, model_type, grid)
+        super().__init__(model, model_name, grid)

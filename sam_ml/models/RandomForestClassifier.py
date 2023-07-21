@@ -31,7 +31,6 @@ class RFC(Classifier):
             bootstrap: Method of selecting samples for training each tree
             criterion: function to measure the quality of a split
         """
-        model_type = "RFC"
         model = RandomForestClassifier(
             n_jobs=n_jobs,
             random_state=random_state,
@@ -59,4 +58,4 @@ class RFC(Classifier):
             "bootstrap": Categorical("bootstrap", [True, False], default=True),
             "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
             })
-        super().__init__(model, model_name, model_type, grid)
+        super().__init__(model, model_name, grid)

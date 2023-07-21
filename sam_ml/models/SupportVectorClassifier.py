@@ -27,7 +27,6 @@ class SVC(Classifier):
 
             cache_size: Specify the size of the kernel cache (in MB)
         """
-        model_type = "SVC"
         model = svc(
             kernel=kernel,
             random_state=random_state,
@@ -41,7 +40,7 @@ class SVC(Classifier):
             "C": Float("C", (0.1, 1000), log=True, default=1),
             "probability": Categorical("probability", [True, False], default=False),
             })
-        super().__init__(model, model_name, model_type, grid)
+        super().__init__(model, model_name, grid)
 
     def feature_importance(self):
         if self.model.kernel == "linear":

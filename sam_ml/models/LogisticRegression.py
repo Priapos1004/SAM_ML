@@ -35,7 +35,6 @@ class LR(Classifier):
             solver: Algorithm to use in the optimization problem
             penalty: Specify the norm of the penalty
         """
-        model_type = "LR"
         model = LogisticRegression(
             random_state=random_state,
             **kwargs,
@@ -64,4 +63,4 @@ class LR(Classifier):
             "penalty": Categorical("penalty", ["l2"], default="l2"),
             "C": Float("C", (0.01, 100), log=True, default=1),
             })
-        super().__init__(model, model_name, model_type, grid)
+        super().__init__(model, model_name, grid)

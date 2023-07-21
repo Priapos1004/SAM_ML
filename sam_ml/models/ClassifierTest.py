@@ -516,7 +516,7 @@ class CTest:
                 for config in configs:
                     model_new = model.get_deepcopy()
                     model_new = model_new.set_params(**config)
-                    if model_new.model_type != "XGBC":
+                    if model_new.__class__.__name__ != "XGBC":
                         model_new = model_new.set_params(**{"warm_start": True})
                     model_name = f"{key} {dict(config)}"
                     model_dict[model_name] = model_new
@@ -551,7 +551,7 @@ class CTest:
                     logger.debug(f"total length of train data after pipeline pre-processing: {len(pre_x)} ({key})")
 
                 # XGBoostClassifier has different warm_start implementation
-                if model_dict[key].model_type != "XGBC" or split_idx==0:
+                if model_dict[key].__class__.__name__ != "XGBC" or split_idx==0:
                     tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
                 else:
                     start = time.time()

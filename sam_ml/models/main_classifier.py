@@ -49,15 +49,14 @@ if not sys.warnoptions:
 class Classifier(Model):
     """ Classifier parent class """
 
-    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: ConfigurationSpace = ConfigurationSpace()):
+    def __init__(self, model_object = None, model_name: str = "classifier", grid: ConfigurationSpace = ConfigurationSpace()):
         """
         @params:
             model_object: model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
             model_name: name of the model
-            model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
             grid: hyperparameter grid for the model
         """
-        super().__init__(model_object, model_name, model_type)
+        super().__init__(model_object, model_name)
         self._grid = grid
         self.cv_scores: dict[str, float] = {}
         self.rCVsearch_results: pd.DataFrame|None = None
@@ -72,7 +71,7 @@ class Classifier(Model):
                 params+= key+"="+str(param_dict[key])+", "
         params += f"model_name='{self.model_name}'"
 
-        return f"{self.model_type}({params})"
+        return f"{self.__class__.__name__}({params})"
 
     @property
     def grid(self):
@@ -416,12 +415,12 @@ class Classifier(Model):
         if not self.feature_names:
             raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
 
-        if self.model_type == "MLPC":
+        if self.__class__.__name__ == "MLPC":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC", "XGBC"):
+        elif self.__class__.__name__ in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC", "XGBC"):
             importances = self.model.feature_importances_
-        elif self.model_type in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
-            logger.warning(f"{self.model_type} does not have a feature importance")
+        elif self.__class__.__name__ in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
+            logger.warning(f"{self.__class__.__name__} does not have a feature importance")
             return
         else:
             importances = self.model.coef_[0]  # "normal"
@@ -429,12 +428,12 @@ class Classifier(Model):
         feature_importances = pd.Series(importances, index=self.feature_names)
 
         fig, ax = plt.subplots()
-        if self.model_type in ("RFC", "GBM", "ETC"):
-            if self.model_type in ("RFC", "ETC"):
+        if self.__class__.__name__ in ("RFC", "GBM", "ETC"):
+            if self.__class__.__name__ in ("RFC", "ETC"):
                 std = np.std(
                     [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
                 )
-            elif self.model_type == "GBM":
+            elif self.__class__.__name__ == "GBM":
                 std = np.std(
                     [tree[0].feature_importances_ for tree in self.model.estimators_], axis=0,
                 )
@@ -488,7 +487,7 @@ class Classifier(Model):
 
         logger.debug("starting smac_search")
         # NormalInteger and EqualsCondition in grid are not supported (using workaround for now) (04/07/2023)
-        if self.model_type in ("RFC", "ETC", "GBM", "XGBC", "LR"):
+        if self.__class__.__name__ in ("RFC", "ETC", "GBM", "XGBC", "LR"):
             grid = self.smac_grid
         else:
             grid = self.grid

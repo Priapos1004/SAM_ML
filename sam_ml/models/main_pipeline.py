@@ -22,26 +22,36 @@ logger = setup_logger(__name__)
 class Pipeline(Classifier):
     """ classifier pipeline class """
 
-    def __init__(self, vectorizer: str | Embeddings_builder | None = None, scaler: str | Scaler | None = None, selector: str | tuple[str, int] | Selector | None = None, sampler: str | Sampler | SamplerPipeline | None = None, model: tuple[any, str, ConfigurationSpace] | Classifier = RFC(), model_name: str = "pipe"):
+    def __init__(self, vectorizer: str | Embeddings_builder | None = None, scaler: str | Scaler | None = None, selector: str | tuple[str, int] | Selector | None = None, sampler: str | Sampler | SamplerPipeline | None = None, model: Classifier = RFC(), model_name: str = "pipe"):
         """
         @params:
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
             sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
-            model: Classifier class object or tuple (model, model_type, hyperparameter grid)
+            model: Classifier class object
             model_name: name of the model
         """
-        self._classifier: tuple
+        self._classifier: Classifier
 
         if issubclass(type(model), Classifier):
-            with suppress(BaseException):
-                self.smac_grid = model.smac_grid
-            super().__init__(model.model, model_name, model.model_type, model.grid)
-            self._classifier = (model.model, model.model_type, model.grid)
-        else:
-            super().__init__(model[0], model_name, model[1], model[2])
+            super().__init__()
+
+            # Inherit methods and attributes from model
+            for attribute_name in dir(model):
+                attribute_value = getattr(model, attribute_name)
+
+                # Check if the attribute is a method or a variable (excluding private attributes)
+                if callable(attribute_value) and not attribute_name.startswith("__"):
+                    setattr(self, attribute_name, attribute_value)
+                elif not attribute_name.startswith("__"):
+                    self.__dict__[attribute_name] = attribute_value
+
+            self.model_name = model_name
+            self.__class__.__name__ = model.__class__.__name__
             self._classifier = model
+        else:
+            raise ValueError(f"wrong input '{model}' for model")
 
         if vectorizer in Embeddings_builder.params()["vec"]:
             self.vectorizer = Embeddings_builder(vec=vectorizer)
@@ -88,11 +98,10 @@ class Pipeline(Classifier):
 
     def __repr__(self) -> str:
         params: str = ""
-        data_steps = ("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler)
+        data_steps = self.steps
         for step in data_steps:
             params += step[0]+"="+step[1].__str__()+", "
 
-        params += f"model={self.model.__str__()}, "
         params += f"model_name='{self.model_name}'"
 
         return f"Pipeline({params})"

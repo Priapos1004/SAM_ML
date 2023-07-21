@@ -12,22 +12,20 @@ logger = setup_logger(__name__)
 class Model:
     """ Model parent class """
 
-    def __init__(self, model_object = None, model_name: str = "model", model_type: str = "Model"):
+    def __init__(self, model_object = None, model_name: str = "model"):
         """
         @params:
             model_object: model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
             model_name: name of the model
-            model_type: kind of estimator (e.g. 'RFC' for RandomForestClassifier)
         """
         self.model = model_object
         self.model_name = model_name
-        self.model_type = model_type
         self.train_score: float = None
         self.train_time: str = None
         self.feature_names: list = []
 
     def __repr__(self) -> str:
-        return f"Model(model_object={self.model.__str__()}, model_name='{self.model_name}', model_type='{self.model_type}')"
+        return f"Model(model_object={self.model.__str__()}, model_name='{self.model_name}', model_type='{self.__class__.__name__}')"
 
     def train(self, x_train: pd.DataFrame, y_train: pd.Series, console_out: bool = True, **kwargs) -> tuple[float, str]:
         """

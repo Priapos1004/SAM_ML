@@ -19,7 +19,6 @@ class LDA(Classifier):
             solver: solver to use
             shrinkage: shrinkage parameters (does not work with 'svd' solver)
         """
-        model_type = "LDA"
         model = LinearDiscriminantAnalysis(**kwargs)
         grid = ConfigurationSpace(
             seed=42,
@@ -29,4 +28,4 @@ class LDA(Classifier):
             })
         shrinkage_cond = InCondition(grid["shrinkage"], grid["solver"], ["lsqr", "eigen"])
         grid.add_condition(shrinkage_cond)
-        super().__init__(model, model_name, model_type, grid)
+        super().__init__(model, model_name, grid)

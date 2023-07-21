@@ -25,8 +25,6 @@ class ABC(Classifier):
             algorithm: boosting algorithm
             random_state: random_state for model
         """
-        model_type = "ABC"
-
         kwargs_estimator = {}
         kwargs_ABC = {}
         for key in kwargs:
@@ -82,4 +80,4 @@ class ABC(Classifier):
         elif type(model.estimator) == DecisionTreeClassifier:
             grid.add_hyperparameter(Integer("estimator__max_depth", (1, 11), default=1))
         
-        super().__init__(model, model_name, model_type, grid)
+        super().__init__(model, model_name, grid)
