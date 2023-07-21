@@ -32,7 +32,7 @@ class Pipeline(Classifier):
             model: Classifier class object
             model_name: name of the model
         """
-        self._classifier: Classifier
+        self.__classifier: Classifier
 
         if issubclass(type(model), Classifier):
             super().__init__()
@@ -49,7 +49,7 @@ class Pipeline(Classifier):
 
             self.model_name = model_name
             self.__class__.__name__ = model.__class__.__name__
-            self._classifier = model
+            self.__classifier = model
         else:
             raise ValueError(f"wrong input '{model}' for model")
 
@@ -108,7 +108,7 @@ class Pipeline(Classifier):
 
     @property
     def steps(self) -> list[tuple[str, any]]:
-        return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self._classifier)]
+        return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self.__classifier)]
     
     def __auto_vectorizing(self, X: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         """ detects string columns, creates a vectorizer for each, and vectorizes them """
