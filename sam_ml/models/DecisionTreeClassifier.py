@@ -22,6 +22,7 @@ class DTC(Classifier):
             min_samples_leaf: Minimum number of samples required at each leaf node
             random_state: random_state for model
         """
+        model_type = "DTC"
         model = DecisionTreeClassifier(
             random_state=random_state,
             **kwargs,
@@ -34,7 +35,7 @@ class DTC(Classifier):
             "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 5), default=1),
             })
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)
     
     def plot_tree(self):
         return tree.plot_tree(self.model)

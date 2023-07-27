@@ -46,7 +46,6 @@ class Pipeline(Classifier):
                     self.__dict__[attribute_name] = attribute_value
 
             self.model_name = model_name
-            self.__class__.__name__ = model.__class__.__name__
             self.__classifier = model
         else:
             raise ValueError(f"wrong input '{model}' for model")
@@ -96,8 +95,7 @@ class Pipeline(Classifier):
 
     def __repr__(self) -> str:
         params: str = ""
-        data_steps = self.steps
-        for step in data_steps:
+        for step in self.steps:
             params += step[0]+"="+step[1].__str__()+", "
 
         params += f"model_name='{self.model_name}'"

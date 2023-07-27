@@ -29,6 +29,7 @@ class MLPC(Classifier):
             batch_size: Size of minibatches for stochastic optimizers
             early_stopping: True: tests on 10% of train data and stops if there is for 'n_iter_no_change' no improvement in the metrics
         """
+        model_type = "MLPC"
         model = MLPClassifier(
             random_state=random_state,
             **kwargs,
@@ -42,4 +43,4 @@ class MLPC(Classifier):
             "alpha": Float("alpha", (0.0001, 0.05), log=True, default=0.0001),
             "learning_rate": Categorical("learning_rate", ["constant", "adaptive"], default="constant"),
             })
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)

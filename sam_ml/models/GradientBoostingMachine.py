@@ -28,6 +28,7 @@ class GBM(Classifier):
             warm_start: work with previous fit and add more estimator
             random_state: random_state for model
         """
+        model_type = "GBM"
         model = GradientBoostingClassifier(random_state=random_state, **kwargs,)
         grid = ConfigurationSpace(
             seed=42,
@@ -55,4 +56,4 @@ class GBM(Classifier):
             "criterion": Categorical("criterion", ["friedman_mse", "squared_error"], default="friedman_mse"),
             "learning_rate": Float("learning_rate", (0.005, 0.3), log=True, default=0.1),
             })
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)

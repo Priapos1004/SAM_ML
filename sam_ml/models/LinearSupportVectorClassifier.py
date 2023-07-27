@@ -28,6 +28,7 @@ class LSVC(Classifier):
             C: Inverse of regularization strength
             max_iter: Maximum number of iterations taken for the solvers to converge
         """
+        model_type = "LSVC"
         model = LinearSVC(
             random_state=random_state,
             **kwargs,
@@ -44,4 +45,4 @@ class LSVC(Classifier):
             ForbiddenEqualsClause(grid["penalty"], "l1"),
         )
         grid.add_forbidden_clause(penalty_dual)
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)

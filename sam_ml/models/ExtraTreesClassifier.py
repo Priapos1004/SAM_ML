@@ -31,6 +31,7 @@ class ETC(Classifier):
             bootstrap: Method of selecting samples for training each tree
             criterion: function to measure the quality of a split
         """
+        model_type = "ETC"
         model = ExtraTreesClassifier(
             n_jobs=n_jobs,
             random_state=random_state,
@@ -58,4 +59,4 @@ class ETC(Classifier):
             "bootstrap": Categorical("bootstrap", [True, False], default=False),
             "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
             })
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)

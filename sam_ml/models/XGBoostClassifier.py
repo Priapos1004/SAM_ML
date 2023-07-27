@@ -21,6 +21,7 @@ class XGBC(Classifier):
             random_state: random_state for model
             n_jobs: how many cores shall be used (-1 means all)
         """
+        model_type = "XGBC"
         model = XGBClassifier(
             n_jobs=n_jobs,
             random_state=random_state,
@@ -52,7 +53,7 @@ class XGBC(Classifier):
             'n_estimators': Integer("n_estimators", bounds=(50, 750), default=100),
             "learning_rate": Float("learning_rate", bounds=(0.001, 0.30), log=True, default=0.1),
             })
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)
 
     def feature_importance(self):
         super().feature_importance()

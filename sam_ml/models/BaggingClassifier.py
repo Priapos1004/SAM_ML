@@ -33,6 +33,8 @@ class BC(Classifier):
             bootstrap: whether samples are drawn with replacement. If False, sampling without replacement is performed
             bootstrap_features: whether features are drawn with replacement
         """
+        model_type = "BC"
+
         kwargs_estimator = {}
         kwargs_BC = {}
         for key in kwargs:
@@ -91,4 +93,4 @@ class BC(Classifier):
         elif type(model.estimator) == DecisionTreeClassifier:
             grid.add_hyperparameter(Integer("estimator__max_depth", (1, 11), default=1))
         
-        super().__init__(model, model_name, grid)
+        super().__init__(model, model_name, model_type, grid)
