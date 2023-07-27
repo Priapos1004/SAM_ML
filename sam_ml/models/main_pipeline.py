@@ -33,7 +33,7 @@ class Pipeline(Classifier):
             model_name: name of the model
         """
         if issubclass(type(model), Classifier):
-            super().__init__()
+            super().__init__(model_object=model.model, model_name=model_name, model_type=model.model_type, grid=model.grid)
 
             # Inherit methods and attributes from model
             for attribute_name in dir(model):
@@ -41,11 +41,12 @@ class Pipeline(Classifier):
 
                 # Check if the attribute is a method or a variable (excluding private attributes)
                 if callable(attribute_value) and not attribute_name.startswith("__"):
-                    setattr(self, attribute_name, attribute_value)
+                    if not hasattr(self, attribute_name):
+                        setattr(self, attribute_name, attribute_value)
                 elif not attribute_name.startswith("__"):
-                    self.__dict__[attribute_name] = attribute_value
+                    if not hasattr(self, attribute_name):
+                        self.__dict__[attribute_name] = attribute_value
 
-            self.model_name = model_name
             self.__classifier = model
         else:
             raise ValueError(f"wrong input '{model}' for model")
