@@ -515,7 +515,7 @@ class Classifier(Model):
             raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
 
         logger.debug("starting smac_search")
-        # NormalInteger and EqualsCondition in grid are not supported (using workaround for now) (04/07/2023)
+        # NormalInteger and EqualsCondition in grid are not supported (using workaround for now) (04/07/2023), EqualsCondition will be fixed with SMAC3 version >2.0.1
         if self.model_type in ("RFC", "ETC", "GBM", "XGBC", "LR"):
             grid = self.smac_grid
         else:

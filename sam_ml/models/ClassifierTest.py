@@ -74,6 +74,8 @@ class CTest:
 
                 - 'basic': use basic Wrapperclass models (8 models) (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, KNeighborsClassifier)
 
+                - 'basic2': use basic (mostly tree-based) Wrapperclass models
+
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
@@ -223,6 +225,18 @@ class CTest:
                 ETC(),
                 GNB(),
                 BNB(),
+                BC(estimator="DTC"),
+                BC(estimator="RFC"),
+                BC(estimator="LR"),
+                XGBC(),
+            ]
+        elif kind == "basic2":
+            models = [
+                LR(),
+                RFC(),
+                ABC(estimator="DTC"),
+                ABC(estimator="RFC"),
+                ABC(estimator="LR"),
                 BC(estimator="DTC"),
                 BC(estimator="RFC"),
                 BC(estimator="LR"),
@@ -465,7 +479,7 @@ class CTest:
             
             scores["train_time"] = train_time
             scores["train_score"] = train_score
-            scores["best_hyperparameters"] = best_hyperparameters
+            scores["best_hyperparameters"] = dict(best_hyperparameters)
             self.scores[key] = scores
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
