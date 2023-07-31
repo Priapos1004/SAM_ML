@@ -1,3 +1,4 @@
+import inspect
 import os
 import sys
 import warnings
@@ -64,7 +65,7 @@ class Classifier(Model):
 
     def __repr__(self) -> str:
         params: str = ""
-        param_dict = self.get_params(False)
+        param_dict = self._changed_parameters()
         for key in param_dict:
             if type(param_dict[key]) == str:
                 params+= key+"='"+str(param_dict[key])+"', "
@@ -73,6 +74,33 @@ class Classifier(Model):
         params += f"model_name='{self.model_name}'"
 
         return f"{self.model_type}({params})"
+    
+    def _changed_parameters(self):
+        params = self.get_params(deep=False)
+        init_params = inspect.signature(self.__init__).parameters
+        init_params = {name: param.default for name, param in init_params.items()}
+
+        init_params_estimator = inspect.signature(self.model.__init__).parameters
+        init_params_estimator = {name: param.default for name, param in init_params_estimator.items()}
+
+        def has_changed(k, v):
+            if k not in init_params:  # happens if k is part of a **kwargs
+                if k not in init_params_estimator: # happens if k is part of a **kwargs
+                    return True
+                else:
+                    if v != init_params_estimator[k]:
+                        return True
+                    else:
+                        return False
+
+            if init_params[k] == inspect._empty:  # k has no default value
+                return True
+            elif init_params[k] != v:
+                return True
+            
+            return False
+
+        return {k: v for k, v in params.items() if has_changed(k, v)}
 
     @property
     def grid(self):
@@ -487,7 +515,7 @@ class Classifier(Model):
             raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
 
         logger.debug("starting smac_search")
-        # NormalInteger and EqualsCondition in grid are not supported (using workaround for now) (04/07/2023)
+        # NormalInteger and EqualsCondition in grid are not supported (using workaround for now) (04/07/2023), EqualsCondition will be fixed with SMAC3 version >2.0.1
         if self.model_type in ("RFC", "ETC", "GBM", "XGBC", "LR"):
             grid = self.smac_grid
         else:

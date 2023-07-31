@@ -1,8 +1,6 @@
 import copy
-from contextlib import suppress
 
 import pandas as pd
-from ConfigSpace import ConfigurationSpace
 
 from sam_ml.config import setup_logger
 from sam_ml.data.preprocessing import (
@@ -22,36 +20,44 @@ logger = setup_logger(__name__)
 class Pipeline(Classifier):
     """ classifier pipeline class """
 
-    def __init__(self, vectorizer: str | Embeddings_builder | None = None, scaler: str | Scaler | None = None, selector: str | tuple[str, int] | Selector | None = None, sampler: str | Sampler | SamplerPipeline | None = None, model: tuple[any, str, ConfigurationSpace] | Classifier = RFC(), model_name: str = "pipe"):
+    def __init__(self, vectorizer: str | Embeddings_builder | None = None, scaler: str | Scaler | None = None, selector: str | tuple[str, int] | Selector | None = None, sampler: str | Sampler | SamplerPipeline | None = None, model: Classifier = RFC(), model_name: str = "pipe"):
         """
         @params:
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
             selector: type of "data.feature_selection.Selector" or Selector class object for feature selection (None for no selecting)
             sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
-            model: Classifier class object or tuple (model, model_type, hyperparameter grid)
+            model: Classifier class object
             model_name: name of the model
         """
-        self._classifier: tuple
-
         if issubclass(type(model), Classifier):
-            with suppress(BaseException):
-                self.smac_grid = model.smac_grid
-            super().__init__(model.model, model_name, model.model_type, model.grid)
-            self._classifier = (model.model, model.model_type, model.grid)
+            super().__init__(model_object=model.model, model_name=model_name, model_type=model.model_type, grid=model.grid)
+
+            # Inherit methods and attributes from model
+            for attribute_name in dir(model):
+                attribute_value = getattr(model, attribute_name)
+
+                # Check if the attribute is a method or a variable (excluding private attributes)
+                if callable(attribute_value) and not attribute_name.startswith("__"):
+                    if not hasattr(self, attribute_name):
+                        setattr(self, attribute_name, attribute_value)
+                elif not attribute_name.startswith("__"):
+                    if not hasattr(self, attribute_name):
+                        self.__dict__[attribute_name] = attribute_value
+
+            self.__classifier = model
         else:
-            super().__init__(model[0], model_name, model[1], model[2])
-            self._classifier = model
+            raise ValueError(f"wrong input '{model}' for model")
 
         if vectorizer in Embeddings_builder.params()["vec"]:
-            self.vectorizer = Embeddings_builder(vec=vectorizer)
+            self.vectorizer = Embeddings_builder(algorithm=vectorizer)
         elif type(vectorizer) == Embeddings_builder or vectorizer is None:
             self.vectorizer = vectorizer
         else:
             raise ValueError(f"wrong input '{vectorizer}' for vectorizer")
 
         if scaler in Scaler.params()["scaler"]:
-            self.scaler = Scaler(scaler=scaler)
+            self.scaler = Scaler(algorithm=scaler)
         elif type(scaler) == Scaler or scaler is None:
             self.scaler = scaler
         else:
@@ -88,18 +94,16 @@ class Pipeline(Classifier):
 
     def __repr__(self) -> str:
         params: str = ""
-        data_steps = ("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler)
-        for step in data_steps:
+        for step in self.steps:
             params += step[0]+"="+step[1].__str__()+", "
 
-        params += f"model={self.model.__str__()}, "
         params += f"model_name='{self.model_name}'"
 
         return f"Pipeline({params})"
 
     @property
     def steps(self) -> list[tuple[str, any]]:
-        return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self._classifier)]
+        return [("vectorizer", self.vectorizer), ("scaler", self.scaler), ("selector", self.selector), ("sampler", self.sampler), ("model", self.__classifier)]
     
     def __auto_vectorizing(self, X: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
         """ detects string columns, creates a vectorizer for each, and vectorizes them """

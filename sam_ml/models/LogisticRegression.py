@@ -1,4 +1,3 @@
-import numpy as np
 from ConfigSpace import (
     Categorical,
     ConfigurationSpace,

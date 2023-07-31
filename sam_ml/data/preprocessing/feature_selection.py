@@ -15,10 +15,12 @@ from sklearn.svm import LinearSVC
 
 from sam_ml.config import setup_logger
 
+from .main_data import DATA
+
 logger = setup_logger(__name__)
 
 
-class Selector:
+class Selector(DATA):
     """ feature selection algorithm Wrapper class """
 
     def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), **kwargs):
@@ -40,38 +42,28 @@ class Selector:
             **kwargs:
                 additional parameters for selector
         """
-        self.algorithm = algorithm
         self.num_features = num_features
-        self._grid: dict[str, list] = {} # for pipeline structure
 
         if algorithm == "kbest":
-            self.selector = SelectKBest(k=num_features, **kwargs)
+            selector = SelectKBest(k=num_features, **kwargs)
         elif algorithm == "kbest_chi2":
-            self.selector = SelectKBest(k=num_features, score_func=chi2, **kwargs)
+            selector = SelectKBest(k=num_features, score_func=chi2, **kwargs)
         elif algorithm == "pca":
-            self.selector = PCA(n_components=num_features, random_state=42, **kwargs)
+            selector = PCA(n_components=num_features, random_state=42, **kwargs)
         elif algorithm == "wrapper":
-            self.selector = {"pvalue_limit": 0.5}
+            selector = {"pvalue_limit": 0.5}
         elif algorithm == "sequential":
-            self.selector = SequentialFeatureSelector(estimator, n_features_to_select=num_features, **kwargs)
+            selector = SequentialFeatureSelector(estimator, n_features_to_select=num_features, **kwargs)
         elif algorithm == "select_model":
-            self.selector = SelectFromModel(estimator, max_features=num_features, **kwargs)
+            selector = SelectFromModel(estimator, max_features=num_features, **kwargs)
         elif algorithm == "rfe":
-            self.selector = RFE(estimator, n_features_to_select=num_features, **kwargs)
+            selector = RFE(estimator, n_features_to_select=num_features, **kwargs)
         elif algorithm == "rfecv":
-            self.selector = RFECV(estimator, min_features_to_select=num_features, **kwargs)
+            selector = RFECV(estimator, min_features_to_select=num_features, **kwargs)
         else:
             raise ValueError(f"algorithm='{algorithm}' is not supported")
-
-    def __repr__(self) -> str:
-        selector_params: str = ""
-        param_dict = self.get_params(False)
-        for key in param_dict:
-            if type(param_dict[key]) == str:
-                selector_params += key+"='"+str(param_dict[key])+"', "
-            else:
-                selector_params += key+"="+str(param_dict[key])+", "
-        return f"Selector({selector_params})"
+        
+        super().__init__(algorithm, selector)
 
     @staticmethod
     def params() -> dict:
@@ -88,9 +80,9 @@ class Selector:
     def get_params(self, deep: bool = True):
         class_params = {"algorithm": self.algorithm, "num_features": self.num_features}
         if self.algorithm == "wrapper":
-            return class_params | self.selector
+            return class_params | self.transformer
         else:
-            selector_params = self.selector.get_params(deep)
+            selector_params = self.transformer.get_params(deep)
             if self.algorithm in ("kbest", "kbest_chi2"):
                 selector_params.pop("k")
             elif self.algorithm in ("pca"):
@@ -106,9 +98,9 @@ class Selector:
 
     def set_params(self, **params):
         if self.algorithm == "wrapper":
-            self.selector = params
+            self.transformer = params
         else:
-            self.selector.set_params(**params)
+            self.transformer.set_params(**params)
         return self
     
     def select(self, X: pd.DataFrame, y: pd.DataFrame = None, train_on: bool = True) -> pd.DataFrame:
@@ -123,15 +115,15 @@ class Selector:
         logger.debug("selecting features - started")
         if train_on:
             if self.algorithm == "wrapper":
-                self.selected_features = self.__wrapper_select(X, y, **self.selector)
+                self.selected_features = self.__wrapper_select(X, y, **self.transformer)
             else:
-                self.selector.fit(X.values, y)
-                self.selected_features = self.selector.get_feature_names_out(X.columns)
+                self.transformer.fit(X.values, y)
+                self.selected_features = self.transformer.get_feature_names_out(X.columns)
         
         if self.algorithm == "wrapper":
             X_selected = X[self.selected_features]
         else:
-            X_selected = pd.DataFrame(self.selector.transform(X), columns=self.selected_features)
+            X_selected = pd.DataFrame(self.transformer.transform(X), columns=self.selected_features)
 
         logger.debug("selecting features - finished")
         return X_selected
