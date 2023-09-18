@@ -27,7 +27,7 @@ Windows (see [swigwin](https://www.swig.org/download.html))
 1. install the package to your activated virtual environment *(python version 3.10 and higher is needed)*
 
 ```
-pip install sam-ml-py[with_swig]
+pip install "sam-ml-py[with_swig]"
 ```
 
 ## getting started (without SMAC3 library)
@@ -43,7 +43,7 @@ pip install sam-ml-py
 2. now you can import the package, e.g.:
 
 ```
-from sam_ml.models import RFC
+from sam_ml.models.classifier import RFC
 
 RandomForestClassifier = RFC()
 ```
