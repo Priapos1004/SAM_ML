@@ -1,7 +1,7 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Float
 from sklearn.svm import SVC as svc
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class SVC(Classifier):

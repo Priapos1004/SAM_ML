@@ -11,7 +11,7 @@ from sam_ml.data.preprocessing import (
     Selector,
 )
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 from .RandomForestClassifier import RFC
 
 logger = setup_logger(__name__)

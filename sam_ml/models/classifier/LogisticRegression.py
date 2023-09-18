@@ -9,7 +9,7 @@ from ConfigSpace import (
 )
 from sklearn.linear_model import LogisticRegression
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class LR(Classifier):

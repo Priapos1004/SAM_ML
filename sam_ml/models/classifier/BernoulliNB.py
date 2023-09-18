@@ -1,7 +1,7 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn.naive_bayes import BernoulliNB
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class BNB(Classifier):

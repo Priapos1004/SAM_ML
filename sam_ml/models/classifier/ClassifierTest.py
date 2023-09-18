@@ -43,8 +43,8 @@ from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
-from .main_classifier import Classifier
-from .main_pipeline import Pipeline
+from ..main_classifier import Classifier
+from .main_classifier_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
@@ -251,7 +251,7 @@ class CTest:
     def __finish_sound(self):
         """ little function to play a microwave sound """
         if get_sound_on():
-            filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
+            filepath = resource_filename(__name__, '../microwave_finish_sound.mp3')
             pygame.mixer.init()
             pygame.mixer.music.load(filepath)
             pygame.mixer.music.play()

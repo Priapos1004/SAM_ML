@@ -3,7 +3,7 @@ from sklearn.gaussian_process import GaussianProcessClassifier
 
 from sam_ml.config import get_n_jobs
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class GPC(Classifier):

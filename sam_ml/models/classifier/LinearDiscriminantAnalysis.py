@@ -2,7 +2,7 @@ import numpy as np
 from ConfigSpace import Categorical, ConfigurationSpace, Float, InCondition
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 np.seterr(divide = 'ignore')
 
