@@ -22,7 +22,7 @@ jobs:
       - name: Test with refurb
         run: |
           pip install refurb
-          refurb . --quiet
+          refurb . --quiet --ignore 120
 
   different-OS:
     runs-on: ${{ matrix.os }}

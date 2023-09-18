@@ -31,6 +31,7 @@ from sam_ml.data.preprocessing import (
     Selector,
 )
 
+from ..main_classifier import Classifier
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
@@ -43,7 +44,6 @@ from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
-from ..main_classifier import Classifier
 from .main_classifier_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
@@ -593,7 +593,7 @@ class CTest:
 
             # only keep better half of the models
             for key in list(sorted_split_scores.keys())[int(len(sorted_split_scores)/2):]:
-                del model_dict[key]
+                model_dict.pop(key)
 
             logger.info(f"removed {len(sorted_split_scores)-len(model_dict)} models")
             
