@@ -6,7 +6,7 @@ from sklearn.datasets import make_classification
 from sklearn.exceptions import NotFittedError
 
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
-from sam_ml.models import (
+from sam_ml.models.classifier import (
     ABC,
     BC,
     BNB,
