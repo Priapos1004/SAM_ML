@@ -39,7 +39,7 @@ def get_pos_label() -> int:
     elif str(pos_label).isnumeric():
         return int(pos_label)
     else:
-        raise ValueError(f"SAM_ML_POS_LABEL cannot be '{pos_label}' -> has to be '-1' or an integer greater or equal 0")
+        raise ValueError(f"SAM_ML_POS_LABEL cannot be '{pos_label}' -> has to be '-1' or a string of an integer greater or equal 0")
     
 def get_scoring() -> str:
     scoring = os.getenv("SAM_ML_SCORING")
@@ -66,5 +66,5 @@ def get_strength() -> int:
     elif str(strength).isnumeric():
         return int(strength)
     else:
-        raise ValueError(f"SAM_ML_STRENGTH cannot be '{strength}' -> has to be positive integer greater-equal 1")
+        raise ValueError(f"SAM_ML_STRENGTH cannot be '{strength}' -> has to be a string of a integer greater-equal 1")
     
