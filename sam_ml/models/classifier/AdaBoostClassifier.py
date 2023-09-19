@@ -1,26 +1,19 @@
-import warnings
-
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
 from sklearn.base import ClassifierMixin
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 
-from sam_ml.config import get_n_jobs
-
-from .main_classifier import Classifier
-
-warnings. filterwarnings('ignore')
+from ..main_classifier import Classifier
 
 
-class BC(Classifier):
-    """ BaggingClassifier Wrapper class """
+class ABC(Classifier):
+    """ AdaBoostClassifier Wrapper class """
 
     def __init__(
         self,
-        model_name: str = "BaggingClassifier",
+        model_name: str = "AdaBoostClassifier",
         random_state: int = 42,
-        n_jobs: int = get_n_jobs(),
         estimator: str | ClassifierMixin = "DTC",
         **kwargs,
     ):
@@ -28,21 +21,20 @@ class BC(Classifier):
         @param (important one):
             estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1), also possible is string 'DTC', 'RFC', and 'LR'
             n_estimator: number of boosting stages to perform
-            max_samples: the number of samples to draw from X to train each base estimator
-            max_features: the number of features to draw from X to train each base estimator
-            bootstrap: whether samples are drawn with replacement. If False, sampling without replacement is performed
-            bootstrap_features: whether features are drawn with replacement
+            learning_rate: shrinks the contribution of each tree by learning rate
+            algorithm: boosting algorithm
+            random_state: random_state for model
         """
-        model_type = "BC"
+        model_type = "ABC"
 
         kwargs_estimator = {}
-        kwargs_BC = {}
+        kwargs_ABC = {}
         for key in kwargs:
             if key.startswith("estimator__"):
                 new_key = key.removeprefix("estimator__")
                 kwargs_estimator[new_key] = kwargs[key]
             else:
-                kwargs_BC[key] = kwargs[key]
+                kwargs_ABC[key] = kwargs[key]
 
         if type(estimator) == str:
             model_name += f" ({estimator} based)"
@@ -70,21 +62,18 @@ class BC(Classifier):
             else:
                 raise ValueError(f"invalid string input ('{estimator}') for estimator -> use 'DTC', 'RFC', or 'LR'")
 
-        model = BaggingClassifier(
+        model = AdaBoostClassifier(
             random_state=random_state,
-            n_jobs=n_jobs,
             estimator=estimator,
-            **kwargs_BC,
+            **kwargs_ABC,
         )
-
+        
         grid = ConfigurationSpace(
             seed=42,
             space={
-            "n_estimators": Integer("n_estimators", (3, 3000), distribution=Beta(1, 15), default=10),
-            "max_samples": Float("max_samples", (0.1, 1), default=1),
-            "max_features": Categorical("max_features", [0.5, 0.9, 1.0, 2, 4], default=1.0),
-            "bootstrap": Categorical("bootstrap", [True, False], default=True),
-            "bootstrap_features": Categorical("bootstrap_features", [True, False], default=False),
+            "n_estimators": Integer("n_estimators", (10, 3000), log=True, default=50),
+            "learning_rate": Float("learning_rate", (0.005, 2), distribution=Beta(10, 5), default=1),
+            "algorithm": Categorical("algorithm", ["SAMME.R", "SAMME"], default="SAMME.R"),
             })
         
         if type(model.estimator) == RandomForestClassifier:

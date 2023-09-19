@@ -7,7 +7,7 @@ from ConfigSpace import (
 )
 from sklearn.svm import LinearSVC
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class LSVC(Classifier):

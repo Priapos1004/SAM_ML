@@ -27,10 +27,10 @@ def get_avg() -> str:
         return "macro"
     elif str(avg) == "none":
         return None
-    elif str(avg).lower() in ("macro", "binary", "weighted"):
+    elif str(avg).lower() in ("micro", "macro", "binary", "weighted"):
         return str(avg)
     else:
-        raise ValueError(f"SAM_ML_AVG cannot be '{avg}' -> has to be 'none', 'macro', 'binary', or 'weighted'")
+        raise ValueError(f"SAM_ML_AVG cannot be '{avg}' -> has to be 'none', 'micro', 'macro', 'binary', or 'weighted'")
     
 def get_pos_label() -> int:
     pos_label = os.getenv("SAM_ML_POS_LABEL")

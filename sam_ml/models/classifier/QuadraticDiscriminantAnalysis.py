@@ -3,7 +3,7 @@ import warnings
 from ConfigSpace import ConfigurationSpace, Float
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

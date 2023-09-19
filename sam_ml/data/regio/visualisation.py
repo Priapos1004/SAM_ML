@@ -5,7 +5,7 @@ from pkg_resources import resource_filename
 
 from .mapping import get_coord_main_cities
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 
 def visualise_plz(plz_region_df: pd.DataFrame, plot_col_name: str, plot_path: str = "german_map.png", plot_title: str = 'Germany map'):
     """

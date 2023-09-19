@@ -1,7 +1,7 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer, Normal
 from sklearn.ensemble import GradientBoostingClassifier
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class GBM(Classifier):

@@ -1,7 +1,7 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn.neighbors import KNeighborsClassifier
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class KNC(Classifier):

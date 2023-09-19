@@ -1,7 +1,7 @@
 from ConfigSpace import ConfigurationSpace, Float
 from sklearn.naive_bayes import GaussianNB
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class GNB(Classifier):

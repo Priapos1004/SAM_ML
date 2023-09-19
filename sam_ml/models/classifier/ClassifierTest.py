@@ -31,6 +31,7 @@ from sam_ml.data.preprocessing import (
     Selector,
 )
 
+from ..main_classifier import Classifier
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
@@ -43,8 +44,7 @@ from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
-from .main_classifier import Classifier
-from .main_pipeline import Pipeline
+from .main_classifier_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
@@ -251,7 +251,7 @@ class CTest:
     def __finish_sound(self):
         """ little function to play a microwave sound """
         if get_sound_on():
-            filepath = resource_filename(__name__, 'microwave_finish_sound.mp3')
+            filepath = resource_filename(__name__, '../microwave_finish_sound.mp3')
             pygame.mixer.init()
             pygame.mixer.music.load(filepath)
             pygame.mixer.music.play()
@@ -593,7 +593,7 @@ class CTest:
 
             # only keep better half of the models
             for key in list(sorted_split_scores.keys())[int(len(sorted_split_scores)/2):]:
-                del model_dict[key]
+                model_dict.pop(key)
 
             logger.info(f"removed {len(sorted_split_scores)-len(model_dict)} models")
             

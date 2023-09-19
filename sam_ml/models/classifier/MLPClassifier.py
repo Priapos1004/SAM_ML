@@ -1,7 +1,7 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Float
 from sklearn.neural_network import MLPClassifier
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class MLPC(Classifier):

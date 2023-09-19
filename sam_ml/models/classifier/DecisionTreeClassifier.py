@@ -2,7 +2,7 @@ from ConfigSpace import Categorical, ConfigurationSpace, Integer
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 
-from .main_classifier import Classifier
+from ..main_classifier import Classifier
 
 
 class DTC(Classifier):
