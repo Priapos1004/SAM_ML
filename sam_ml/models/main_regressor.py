@@ -196,9 +196,9 @@ class Regressor(Model):
             print("d2 tweedie score: ", d2_tweedie)
 
         scores = {
-            "r2_score": r2,
+            "r2": r2,
             "rmse": rmse,
-            "d2_tweedie_score": d2_tweedie,
+            "d2_tweedie": d2_tweedie,
         }
 
         return scores
@@ -245,7 +245,7 @@ class Regressor(Model):
             console_out: shall the result be printed into the console
 
         @return:
-            dictionary with "r2_score", "rmse", "d2_tweedie_score", "train_score", "train_time"
+            dictionary with "r2", "rmse", "d2_tweedie", "train_score", "train_time"
         """
         logger.debug(f"cross validation {self.model_name} - started")
 
@@ -274,9 +274,9 @@ class Regressor(Model):
 
         score = pd_scores["average"]
         self.cv_scores = {
-            "r2_score": score[list(score.keys())[2]],
+            "r2": score[list(score.keys())[2]],
             "rmse": score[list(score.keys())[4]],
-            "d2_tweedie_score": score[list(score.keys())[6]],
+            "d2_tweedie": score[list(score.keys())[6]],
             "train_score": score[list(score.keys())[3]],
             "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
         }
@@ -335,9 +335,9 @@ class Regressor(Model):
         avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
         self.cv_scores = {
-            "r2_score": r2,
+            "r2": r2,
             "rmse": rmse,
-            "d2_tweedie_score": d2_tweedie,
+            "d2_tweedie": d2_tweedie,
             "train_score": avg_train_score,
             "train_time": avg_train_time,
         }
@@ -383,86 +383,78 @@ class Regressor(Model):
         fig.tight_layout()
         plt.show()
     
-    # def smac_search(
-    #     self,
-    #     x_train: pd.DataFrame, 
-    #     y_train: pd.Series,
-    #     n_trails: int = 50,
-    #     cv_num: int = 5,
-    #     scoring: str = get_scoring(),
-    #     avg: str = get_avg(),
-    #     pos_label: int | str = get_pos_label(),
-    #     secondary_scoring: str = get_secondary_scoring(),
-    #     strength: int = get_strength(),
-    #     small_data_eval: bool = False,
-    #     walltime_limit: float = 600,
-    #     log_level: int = 20,
-    # ) -> Configuration:
-    #     """
-    #     @params:
-    #         x_train: DataFrame with train features
-    #         y_train: Series with labels
+    def smac_search(
+        self,
+        x_train: pd.DataFrame, 
+        y_train: pd.Series,
+        n_trails: int = 50,
+        cv_num: int = 5,
+        scoring: str = "r2",
+        small_data_eval: bool = False,
+        walltime_limit: float = 600,
+        log_level: int = 20,
+    ) -> Configuration:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-    #         n_trails: max number of parameter sets to test
-    #         cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+            n_trails: max number of parameter sets to test
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-    #         scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-    #         secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-    #         strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
 
-    #         small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             
-    #         walltime_limit: the maximum time in seconds that SMAC is allowed to run
+            walltime_limit: the maximum time in seconds that SMAC is allowed to run
 
-    #         log_level: 10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
+            log_level: 10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
 
-    #     @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
-    #     """
-    #     if not SMAC_INSTALLED:
-    #         raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
+        @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
+        """
+        if not SMAC_INSTALLED:
+            raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
 
-    #     logger.debug("starting smac_search")
-    #     # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
-    #     if self.model_type in ("RFC", "ETC", "GBM", "XGBC"):
-    #         grid = self.smac_grid
-    #     else:
-    #         grid = self.grid
+        logger.debug("starting smac_search")
+        # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
+        if self.model_type in ("RFR"):
+            grid = self.smac_grid
+        else:
+            grid = self.grid
 
-    #     scenario = Scenario(
-    #         grid,
-    #         n_trials=n_trails,
-    #         deterministic=True,
-    #         walltime_limit=walltime_limit,
-    #     )
+        scenario = Scenario(
+            grid,
+            n_trials=n_trails,
+            deterministic=True,
+            walltime_limit=walltime_limit,
+        )
 
-    #     initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
-    #     logger.debug(f"initial_design: {initial_design.select_configurations()}")
+        initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
+        logger.debug(f"initial_design: {initial_design.select_configurations()}")
 
-    #     # define target function
-    #     def grid_train(config: Configuration, seed: int) -> float:
-    #         logger.debug(f"config: {config}")
-    #         model = self.get_deepcopy()
-    #         model.set_params(**config)
-    #         if small_data_eval:
-    #             score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-    #         else:
-    #             score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-    #         return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
+        # define target function
+        def grid_train(config: Configuration, seed: int) -> float:
+            logger.debug(f"config: {config}")
+            model = self.get_deepcopy()
+            model.set_params(**config)
+            if small_data_eval:
+                score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False)
+            else:
+                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num)
+            return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
 
-    #     # use SMAC to find the best hyperparameters
-    #     smac = HyperparameterOptimizationFacade(
-    #         scenario,
-    #         grid_train,
-    #         initial_design=initial_design,
-    #         overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
-    #         logging_level=log_level,
-    #     )
+        # use SMAC to find the best hyperparameters
+        smac = HyperparameterOptimizationFacade(
+            scenario,
+            grid_train,
+            initial_design=initial_design,
+            overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
+            logging_level=log_level,
+        )
 
-    #     incumbent = smac.optimize()
-    #     logger.debug("finished smac_search")
-    #     return incumbent
+        incumbent = smac.optimize()
+        logger.debug("finished smac_search")
+        return incumbent
 
     # def randomCVsearch(
     #     self,
