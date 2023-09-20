@@ -14,15 +14,7 @@ from sklearn.metrics import d2_tweedie_score, make_scorer, mean_squared_error, r
 from sklearn.model_selection import cross_validate
 from tqdm.auto import tqdm
 
-from sam_ml.config import (
-    get_avg,
-    get_n_jobs,
-    get_pos_label,
-    get_scoring,
-    get_secondary_scoring,
-    get_strength,
-    setup_logger,
-)
+from sam_ml.config import get_n_jobs, setup_logger
 
 from .main_model import Model
 
@@ -444,9 +436,9 @@ class Regressor(Model):
             
             # SMAC always minimizes (the smaller the better)
             if scoring == "rmse":
-                return score[scoring]  
-            else:
-                return 1 - score[scoring]
+                return score[scoring]
+            
+            return 1 - score[scoring]
 
         # use SMAC to find the best hyperparameters
         smac = HyperparameterOptimizationFacade(
