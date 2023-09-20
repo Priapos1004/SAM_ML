@@ -231,88 +231,64 @@ class Regressor(Model):
 
         return score
 
-    # def cross_validation(
-    #     self,
-    #     X: pd.DataFrame,
-    #     y: pd.Series,
-    #     cv_num: int = 10,
-    #     avg: str = get_avg(),
-    #     pos_label: int | str = get_pos_label(),
-    #     console_out: bool = True,
-    #     secondary_scoring: str = get_secondary_scoring(),
-    #     strength: int = get_strength(),
-    # ) -> dict[str, float]:
-    #     """
-    #     @param:
-    #         X, y: data to cross validate on
-    #         cv_num: number of different splits
+    def cross_validation(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        cv_num: int = 10,
+        console_out: bool = True,
+    ) -> dict[str, float]:
+        """
+        @param:
+            X, y: data to cross validate on
+            cv_num: number of different splits
 
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+            console_out: shall the result be printed into the console
 
-    #         console_out: shall the result be printed into the console
+        @return:
+            dictionary with "r2_score", "rmse", "d2_tweedie_score", "train_score", "train_time"
+        """
+        logger.debug(f"cross validation {self.model_name} - started")
 
-    #         secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-    #         strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
+        r2 = make_scorer(r2_score)
+        rmse = make_scorer(mean_squared_error, squared=False)
+        d2_tweedie = make_scorer(d2_tweedie_score, power=1)
 
-    #     @return:
-    #         dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
-    #     """
-    #     logger.debug(f"cross validation {self.model_name} - started")
+        scorer = {
+            "r2 score": r2,
+            "rmse": rmse,
+            "d2 tweedie score": d2_tweedie,
+        }
 
-    #     precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
-    #     recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
-    #     s_scorer = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-    #     l_scorer = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        cv_scores = cross_validate(
+            self,
+            X,
+            y,
+            scoring=scorer,
+            cv=cv_num,
+            return_train_score=True,
+            n_jobs=get_n_jobs(),
+        )
 
-    #     if avg == "binary":
-    #         scorer = {
-    #             f"precision ({avg}, label={pos_label})": precision_scorer,
-    #             f"recall ({avg}, label={pos_label})": recall_scorer,
-    #             "accuracy": "accuracy",
-    #             "s_score": s_scorer,
-    #             "l_score": l_scorer,
-    #         }
-    #     else:
-    #         scorer = {
-    #             f"precision ({avg})": precision_scorer,
-    #             f"recall ({avg})": recall_scorer,
-    #             "accuracy": "accuracy",
-    #             "s_score": s_scorer,
-    #             "l_score": l_scorer,
-    #         }
+        pd_scores = pd.DataFrame(cv_scores).transpose()
+        pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
 
-    #     cv_scores = cross_validate(
-    #         self,
-    #         X,
-    #         y,
-    #         scoring=scorer,
-    #         cv=cv_num,
-    #         return_train_score=True,
-    #         n_jobs=get_n_jobs(),
-    #     )
+        score = pd_scores["average"]
+        self.cv_scores = {
+            "r2_score": score[list(score.keys())[2]],
+            "rmse": score[list(score.keys())[4]],
+            "d2_tweedie_score": score[list(score.keys())[6]],
+            "train_score": score[list(score.keys())[3]],
+            "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+        }
 
-    #     pd_scores = pd.DataFrame(cv_scores).transpose()
-    #     pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
+        logger.debug(f"cross validation {self.model_name} - finished")
 
-    #     score = pd_scores["average"]
-    #     self.cv_scores = {
-    #         "accuracy": score[list(score.keys())[6]],
-    #         "precision": score[list(score.keys())[2]],
-    #         "recall": score[list(score.keys())[4]],
-    #         "s_score": score[list(score.keys())[8]],
-    #         "l_score": score[list(score.keys())[10]],
-    #         "train_score": score[list(score.keys())[7]],
-    #         "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
-    #     }
+        if console_out:
+            print()
+            print(pd_scores)
 
-    #     logger.debug(f"cross validation {self.model_name} - finished")
-
-    #     if console_out:
-    #         print()
-    #         print(pd_scores)
-
-    #     return self.cv_scores
+        return self.cv_scores
 
     # def cross_validation_small_data(
     #     self,
