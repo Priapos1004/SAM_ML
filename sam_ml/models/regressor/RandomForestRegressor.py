@@ -45,7 +45,7 @@ class RFR(Regressor):
             "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4), default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=True),
-            "criterion": Categorical("criterion", ["absolute_error", "friedman_mse", "squared_error", "poisson"], default="absolute_error"),
+            "criterion": Categorical("criterion", ["friedman_mse", "squared_error"], default="squared_error"),
             })
         
         # workaround for now -> Problems with Normal distribution (in smac_search) (04/07/2023)
@@ -57,6 +57,6 @@ class RFR(Regressor):
             "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4), default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=True),
-            "criterion": Categorical("criterion", ["absolute_error", "friedman_mse", "squared_error", "poisson"], default="absolute_error"),
+            "criterion": Categorical("criterion", ["friedman_mse", "squared_error"], default="squared_error"),
             })
         super().__init__(model, model_name, model_type, grid)

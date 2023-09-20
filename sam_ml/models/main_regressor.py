@@ -180,7 +180,10 @@ class Regressor(Model):
         # Calculate Metrics
         r2 = r2_score(y_test, pred)
         rmse = mean_squared_error(y_test, pred, squared=False)
-        d2_tweedie = d2_tweedie_score(y_test, pred, power=1)
+        if all([y >= 0 for y in y_test]):
+            d2_tweedie = d2_tweedie_score(y_test, pred, power=1)
+        else:
+            d2_tweedie = -1
 
         if console_out:
             print("r2 score: ", r2)
@@ -216,7 +219,11 @@ class Regressor(Model):
         elif scoring == "rmse":
             score = mean_squared_error(y_test, pred, squared=False)
         elif scoring == "d2_tweedie":
-            score = d2_tweedie_score(y_test, pred, power=1)
+            if all([y >= 0 for y in y_test]):
+                score = d2_tweedie_score(y_test, pred, power=1)
+            else:
+                logger.warning("There are y values smaller 0 -> d2_tweedie_score will always be -1")
+                score = -1
         else:
             raise ValueError(f"scoring='{scoring}' is not supported -> only  'r2', 'rmse', or 'd2_tweedie'")
 
@@ -243,13 +250,20 @@ class Regressor(Model):
 
         r2 = make_scorer(r2_score)
         rmse = make_scorer(mean_squared_error, squared=False)
-        d2_tweedie = make_scorer(d2_tweedie_score, power=1)
 
-        scorer = {
-            "r2 score": r2,
-            "rmse": rmse,
-            "d2 tweedie score": d2_tweedie,
-        }
+        if all([y_elem >= 0 for y_elem in y]):
+            d2_tweedie = make_scorer(d2_tweedie_score, power=1)
+            scorer = {
+                "r2 score": r2,
+                "rmse": rmse,
+                "d2 tweedie score": d2_tweedie,
+            }
+        else:
+            scorer = {
+                "r2 score": r2,
+                "rmse": rmse,
+            }
+
 
         cv_scores = cross_validate(
             self,
@@ -265,13 +279,23 @@ class Regressor(Model):
         pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
 
         score = pd_scores["average"]
-        self.cv_scores = {
-            "r2": score[list(score.keys())[2]],
-            "rmse": score[list(score.keys())[4]],
-            "d2_tweedie": score[list(score.keys())[6]],
-            "train_score": score[list(score.keys())[3]],
-            "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
-        }
+        
+        if all([y_elem >= 0 for y_elem in y]):
+            self.cv_scores = {
+                "r2": score[list(score.keys())[2]],
+                "rmse": score[list(score.keys())[4]],
+                "d2_tweedie": score[list(score.keys())[6]],
+                "train_score": score[list(score.keys())[3]],
+                "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+            }
+        else:
+            self.cv_scores = {
+                "r2": score[list(score.keys())[2]],
+                "rmse": score[list(score.keys())[4]],
+                "d2_tweedie": -1,
+                "train_score": score[list(score.keys())[3]],
+                "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+            }
 
         logger.debug(f"cross validation {self.model_name} - finished")
 
@@ -322,7 +346,12 @@ class Regressor(Model):
         # Calculate Metrics
         r2 = r2_score(true_values, predictions)
         rmse = mean_squared_error(true_values, predictions, squared=False)
-        d2_tweedie = d2_tweedie_score(true_values, predictions, power=1)
+
+        if all([y_elem >= 0 for y_elem in y]):
+            d2_tweedie = d2_tweedie_score(true_values, predictions, power=1)
+        else:
+            d2_tweedie = -1
+        
         avg_train_score = mean(t_scores)
         avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 

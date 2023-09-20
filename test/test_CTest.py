@@ -17,7 +17,8 @@ X, Y = make_classification(n_samples = 50,
                             n_informative = 5,
                             n_redundant = 0,
                             n_classes = 3,
-                            weights = [.2, .3, .8])
+                            weights = [.2, .3, .8],
+                            random_state=42)
 X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 x_train, x_test, y_train, y_test = train_test_split(X,Y, train_size=0.80, random_state=42)
@@ -79,7 +80,8 @@ X_200, Y_200 = make_classification(n_samples = 200,
                             n_informative = 5,
                             n_redundant = 0,
                             n_classes = 3,
-                            weights = [.2, .3, .8])
+                            weights = [.2, .3, .8],
+                            random_state=42)
 X_200 = pd.DataFrame(X_200, columns=["col1", "col2", "col3", "col4", "col5"])
 Y_200 = pd.Series(Y_200)
 x_train_200, x_test_200, y_train_200, y_test_200 = train_test_split(X_200,Y_200, train_size=0.80, random_state=42)
@@ -89,7 +91,8 @@ X_5500, Y_5500 = make_classification(n_samples = 5500,
                             n_informative = 5,
                             n_redundant = 0,
                             n_classes = 3,
-                            weights = [.2, .3, .8])
+                            weights = [.2, .3, .8],
+                            random_state=42)
 X_5500 = pd.DataFrame(X_5500, columns=["col1", "col2", "col3", "col4", "col5"])
 Y_5500 = pd.Series(Y_5500)
 x_train_5500, x_test_5500, y_train_5500, y_test_5500 = train_test_split(X_5500,Y_5500, train_size=0.80, random_state=42)

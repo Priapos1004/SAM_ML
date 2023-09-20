@@ -36,7 +36,8 @@ X, Y = make_classification(n_samples = 50,
                             n_informative = 5,
                             n_redundant = 0,
                             n_classes = 3,
-                            weights = [.2, .3, .8])
+                            weights = [.2, .3, .8],
+                            random_state=42)
 X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 

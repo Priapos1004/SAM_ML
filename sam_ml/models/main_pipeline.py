@@ -160,5 +160,8 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
         def get_params(self, deep: bool = True) -> dict[str, any]:
             return dict(self.steps)
         
+    # quick solution: discrete vs continuous values
+    if type(model).__base__ == Regressor:
+        sampler = None
 
     return pipeline(model=model, vectorizer=vectorizer, scaler=scaler, selector=selector, sampler=sampler, model_name=model_name)
