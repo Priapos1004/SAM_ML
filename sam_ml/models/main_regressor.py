@@ -290,82 +290,62 @@ class Regressor(Model):
 
         return self.cv_scores
 
-    # def cross_validation_small_data(
-    #     self,
-    #     X: pd.DataFrame,
-    #     y: pd.Series,
-    #     avg: str = get_avg(),
-    #     pos_label: int | str = get_pos_label(),
-    #     leave_loadbar: bool = True,
-    #     console_out: bool = True,
-    #     secondary_scoring: str = get_secondary_scoring(),
-    #     strength: int = get_strength(),
-    # ) -> dict[str, float]:
-    #     """
-    #     Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
+    def cross_validation_small_data(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        leave_loadbar: bool = True,
+    ) -> dict[str, float]:
+        """
+        Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
 
-    #     @param:
-    #         X, y: data to cross validate on
+        @param:
+            X, y: data to cross validate on
 
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+            leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
+            
+        @return:
+            dictionary with "r2_score", "rmse", "d2_tweedie_score", "train_score", "train_time"
+        """
+        logger.debug(f"cross validation {self.model_name} - started")
 
-    #         leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
-    #         console_out: shall the result be printed into the console
-
-    #         secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-    #         strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
-
-    #     @return:
-    #         dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
-    #     """
-    #     logger.debug(f"cross validation {self.model_name} - started")
-
-    #     predictions = []
-    #     true_values = []
-    #     t_scores = []
-    #     t_times = []
+        predictions = []
+        true_values = []
+        t_scores = []
+        t_times = []
         
-    #     for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
-    #         x_train = X.drop(idx)
-    #         y_train = y.drop(idx)
-    #         x_test = X.loc[[idx]]
-    #         y_test = y.loc[idx]
+        for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
+            x_train = X.drop(idx)
+            y_train = y.drop(idx)
+            x_test = X.loc[[idx]]
+            y_test = y.loc[idx]
 
-    #         train_score, train_time = self.train(x_train, y_train, console_out=False)
-    #         prediction = self.predict(x_test)
+            train_score, train_time = self.train(x_train, y_train, console_out=False)
+            prediction = self.predict(x_test)
 
-    #         predictions.append(prediction)
-    #         true_values.append(y_test)
-    #         t_scores.append(train_score)
-    #         t_times.append(train_time)
+            predictions.append(prediction)
+            true_values.append(y_test)
+            t_scores.append(train_score)
+            t_times.append(train_time)
 
-    #     accuracy = accuracy_score(true_values, predictions)
-    #     precision = precision_score(true_values, predictions, average=avg, pos_label=pos_label)
-    #     recall = recall_score(true_values, predictions, average=avg, pos_label=pos_label)
-    #     s_score = s_scoring(true_values, predictions, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-    #     l_score = l_scoring(true_values, predictions, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-    #     avg_train_score = mean(t_scores)
-    #     avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
+        # Calculate Metrics
+        r2 = r2_score(true_values, predictions)
+        rmse = mean_squared_error(true_values, predictions, squared=False)
+        d2_tweedie = d2_tweedie_score(true_values, predictions, power=1)
+        avg_train_score = mean(t_scores)
+        avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
-    #     self.cv_scores = {
-    #         "accuracy": accuracy,
-    #         "precision": precision,
-    #         "recall": recall,
-    #         "s_score": s_score,
-    #         "l_score": l_score,
-    #         "train_score": avg_train_score,
-    #         "train_time": avg_train_time,
-    #     }
+        self.cv_scores = {
+            "r2_score": r2,
+            "rmse": rmse,
+            "d2_tweedie_score": d2_tweedie,
+            "train_score": avg_train_score,
+            "train_time": avg_train_time,
+        }
 
-    #     logger.debug(f"cross validation {self.model_name} - finished")
+        logger.debug(f"cross validation {self.model_name} - finished")
 
-    #     if console_out:
-    #         print()
-    #         print("classification report:")
-    #         print(classification_report(true_values, predictions))
-
-    #     return self.cv_scores
+        return self.cv_scores
 
     # def feature_importance(self) -> plt.show:
     #     """
