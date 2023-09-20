@@ -25,7 +25,6 @@ from sam_ml.config import (
 )
 
 from .main_model import Model
-from .scorer import l_scoring, s_scoring
 
 SMAC_INSTALLED: bool
 try:
@@ -347,42 +346,42 @@ class Regressor(Model):
 
         return self.cv_scores
 
-    # def feature_importance(self) -> plt.show:
-    #     """
-    #     feature_importance() generates a matplotlib plot of the feature importance from self.model
-    #     """
-    #     if not self.feature_names:
-    #         raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
+    def feature_importance(self) -> plt.show:
+        """
+        feature_importance() generates a matplotlib plot of the feature importance from self.model
+        """
+        if not self.feature_names:
+            raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
 
-    #     if self.model_type == "MLPC":
-    #         importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-    #     elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC", "XGBC"):
-    #         importances = self.model.feature_importances_
-    #     elif self.model_type in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
-    #         logger.warning(f"{self.model_type} does not have a feature importance")
-    #         return
-    #     else:
-    #         importances = self.model.coef_[0]  # "normal"
+        if self.model_type == "...":
+            importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
+        elif self.model_type in ("RFR"):
+            importances = self.model.feature_importances_
+        elif self.model_type in ():
+            logger.warning(f"{self.model_type} does not have a feature importance")
+            return
+        else:
+            importances = self.model.coef_[0]  # "normal"
 
-    #     feature_importances = pd.Series(importances, index=self.feature_names)
+        feature_importances = pd.Series(importances, index=self.feature_names)
 
-    #     fig, ax = plt.subplots()
-    #     if self.model_type in ("RFC", "GBM", "ETC"):
-    #         if self.model_type in ("RFC", "ETC"):
-    #             std = np.std(
-    #                 [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
-    #             )
-    #         elif self.model_type == "GBM":
-    #             std = np.std(
-    #                 [tree[0].feature_importances_ for tree in self.model.estimators_], axis=0,
-    #             )
-    #         feature_importances.plot.bar(yerr=std, ax=ax)
-    #     else:
-    #         feature_importances.plot.bar(ax=ax)
-    #     ax.set_title("Feature importances of " + str(self.model_name))
-    #     ax.set_ylabel("use of coefficients as importance scores")
-    #     fig.tight_layout()
-    #     plt.show()
+        fig, ax = plt.subplots()
+        if self.model_type in ("RFR"):
+            if self.model_type in ("RFR"):
+                std = np.std(
+                    [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
+                )
+            elif self.model_type == "...":
+                std = np.std(
+                    [tree[0].feature_importances_ for tree in self.model.estimators_], axis=0,
+                )
+            feature_importances.plot.bar(yerr=std, ax=ax)
+        else:
+            feature_importances.plot.bar(ax=ax)
+        ax.set_title("Feature importances of " + str(self.model_name))
+        ax.set_ylabel("use of coefficients as importance scores")
+        fig.tight_layout()
+        plt.show()
     
     # def smac_search(
     #     self,

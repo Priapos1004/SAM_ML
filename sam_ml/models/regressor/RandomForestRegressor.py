@@ -31,7 +31,7 @@ class RFR(Regressor):
             bootstrap: Method of selecting samples for training each tree
             criterion: function to measure the quality of a split
         """
-        model_type = "RFC"
+        model_type = "RFR"
         model = RandomForestRegressor(
             n_jobs=n_jobs,
             random_state=random_state,
