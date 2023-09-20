@@ -181,7 +181,7 @@ class Regressor(Model):
 
             console_out: shall the result be printed into the console
 
-        @return: dictionary with keys with scores: "r2_score", "rmse", and "d2_tweedie_score"
+        @return: dictionary with keys with scores: "r2", "rmse", "d2_tweedie"
         """
         pred = self.predict(x_test)
 
@@ -304,7 +304,7 @@ class Regressor(Model):
             leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
             
         @return:
-            dictionary with "r2_score", "rmse", "d2_tweedie_score", "train_score", "train_time"
+            dictionary with "r2", "rmse", "d2_tweedie", "train_score", "train_time"
         """
         logger.debug(f"cross validation {self.model_name} - started")
 
@@ -402,7 +402,7 @@ class Regressor(Model):
             n_trails: max number of parameter sets to test
             cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie")
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             
@@ -441,7 +441,12 @@ class Regressor(Model):
                 score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False)
             else:
                 score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num)
-            return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
+            
+            # SMAC always minimizes (the smaller the better)
+            if scoring == "rmse":
+                return score[scoring]  
+            else:
+                return 1 - score[scoring]
 
         # use SMAC to find the best hyperparameters
         smac = HyperparameterOptimizationFacade(
@@ -456,76 +461,68 @@ class Regressor(Model):
         logger.debug("finished smac_search")
         return incumbent
 
-    # def randomCVsearch(
-    #     self,
-    #     x_train: pd.DataFrame,
-    #     y_train: pd.Series,
-    #     n_trails: int = 10,
-    #     cv_num: int = 5,
-    #     scoring: str = get_scoring(),
-    #     avg: str = get_avg(),
-    #     pos_label: int | str = get_pos_label(),
-    #     secondary_scoring: str = get_secondary_scoring(),
-    #     strength: int = get_strength(),
-    #     small_data_eval: bool = False,
-    #     leave_loadbar: bool = True,
-    # ) -> tuple[dict, float]:
-    #     """
-    #     @params:
-    #         x_train: DataFrame with train features
-    #         y_train: Series with labels
+    def randomCVsearch(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series,
+        n_trails: int = 10,
+        cv_num: int = 5,
+        scoring: str = "r2",
+        small_data_eval: bool = False,
+        leave_loadbar: bool = True,
+    ) -> tuple[dict, float]:
+        """
+        @params:
+            x_train: DataFrame with train features
+            y_train: Series with labels
 
-    #         n_trails: number of parameter sets to test
+            n_trails: number of parameter sets to test
 
-    #         scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
-    #         avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-    #         pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-    #         secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-    #         strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
+            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie")
 
-    #         small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 
-    #         cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-    #         leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
+            leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
 
-    #     @return: dictionary with best hyperparameters and float of best_score
-    #     """
-    #     logger.debug("starting randomCVsearch")
-    #     results = []
-    #     configs = self.get_random_configs(n_trails)
-    #     at_least_one_run: bool = False
-    #     try:
-    #         for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
-    #             logger.debug(f"config: {config}")
-    #             model = self.get_deepcopy()
-    #             model.set_params(**config)
-    #             if small_data_eval:
-    #                 score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-    #             else:
-    #                 score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-    #             config_dict = dict(config)
-    #             config_dict[scoring] = score[scoring]
-    #             results.append(config_dict)
-    #             at_least_one_run = True
-    #     except KeyboardInterrupt:
-    #         logger.info("KeyboardInterrupt - output interim result")
-    #         if not at_least_one_run:
-    #             return {}, -1
+        @return: dictionary with best hyperparameters and float of best_score
+        """
+        logger.debug("starting randomCVsearch")
+        results = []
+        configs = self.get_random_configs(n_trails)
+        at_least_one_run: bool = False
+        try:
+            for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
+                logger.debug(f"config: {config}")
+                model = self.get_deepcopy()
+                model.set_params(**config)
+                if small_data_eval:
+                    score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False)
+                else:
+                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False)
+                config_dict = dict(config)
+                config_dict[scoring] = score[scoring]
+                results.append(config_dict)
+                at_least_one_run = True
+        except KeyboardInterrupt:
+            logger.info("KeyboardInterrupt - output interim result")
+            if not at_least_one_run:
+                return {}, -1
             
 
-    #     self.rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
+        self.rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
 
-    #     # for-loop to keep dtypes of columns
-    #     best_hyperparameters = {} 
-    #     for col in self.rCVsearch_results.columns:
-    #         value = self.rCVsearch_results[col].iloc[0]
-    #         if str(value) != "nan":
-    #             best_hyperparameters[col] = value
+        # for-loop to keep dtypes of columns
+        best_hyperparameters = {} 
+        for col in self.rCVsearch_results.columns:
+            value = self.rCVsearch_results[col].iloc[0]
+            if str(value) != "nan":
+                best_hyperparameters[col] = value
 
-    #     best_score = best_hyperparameters[scoring]
-    #     best_hyperparameters.pop(scoring)
+        best_score = best_hyperparameters[scoring]
+        best_hyperparameters.pop(scoring)
 
-    #     logger.debug("finished randomCVsearch")
+        logger.debug("finished randomCVsearch")
         
-    #     return best_hyperparameters, best_score
+        return best_hyperparameters, best_score
