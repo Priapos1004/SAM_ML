@@ -32,6 +32,7 @@ from sam_ml.data.preprocessing import (
 )
 
 from ..main_classifier import Classifier
+from ..main_pipeline import Pipeline
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
@@ -44,7 +45,6 @@ from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
-from .main_classifier_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC

@@ -11,7 +11,6 @@ from .KNeighborsClassifier import KNC
 from .LinearDiscriminantAnalysis import LDA
 from .LinearSupportVectorClassifier import LSVC
 from .LogisticRegression import LR
-from .main_classifier_pipeline import Pipeline
 from .MLPClassifier import MLPC
 from .QuadraticDiscriminantAnalysis import QDA
 from .RandomForestClassifier import RFC
@@ -19,7 +18,6 @@ from .SupportVectorClassifier import SVC
 from .XGBoostClassifier import XGBC
 
 __all__ = {
-    "pipeline class": "Pipeline",
     "AutoML class": "CTest",
     "RandomForestClassifier": "RFC",
     "LogisticRegression": "LR",
