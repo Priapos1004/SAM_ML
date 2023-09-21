@@ -27,6 +27,7 @@ from ..main_pipeline import Pipeline
 from ..main_regressor import Regressor
 
 from.RandomForestRegressor import RFR
+from .DecisionTreeRegressor import DTR
 
 logger = setup_logger(__name__)
 
@@ -146,7 +147,8 @@ class RTest:
         """
         if kind == "all":
             models = [
-                RFR()
+                RFR(),
+                DTR(),
             ]
         else:
             raise ValueError(f"Cannot find model combination '{kind}'")

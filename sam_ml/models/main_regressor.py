@@ -376,7 +376,7 @@ class Regressor(Model):
 
         if self.model_type == "...":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ("RFR"):
+        elif self.model_type in ("RFR", "DTR"):
             importances = self.model.feature_importances_
         elif self.model_type in ():
             logger.warning(f"{self.model_type} does not have a feature importance")
