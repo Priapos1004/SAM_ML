@@ -1,17 +1,17 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer, Normal
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import ExtraTreesRegressor
 
 from sam_ml.config import get_n_jobs
 
-from ..main_classifier import Classifier
+from ..main_regressor import Regressor
 
 
-class ETC(Classifier):
-    """ ExtraTreesClassifier Wrapper class """
+class ETR(Regressor):
+    """ ExtraTreesRegressor Wrapper class """
 
     def __init__(
         self,
-        model_name: str = "ExtraTreesClassifier",
+        model_name: str = "ExtraTreesRegressor",
         n_jobs: int = get_n_jobs(),
         random_state: int = 42,
         **kwargs,
@@ -31,8 +31,8 @@ class ETC(Classifier):
             bootstrap: Method of selecting samples for training each tree
             criterion: function to measure the quality of a split
         """
-        model_type = "ETC"
-        model = ExtraTreesClassifier(
+        model_type = "ETR"
+        model = ExtraTreesRegressor(
             n_jobs=n_jobs,
             random_state=random_state,
             **kwargs,
@@ -45,7 +45,7 @@ class ETC(Classifier):
             "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4), default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=False),
-            "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
+            "criterion": Categorical("criterion", ["friedman_mse", "squared_error"], default="squared_error"),
             "min_weight_fraction_leaf": Float("min_weight_fraction_leaf", (0, 0.5), default=0),
             })
         
@@ -58,7 +58,7 @@ class ETC(Classifier):
             "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4), default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=False),
-            "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
+            "criterion": Categorical("criterion", ["friedman_mse", "squared_error"], default="squared_error"),
             "min_weight_fraction_leaf": Float("min_weight_fraction_leaf", (0, 0.5), default=0),
             })
         super().__init__(model, model_name, model_type, grid)

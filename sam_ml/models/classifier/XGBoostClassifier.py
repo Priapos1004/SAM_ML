@@ -54,6 +54,3 @@ class XGBC(Classifier):
             "learning_rate": Float("learning_rate", bounds=(0.001, 0.30), log=True, default=0.1),
             })
         super().__init__(model, model_name, model_type, grid)
-
-    def feature_importance(self):
-        super().feature_importance()

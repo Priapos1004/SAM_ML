@@ -1,4 +1,4 @@
-from ConfigSpace import Categorical, ConfigurationSpace, Integer, Normal
+from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer, Normal
 from sklearn.ensemble import RandomForestClassifier
 
 from sam_ml.config import get_n_jobs
@@ -46,6 +46,7 @@ class RFC(Classifier):
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4), default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=True),
             "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
+            "min_weight_fraction_leaf": Float("min_weight_fraction_leaf", (0, 0.5), default=0),
             })
         
         # workaround for now -> Problems with Normal distribution (in smac_search) (04/07/2023)
@@ -58,5 +59,6 @@ class RFC(Classifier):
             "min_samples_leaf": Integer("min_samples_leaf", (1, 4), default=1),
             "bootstrap": Categorical("bootstrap", [True, False], default=True),
             "criterion": Categorical("criterion", ["gini", "entropy"], default="gini"),
+            "min_weight_fraction_leaf": Float("min_weight_fraction_leaf", (0, 0.5), default=0),
             })
         super().__init__(model, model_name, model_type, grid)

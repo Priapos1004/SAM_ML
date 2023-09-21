@@ -14,15 +14,7 @@ import pygame
 from pkg_resources import resource_filename
 from tqdm.auto import tqdm
 
-from sam_ml.config import (
-    get_avg,
-    get_pos_label,
-    get_scoring,
-    get_secondary_scoring,
-    get_sound_on,
-    get_strength,
-    setup_logger,
-)
+from sam_ml.config import get_sound_on, setup_logger
 from sam_ml.data.preprocessing import (
     Embeddings_builder,
     Sampler,
@@ -31,25 +23,16 @@ from sam_ml.data.preprocessing import (
     Selector,
 )
 
-from ..main_classifier import Classifier
 from ..main_pipeline import Pipeline
-from .AdaBoostClassifier import ABC
-from .BaggingClassifier import BC
-from .BernoulliNB import BNB
-from .DecisionTreeClassifier import DTC
-from .ExtraTreesClassifier import ETC
-from .GaussianNB import GNB
-from .GaussianProcessClassifier import GPC
-from .GradientBoostingMachine import GBM
-from .KNeighborsClassifier import KNC
-from .LinearDiscriminantAnalysis import LDA
-from .LinearSupportVectorClassifier import LSVC
-from .LogisticRegression import LR
-from .MLPClassifier import MLPC
-from .QuadraticDiscriminantAnalysis import QDA
-from .RandomForestClassifier import RFC
-from .SupportVectorClassifier import SVC
-from .XGBoostClassifier import XGBC
+from ..main_regressor import Regressor
+
+from.RandomForestRegressor import RFR
+from .BayesianRidge import BYR
+from .DecisionTreeRegressor import DTR
+from .ElasticNet import EN
+from .ExtraTreesRegressor import ETR
+from .LassoLarsCV import LLCV
+from .SGDRegressor import SGDR
 
 logger = setup_logger(__name__)
 
@@ -58,23 +41,16 @@ if not sys.warnoptions:
     os.environ["PYTHONWARNINGS"] = "ignore" # Also affects subprocesses
 
 
-class CTest:
+class RTest:
     """ AutoML class """
 
-    def __init__(self, models: str | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
+    def __init__(self, models: str | list[Regressor] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
         """
         @params:
             models:
-
                 - list of Wrapperclass models from this library
 
-                - 'all': use all Wrapperclass models (18+ models)
-
-                - 'big_data': use all Wrapperclass models except the ones that take too much space or time on big data (>200.000 data points)
-
-                - 'basic': use basic Wrapperclass models (8 models) (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, KNeighborsClassifier)
-
-                - 'basic2': use basic (mostly tree-based) Wrapperclass models
+                - 'all': use all Wrapperclass models
 
             vectorizer: type of "data.embeddings.Embeddings_builder" or Embeddings_builder class object for automatic string column vectorizing (None for no vectorizing)
             scaler: type of "data.scaler.Scaler" or Scaler class object for scaling the data (None for no scaling)
@@ -160,7 +136,7 @@ class CTest:
     def remove_model(self, model_name: str):
         del self.models[model_name]
 
-    def add_model(self, model: Classifier):
+    def add_model(self, model: Regressor):
         for vec in self._vectorizer:
             for scal in self._scaler:
                 for sel in self._selector:
@@ -173,74 +149,16 @@ class CTest:
         @params:
             kind:
                 "all": use all models
-                "basic": use a simple combination (LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier, RandomForestClassifier, SVC, Gradientboostingmachine, AdaboostClassifier, KNeighborsClassifier)
         """
         if kind == "all":
             models = [
-                LR(),
-                QDA(),
-                LDA(),
-                MLPC(),
-                LSVC(),
-                DTC(),
-                RFC(),
-                SVC(),
-                GBM(),
-                ABC(estimator="DTC"),
-                ABC(estimator="RFC"),
-                ABC(estimator="LR"),
-                KNC(),
-                ETC(),
-                GNB(),
-                BNB(),
-                GPC(),
-                BC(estimator="DTC"),
-                BC(estimator="RFC"),
-                BC(estimator="LR"),
-                XGBC(),
-            ]
-        elif kind == "basic":
-            models = [
-                LR(),
-                MLPC(),
-                LSVC(),
-                DTC(),
-                RFC(),
-                SVC(),
-                GBM(),
-                KNC(),
-            ]
-        elif kind == "big_data":
-            models = [
-                LR(),
-                QDA(),
-                LDA(),
-                LSVC(),
-                DTC(),
-                RFC(),
-                GBM(),
-                ABC(estimator="DTC"),
-                ABC(estimator="RFC"),
-                ABC(estimator="LR"),
-                ETC(),
-                GNB(),
-                BNB(),
-                BC(estimator="DTC"),
-                BC(estimator="RFC"),
-                BC(estimator="LR"),
-                XGBC(),
-            ]
-        elif kind == "basic2":
-            models = [
-                LR(),
-                RFC(),
-                ABC(estimator="DTC"),
-                ABC(estimator="RFC"),
-                ABC(estimator="LR"),
-                BC(estimator="DTC"),
-                BC(estimator="RFC"),
-                BC(estimator="LR"),
-                XGBC(),
+                RFR(),
+                DTR(),
+                ETR(),
+                SGDR(),
+                LLCV(),
+                EN(),
+                BYR(),
             ]
         else:
             raise ValueError(f"Cannot find model combination '{kind}'")
@@ -260,9 +178,9 @@ class CTest:
         @param:
             sorted_by:
                 'index': sort index ascending=True
-                'precision'/'recall'/'accuracy'/'train_score'/'train_time': sort by these columns ascending=False
+                'r2'/'rmse'/'d2_tweedie'/'train_score'/'train_time': sort by these columns ascending=False
 
-                e.g. ['precision', 'recall'] - sort first by 'precision' and then by 'recall'
+                e.g. ['r2', 'd2_tweedie'] - sort first by 'r2' and then by 'd2_tweedie'
         """
         if self.scores != {}:
             if sort_by == "index":
@@ -287,20 +205,10 @@ class CTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        avg: str = get_avg(),
-        pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
-        strength: int = get_strength(),
     ) -> dict[str, dict]:
         """
         @param:
             x_train, y_train, x_test, y_test: Data to train and evaluate models
-
-            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")    
-            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
-
-            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             saves metrics in dict self.scores and also outputs them
@@ -309,7 +217,7 @@ class CTest:
             for key in tqdm(self.models.keys(), desc="Evaluation"):
                 tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
                 score = self.models[key].evaluate(
-                    x_test, y_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
+                    x_test, y_test, console_out=False,
                 )
                 score["train_score"] = tscore
                 score["train_time"] = ttime
@@ -327,24 +235,14 @@ class CTest:
         X: pd.DataFrame,
         y: pd.Series,
         cv_num: int = 5,
-        avg: str = get_avg(),
-        pos_label: int | str = get_pos_label(),
         small_data_eval: bool = False,
-        secondary_scoring: str = get_secondary_scoring(),
-        strength: int = get_strength(),
     ) -> dict[str, dict]:
         """
         @param:
             X, y: Data to train and evaluate models on
             cv_num: number of different splits (ignored if small_data_eval=True)
 
-            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
-            
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-
-            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
-            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
         @return:
             saves metrics in dict self.scores and also outputs them
@@ -354,11 +252,11 @@ class CTest:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength,
+                        X, y, leave_loadbar=False,
                     )
                 else:
                     self.models[key].cross_validation(
-                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
+                        X, y, cv_num=cv_num, console_out=False,
                     )
                 self.scores[key] = self.models[key].cv_scores
             self.__finish_sound()
@@ -375,11 +273,7 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str = get_scoring(),
-        avg: str = get_avg(),
-        pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
-        strength: int = get_strength(),
+        scoring: str = "r2",
         small_data_eval: bool = False,
         cv_num: int = 3,
         leave_loadbar: bool = True,
@@ -394,10 +288,6 @@ class CTest:
             n_trails: number of parameter sets to test per modeltype
 
             scoring: metrics to evaluate the models
-            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 
@@ -406,20 +296,20 @@ class CTest:
             leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
         """
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
-            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, leave_loadbar=leave_loadbar)
+            best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails=n_trails, scoring=scoring, small_data_eval=small_data_eval, cv_num=cv_num, leave_loadbar=leave_loadbar)
             logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
             if best_hyperparameters:
                 model_best = self.models[key].get_deepcopy()
                 model_best.set_params(**best_hyperparameters)
                 train_score, train_time = model_best.train(x_train, y_train, console_out=False)
-                scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+                scores = model_best.evaluate(x_test, y_test, console_out=False)
                 
                 scores["train_time"] = train_time
                 scores["train_score"] = train_score
                 scores["best_score (rCVs)"] = best_score
                 scores["best_hyperparameters (rCVs)"] = best_hyperparameters
                 self.scores[key] = scores
-        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "r2", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
         best_model_hyperparameters = sorted_scores.iloc[0]["best_hyperparameters (rCVs)"]
@@ -434,11 +324,7 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str = get_scoring(),
-        avg: str = get_avg(),
-        pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
-        strength: int = get_strength(),
+        scoring: str =  "r2",
         small_data_eval: bool = False,
         cv_num: int = 3,
         smac_log_level: int = 30,
@@ -454,10 +340,6 @@ class CTest:
             n_trails: max number of parameter sets to test per modeltype
 
             scoring: metrics to evaluate the models
-            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 
@@ -468,19 +350,19 @@ class CTest:
             walltime_limit_per_modeltype: the maximum time in seconds that SMAC is allowed to run for each modeltype
         """
         for key in tqdm(self.models.keys(), desc="smac_search"):
-            best_hyperparameters = self.models[key].smac_search(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, walltime_limit=walltime_limit_per_modeltype, log_level=smac_log_level)
+            best_hyperparameters = self.models[key].smac_search(x_train, y_train, n_trails=n_trails, scoring=scoring, small_data_eval=small_data_eval, cv_num=cv_num, walltime_limit=walltime_limit_per_modeltype, log_level=smac_log_level)
             logger.info(f"{self.models[key].model_name} - parameters: {best_hyperparameters}")
             
             model_best = self.models[key].get_deepcopy()
             model_best.set_params(**best_hyperparameters)
             train_score, train_time = model_best.train(x_train, y_train, console_out=False)
-            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+            scores = model_best.evaluate(x_test, y_test, console_out=False)
             
             scores["train_time"] = train_time
             scores["train_score"] = train_score
             scores["best_hyperparameters"] = dict(best_hyperparameters)
             self.scores[key] = scores
-        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
+        sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "r2", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
         best_model_hyperparameters = sorted_scores.iloc[0]["best_hyperparameters"]
@@ -494,11 +376,7 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 10,
-        scoring: str = get_scoring(),
-        avg: str = get_avg(),
-        pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
-        strength: int = get_strength(),
+        scoring: str = "r2",
         leave_loadbar: bool = True,
         save_results_path: str | None = "find_best_model_mass_search_results.csv",
     ) -> dict:
@@ -512,10 +390,6 @@ class CTest:
             n_trails: number of parameter sets to test per modeltype
 
             scoring: metrics to evaluate the models
-            avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
-            pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
-            secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
-            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for scoring='s_score'/'l_score')
 
             leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
 
@@ -529,7 +403,7 @@ class CTest:
                 for config in configs:
                     model_new = model.get_deepcopy()
                     model_new = model_new.set_params(**config)
-                    if model_new.model_type != "XGBC":
+                    if model_new.model_type != "...":
                         model_new = model_new.set_params(**{"warm_start": True})
                     model_name = f"{key} {dict(config)}"
                     model_dict[model_name] = model_new
@@ -565,18 +439,18 @@ class CTest:
 
                 # XGBoostClassifier has different warm_start implementation
                 if model_dict[key].model_type != "XGBC" or split_idx==0:
-                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+                    tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, scoring=scoring, console_out=False)
                 else:
                     start = time.time()
                     model_dict[key].fit_warm_start(x_train_train, y_train_train, xgb_model=model_dict[key].model)
                     end = time.time()
-                    tscore, ttime = model_dict[key].evaluate_score(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength), str(timedelta(seconds=int(end-start)))
+                    tscore, ttime = model_dict[key].evaluate_score(x_train_train, y_train_train, scoring=scoring), str(timedelta(seconds=int(end-start)))
                 
-                score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength)
+                score = model_dict[key].evaluate(x_train_test, y_train_test, console_out=False)
                 score["train_score"] = tscore
                 score["train_time"] = ttime
                 split_scores[key] = score
-                sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["s_score"], item[1]["train_time"]), reverse=True))
+                sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["r2"], item[1]["train_time"]), reverse=True))
                 if score[scoring] > best_score:
                     best_model_name = list(sorted_split_scores.keys())[0]
                     logger.info(f"new best {scoring}: {best_score} -> {score[scoring]} ({best_model_name})")
@@ -603,7 +477,7 @@ class CTest:
         x_train_train = x_train[int(split_idx*1/split_num*len(x_train)):]
         y_train_train = y_train[int(split_idx*1/split_num*len(y_train)):]
         tscore, ttime = best_model.train_warm_start(x_train_train, y_train_train, console_out=False)
-        score = best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, console_out=True, secondary_scoring=secondary_scoring, strength=strength)
+        score = best_model.evaluate(x_test, y_test, console_out=True)
         score["train_score"] = tscore
         score["train_time"] = ttime
         return best_model_name, score
