@@ -375,8 +375,8 @@ class Regressor(Model):
             raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
 
         if self.model_type == "...":
-            importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ("RFR", "DTR"):
+            importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Regressor
+        elif self.model_type in ("RFR", "DTR", "ETR"):
             importances = self.model.feature_importances_
         elif self.model_type in ():
             logger.warning(f"{self.model_type} does not have a feature importance")
@@ -387,8 +387,8 @@ class Regressor(Model):
         feature_importances = pd.Series(importances, index=self.feature_names)
 
         fig, ax = plt.subplots()
-        if self.model_type in ("RFR"):
-            if self.model_type in ("RFR"):
+        if self.model_type in ("RFR", "ETR"):
+            if self.model_type in ("RFR", "ETR"):
                 std = np.std(
                     [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
                 )

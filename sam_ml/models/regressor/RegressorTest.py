@@ -28,6 +28,7 @@ from ..main_regressor import Regressor
 
 from.RandomForestRegressor import RFR
 from .DecisionTreeRegressor import DTR
+from .ExtraTreesRegressor import ETR
 
 logger = setup_logger(__name__)
 
@@ -149,6 +150,7 @@ class RTest:
             models = [
                 RFR(),
                 DTR(),
+                ETR(),
             ]
         else:
             raise ValueError(f"Cannot find model combination '{kind}'")

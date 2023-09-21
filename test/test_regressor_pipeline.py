@@ -8,11 +8,11 @@ from sklearn.exceptions import NotFittedError
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
 from sam_ml.models import Pipeline
 from sam_ml.models.main_regressor import SMAC_INSTALLED
-from sam_ml.models.regressor import DTR, RFR
+from sam_ml.models.regressor import DTR, ETR, RFR
 
 
 def get_models() -> list:
-    return [RFR(), DTR()]
+    return [RFR(), DTR(), ETR()]
 
 X, Y = make_regression(n_samples = 50,
                         n_features = 5,

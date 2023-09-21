@@ -1,4 +1,4 @@
-from ConfigSpace import Categorical, ConfigurationSpace, Integer
+from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 
@@ -34,6 +34,9 @@ class DTC(Classifier):
             "max_depth": Integer("max_depth", (1, 12), default=5),
             "min_samples_split": Integer("min_samples_split", (2, 10), default=2),
             "min_samples_leaf": Integer("min_samples_leaf", (1, 5), default=1),
+            "min_weight_fraction_leaf": Float("min_weight_fraction_leaf", (0, 0.5), default=0),
+            "max_features": Categorical("max_features", ["auto","log2","sqrt"], default="auto"),
+            "max_leaf_nodes": Integer("max_leaf_nodes", (10, 90), default=90),
             })
         super().__init__(model, model_name, model_type, grid)
     
