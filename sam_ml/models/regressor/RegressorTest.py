@@ -27,8 +27,12 @@ from ..main_pipeline import Pipeline
 from ..main_regressor import Regressor
 
 from.RandomForestRegressor import RFR
+from .BayesianRidge import BYR
 from .DecisionTreeRegressor import DTR
+from .ElasticNet import EN
 from .ExtraTreesRegressor import ETR
+from .LassoLarsCV import LLCV
+from .SGDRegressor import SGDR
 
 logger = setup_logger(__name__)
 
@@ -151,6 +155,10 @@ class RTest:
                 RFR(),
                 DTR(),
                 ETR(),
+                SGDR(),
+                LLCV(),
+                EN(),
+                BYR(),
             ]
         else:
             raise ValueError(f"Cannot find model combination '{kind}'")

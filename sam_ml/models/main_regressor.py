@@ -438,7 +438,7 @@ class Regressor(Model):
 
         logger.debug("starting smac_search")
         # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
-        if self.model_type in ("RFR"):
+        if self.model_type in ("RFR", "ETR"):
             grid = self.smac_grid
         else:
             grid = self.grid
