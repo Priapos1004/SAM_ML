@@ -3,6 +3,7 @@ import os
 import sys
 import warnings
 from datetime import timedelta
+from inspect import isfunction
 from statistics import mean
 
 import numpy as np
@@ -193,6 +194,7 @@ class Classifier(Model):
         console_out: bool = True,
         secondary_scoring: str = get_secondary_scoring(),
         strength: int = get_strength(),
+        custom_score = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -206,6 +208,8 @@ class Classifier(Model):
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
+
         @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score'
         """
         pred = self.predict(x_test)
@@ -217,12 +221,17 @@ class Classifier(Model):
         s_score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
         l_score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
 
+        if isfunction(custom_score):
+            custom_scores = custom_score(y_test, pred)
+
         if console_out:
             print("accuracy: ", accuracy)
             print("precision: ", precision)
             print("recall: ", recall)
             print("s_score: ", s_score)
             print("l_score: ", l_score)
+            if isfunction(custom_score):
+                print("custom score: ", custom_scores)
             print()
             print("classification report: ")
             print(classification_report(y_test, pred))
@@ -234,6 +243,9 @@ class Classifier(Model):
             "s_score": s_score,
             "l_score": l_score,
         }
+
+        if isfunction(custom_score):
+            scores["custom_score"] = custom_scores
 
         return scores
     
@@ -250,7 +262,7 @@ class Classifier(Model):
         """
         @param:
             x_test, y_test: Data to evaluate model
-            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score", score function)
 
             avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
@@ -272,6 +284,8 @@ class Classifier(Model):
             score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
         elif scoring == "l_score":
             score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif isfunction(scoring):
+            score = scoring(y_test, pred)
         else:
             raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score' ")
 
@@ -287,6 +301,7 @@ class Classifier(Model):
         console_out: bool = True,
         secondary_scoring: str = get_secondary_scoring(),
         strength: int = get_strength(),
+        custom_score = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -300,6 +315,8 @@ class Classifier(Model):
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
@@ -326,7 +343,15 @@ class Classifier(Model):
                 "accuracy": "accuracy",
                 "s_score": s_scorer,
                 "l_score": l_scorer,
-            }
+            }            
+
+        if isfunction(custom_score):
+            custom_scorer = make_scorer(custom_score)
+            scorer["custom_score"] = custom_scorer
+        elif custom_score is None:
+            custom_scorer = None
+        else:
+            raise ValueError("custom_score has to be a function")
 
         cv_scores = cross_validate(
             self,
@@ -342,6 +367,7 @@ class Classifier(Model):
         pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
 
         score = pd_scores["average"]
+
         self.cv_scores = {
             "accuracy": score[list(score.keys())[6]],
             "precision": score[list(score.keys())[2]],
@@ -351,6 +377,9 @@ class Classifier(Model):
             "train_score": score[list(score.keys())[7]],
             "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
         }
+
+        if isfunction(custom_score):
+            self.cv_scores["custom_score"] = score[list(score.keys())[12]]
 
         logger.debug(f"cross validation {self.model_name} - finished")
 
@@ -370,6 +399,7 @@ class Classifier(Model):
         console_out: bool = True,
         secondary_scoring: str = get_secondary_scoring(),
         strength: int = get_strength(),
+        custom_score = None,
     ) -> dict[str, float]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
@@ -385,6 +415,8 @@ class Classifier(Model):
 
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
 
         @return:
             dictionary with "accuracy", "precision", "recall", "s_score", "l_score", train_score", "train_time"
@@ -428,12 +460,18 @@ class Classifier(Model):
             "train_time": avg_train_time,
         }
 
-        logger.debug(f"cross validation {self.model_name} - finished")
-
         if console_out:
             print()
             print("classification report:")
             print(classification_report(true_values, predictions))
+
+        if isfunction(custom_score):
+            custom_scores = custom_score(true_values, predictions)
+            self.cv_scores["custom_score"] = custom_scores
+        elif custom_score is not None:
+            raise ValueError("custom_score has to be a function -> results in .cv_scores")
+
+        logger.debug(f"cross validation {self.model_name} - finished")
 
         return self.cv_scores
 
@@ -497,7 +535,7 @@ class Classifier(Model):
             n_trails: max number of parameter sets to test
             cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score", score function)
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
@@ -531,15 +569,22 @@ class Classifier(Model):
         initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
         logger.debug(f"initial_design: {initial_design.select_configurations()}")
 
+        # custom scoring
+        if isfunction(scoring):
+            custom_score = scoring
+            scoring = "custom_score"
+        else:
+            custom_score = None
+
         # define target function
         def grid_train(config: Configuration, seed: int) -> float:
             logger.debug(f"config: {config}")
             model = self.get_deepcopy()
             model.set_params(**config)
             if small_data_eval:
-                score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
             else:
-                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
             return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
 
         # use SMAC to find the best hyperparameters
@@ -576,7 +621,7 @@ class Classifier(Model):
 
             n_trails: number of parameter sets to test
 
-            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score")
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score", score function)
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")
             pos_label: if avg="binary", pos_label says which class to score. Else pos_label is ignored (except scoring='s_score'/'l_score')
             secondary_scoring: weights the scoring (only for scoring='s_score'/'l_score')
@@ -593,6 +638,14 @@ class Classifier(Model):
         logger.debug("starting randomCVsearch")
         results = []
         configs = self.get_random_configs(n_trails)
+
+        # custom scoring
+        if isfunction(scoring):
+            custom_score = scoring
+            scoring = "custom_score"
+        else:
+            custom_score = None
+
         at_least_one_run: bool = False
         try:
             for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
@@ -600,9 +653,9 @@ class Classifier(Model):
                 model = self.get_deepcopy()
                 model.set_params(**config)
                 if small_data_eval:
-                    score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                    score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
                 else:
-                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
                 config_dict = dict(config)
                 config_dict[scoring] = score[scoring]
                 results.append(config_dict)

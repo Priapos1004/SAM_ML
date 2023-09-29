@@ -3,6 +3,7 @@ import sys
 import time
 import warnings
 from datetime import timedelta
+from inspect import isfunction
 
 import numpy as np
 import pandas as pd
@@ -287,6 +288,7 @@ class CTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
+        scoring: str = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: str = get_secondary_scoring(),
@@ -296,6 +298,7 @@ class CTest:
         @param:
             x_train, y_train, x_test, y_test: Data to train and evaluate models
 
+            scoring: metrics to evaluate the models
             avg: average to use for precision and recall score (e.g. "micro", "weighted", "binary")    
             pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
 
@@ -305,11 +308,16 @@ class CTest:
         @return:
             saves metrics in dict self.scores and also outputs them
         """
+        if isfunction(scoring):
+            custom_score = scoring
+        else:
+            custom_score = None
+
         try:
             for key in tqdm(self.models.keys(), desc="Evaluation"):
-                tscore, ttime = self.models[key].train(x_train, y_train, console_out=False)
+                tscore, ttime = self.models[key].train(x_train, y_train, console_out=False, scoring=scoring)
                 score = self.models[key].evaluate(
-                    x_test, y_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
+                    x_test, y_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score,
                 )
                 score["train_score"] = tscore
                 score["train_time"] = ttime
@@ -332,6 +340,7 @@ class CTest:
         small_data_eval: bool = False,
         secondary_scoring: str = get_secondary_scoring(),
         strength: int = get_strength(),
+        custom_score = None,
     ) -> dict[str, dict]:
         """
         @param:
@@ -346,19 +355,20 @@ class CTest:
             secondary_scoring: weights the scoring (only for 's_score'/'l_score')
             strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
 
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
+
         @return:
             saves metrics in dict self.scores and also outputs them
         """
-
         try:
             for key in tqdm(self.models.keys(), desc="Crossvalidation"):
                 if small_data_eval:
                     self.models[key].cross_validation_small_data(
-                        X, y, avg=avg, pos_label=pos_label, console_out=False, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength,
+                        X, y, avg=avg, pos_label=pos_label, console_out=False, leave_loadbar=False, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score,
                     )
                 else:
                     self.models[key].cross_validation(
-                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength,
+                        X, y, cv_num=cv_num, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score,
                     )
                 self.scores[key] = self.models[key].cv_scores
             self.__finish_sound()
@@ -405,20 +415,32 @@ class CTest:
 
             leave_loadbar: shall the loading bar of the randomCVsearch of each individual model be visible after training (True - load bar will still be visible)
         """
+        if isfunction(scoring):
+            custom_score = scoring
+        else:
+            custom_score = None
+
         for key in tqdm(self.models.keys(), desc="randomCVsearch"):
             best_hyperparameters, best_score = self.models[key].randomCVsearch(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, leave_loadbar=leave_loadbar)
-            logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
+            if isfunction(scoring):
+                logger.info(f"{self.models[key].model_name} - score: {best_score} (custom_score) - parameters: {best_hyperparameters}")
+            else:
+                logger.info(f"{self.models[key].model_name} - score: {best_score} ({scoring}) - parameters: {best_hyperparameters}")
             if best_hyperparameters:
                 model_best = self.models[key].get_deepcopy()
                 model_best.set_params(**best_hyperparameters)
-                train_score, train_time = model_best.train(x_train, y_train, console_out=False)
-                scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+                train_score, train_time = model_best.train(x_train, y_train, console_out=False, scoring=scoring)
+                scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False, custom_score=custom_score)
                 
                 scores["train_time"] = train_time
                 scores["train_score"] = train_score
                 scores["best_score (rCVs)"] = best_score
                 scores["best_hyperparameters (rCVs)"] = best_hyperparameters
                 self.scores[key] = scores
+
+        if isfunction(scoring):
+            scoring = "custom_score"
+        
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
@@ -467,19 +489,28 @@ class CTest:
 
             walltime_limit_per_modeltype: the maximum time in seconds that SMAC is allowed to run for each modeltype
         """
+        if isfunction(scoring):
+            custom_score = scoring
+        else:
+            custom_score = None
+
         for key in tqdm(self.models.keys(), desc="smac_search"):
             best_hyperparameters = self.models[key].smac_search(x_train, y_train, n_trails=n_trails, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, small_data_eval=small_data_eval, cv_num=cv_num, walltime_limit=walltime_limit_per_modeltype, log_level=smac_log_level)
             logger.info(f"{self.models[key].model_name} - parameters: {best_hyperparameters}")
             
             model_best = self.models[key].get_deepcopy()
             model_best.set_params(**best_hyperparameters)
-            train_score, train_time = model_best.train(x_train, y_train, console_out=False)
-            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False)
+            train_score, train_time = model_best.train(x_train, y_train, console_out=False, scoring=scoring)
+            scores = model_best.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, console_out=False, custom_score=custom_score)
             
             scores["train_time"] = train_time
             scores["train_score"] = train_score
             scores["best_hyperparameters"] = dict(best_hyperparameters)
             self.scores[key] = scores
+
+        if isfunction(scoring):
+            scoring = "custom_score"
+        
         sorted_scores = self.output_scores_as_pd(sort_by=[scoring, "s_score", "train_time"], console_out=False)
         best_model_type = sorted_scores.iloc[0].name
         best_model_value = sorted_scores.iloc[0][scoring]
@@ -548,6 +579,12 @@ class CTest:
         x_train = x_train.sample(frac=1, random_state=42)
         y_train = y_train.sample(frac=1, random_state=42)
 
+        # custom score
+        if isfunction(scoring):
+            custom_score = scoring
+        else:
+            custom_score = None
+
         for split_idx in tqdm(range(split_num-1), desc="splits"):
             x_train_train = x_train[split_idx*split_size:(split_idx+1)*split_size]
             x_train_test = x_train[(split_idx+1)*split_size:]
@@ -571,16 +608,24 @@ class CTest:
                     model_dict[key].fit_warm_start(x_train_train, y_train_train, xgb_model=model_dict[key].model)
                     end = time.time()
                     tscore, ttime = model_dict[key].evaluate_score(x_train_train, y_train_train, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength), str(timedelta(seconds=int(end-start)))
-                
-                score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength)
+
+                score = model_dict[key].evaluate(x_train_test, y_train_test, avg=avg, pos_label=pos_label, console_out=False, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
                 score["train_score"] = tscore
                 score["train_time"] = ttime
                 split_scores[key] = score
-                sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["s_score"], item[1]["train_time"]), reverse=True))
-                if score[scoring] > best_score:
-                    best_model_name = list(sorted_split_scores.keys())[0]
-                    logger.info(f"new best {scoring}: {best_score} -> {score[scoring]} ({best_model_name})")
-                    best_score = score[scoring]
+
+                if isfunction(scoring):
+                    sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1]["custom_score"], item[1]["s_score"], item[1]["train_time"]), reverse=True))
+                    if score["custom_score"] > best_score:
+                        best_model_name = list(sorted_split_scores.keys())[0]
+                        logger.info(f"new best custom_score: {best_score} -> {score['custom_score']} ({best_model_name})")
+                        best_score = score["custom_score"]
+                else:
+                    sorted_split_scores = dict(sorted(split_scores.items(), key=lambda item: (item[1][scoring], item[1]["s_score"], item[1]["train_time"]), reverse=True))
+                    if score[scoring] > best_score:
+                        best_model_name = list(sorted_split_scores.keys())[0]
+                        logger.info(f"new best {scoring}: {best_score} -> {score[scoring]} ({best_model_name})")
+                        best_score = score[scoring]
 
             sorted_split_scores_pd = pd.DataFrame(sorted_split_scores).transpose()
 
@@ -602,8 +647,8 @@ class CTest:
         logger.info(f"Evaluating best model: \n\n{best_model_name}\n")
         x_train_train = x_train[int(split_idx*1/split_num*len(x_train)):]
         y_train_train = y_train[int(split_idx*1/split_num*len(y_train)):]
-        tscore, ttime = best_model.train_warm_start(x_train_train, y_train_train, console_out=False)
-        score = best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, console_out=True, secondary_scoring=secondary_scoring, strength=strength)
+        tscore, ttime = best_model.train_warm_start(x_train_train, y_train_train, console_out=False, scoring=scoring)
+        score = best_model.evaluate(x_test, y_test, avg=avg, pos_label=pos_label, console_out=True, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
         score["train_score"] = tscore
         score["train_time"] = ttime
         return best_model_name, score
