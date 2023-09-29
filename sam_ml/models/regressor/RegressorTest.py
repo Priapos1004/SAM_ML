@@ -4,6 +4,7 @@ import time
 import warnings
 from datetime import timedelta
 from inspect import isfunction
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -45,7 +46,7 @@ if not sys.warnoptions:
 class RTest:
     """ AutoML class """
 
-    def __init__(self, models: str | list[Regressor] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
+    def __init__(self, models: Literal["all"] | list[Regressor] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
         """
         @params:
             models:
@@ -206,7 +207,7 @@ class RTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
     ) -> dict[str, dict]:
         """
         @param:
@@ -245,7 +246,7 @@ class RTest:
         y: pd.Series,
         cv_num: int = 5,
         small_data_eval: bool = False,
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, dict]:
         """
         @param:
@@ -285,7 +286,7 @@ class RTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         small_data_eval: bool = False,
         cv_num: int = 3,
         leave_loadbar: bool = True,
@@ -348,7 +349,7 @@ class RTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str =  "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         small_data_eval: bool = False,
         cv_num: int = 3,
         smac_log_level: int = 30,
@@ -409,7 +410,7 @@ class RTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 10,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         leave_loadbar: bool = True,
         save_results_path: str | None = "find_best_model_mass_search_results.csv",
     ) -> dict:

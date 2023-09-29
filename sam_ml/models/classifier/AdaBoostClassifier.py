@@ -1,3 +1,5 @@
+from typing import Literal
+
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
@@ -14,7 +16,7 @@ class ABC(Classifier):
         self,
         model_name: str = "AdaBoostClassifier",
         random_state: int = 42,
-        estimator: str | ClassifierMixin = "DTC",
+        estimator: Literal["DTC", "RFC", "LR"] | ClassifierMixin = "DTC",
         **kwargs,
     ):
         """

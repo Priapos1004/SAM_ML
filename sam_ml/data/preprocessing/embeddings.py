@@ -1,4 +1,5 @@
 import concurrent.futures
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -16,7 +17,7 @@ logger = setup_logger(__name__)
 class Embeddings_builder(DATA):
     """ Vectorizer Wrapper class """
 
-    def __init__(self, algorithm: str = "tfidf", **kwargs):
+    def __init__(self, algorithm: Literal["bert", "count", "tfidf"] = "tfidf", **kwargs):
         """
         @param:
             algorithm:

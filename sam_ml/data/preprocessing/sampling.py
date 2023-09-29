@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pandas as pd
 from imblearn.over_sampling import SMOTE, BorderlineSMOTE, RandomOverSampler
 from imblearn.under_sampling import (
@@ -18,7 +20,7 @@ logger = setup_logger(__name__)
 class Sampler(DATA):
     """ sample algorithm Wrapper class """
 
-    def __init__(self, algorithm: str = "ros", random_state: int = 42, sampling_strategy="auto", **kwargs):
+    def __init__(self, algorithm: Literal["SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"] = "ros", random_state: int = 42, sampling_strategy="auto", **kwargs):
         """
         @param:
             algorithm: which sampling algorithm to use:

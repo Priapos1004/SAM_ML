@@ -5,6 +5,7 @@ import warnings
 from datetime import timedelta
 from inspect import isfunction
 from statistics import mean
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -140,7 +141,7 @@ class Regressor(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         console_out: bool = True
     ) -> tuple[float, str]:
         """
@@ -153,7 +154,7 @@ class Regressor(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         console_out: bool = True
     ) -> tuple[float, str]:
         """
@@ -167,7 +168,7 @@ class Regressor(Model):
         x_test: pd.DataFrame,
         y_test: pd.Series,
         console_out: bool = True,
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -214,7 +215,7 @@ class Regressor(Model):
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
     ) -> float:
         """
         @param:
@@ -249,7 +250,7 @@ class Regressor(Model):
         y: pd.Series,
         cv_num: int = 10,
         console_out: bool = True,
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -338,7 +339,7 @@ class Regressor(Model):
         X: pd.DataFrame,
         y: pd.Series,
         leave_loadbar: bool = True,
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
@@ -448,7 +449,7 @@ class Regressor(Model):
         y_train: pd.Series,
         n_trails: int = 50,
         cv_num: int = 5,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         small_data_eval: bool = False,
         walltime_limit: float = 600,
         log_level: int = 20,
@@ -533,7 +534,7 @@ class Regressor(Model):
         y_train: pd.Series,
         n_trails: int = 10,
         cv_num: int = 5,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         small_data_eval: bool = False,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:

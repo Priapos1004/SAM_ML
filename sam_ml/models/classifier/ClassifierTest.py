@@ -4,6 +4,7 @@ import time
 import warnings
 from datetime import timedelta
 from inspect import isfunction
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -62,7 +63,7 @@ if not sys.warnoptions:
 class CTest:
     """ AutoML class """
 
-    def __init__(self, models: str | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
+    def __init__(self, models: Literal["all", "big_data", "basic", "basic2"] | list[Classifier] = "all", vectorizer: str | Embeddings_builder | None | list[str | Embeddings_builder | None] = None, scaler: str | Scaler | None  | list[str | Scaler | None] = None, selector: str | tuple[str, int] | Selector | None  | list[str | tuple[str, int] | Selector | None] = None, sampler: str | Sampler | SamplerPipeline | None  | list[str | Sampler | SamplerPipeline | None] = None):
         """
         @params:
             models:
@@ -288,10 +289,10 @@ class CTest:
         y_train: pd.Series,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
     ) -> dict[str, dict]:
         """
@@ -338,9 +339,9 @@ class CTest:
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
         small_data_eval: bool = False,
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, dict]:
         """
         @param:
@@ -385,10 +386,10 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         small_data_eval: bool = False,
         cv_num: int = 3,
@@ -456,10 +457,10 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 5,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         small_data_eval: bool = False,
         cv_num: int = 3,
@@ -525,10 +526,10 @@ class CTest:
         x_test: pd.DataFrame,
         y_test: pd.Series,
         n_trails: int = 10,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         leave_loadbar: bool = True,
         save_results_path: str | None = "find_best_model_mass_search_results.csv",

@@ -5,6 +5,7 @@ import warnings
 from datetime import timedelta
 from inspect import isfunction
 from statistics import mean
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -155,10 +156,10 @@ class Classifier(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         console_out: bool = True
     ) -> tuple[float, str]:
@@ -172,10 +173,10 @@ class Classifier(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         console_out: bool = True
     ) -> tuple[float, str]:
@@ -192,9 +193,9 @@ class Classifier(Model):
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
         console_out: bool = True,
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -253,10 +254,10 @@ class Classifier(Model):
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
     ) -> float:
         """
@@ -299,9 +300,9 @@ class Classifier(Model):
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
         console_out: bool = True,
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -397,9 +398,9 @@ class Classifier(Model):
         pos_label: int | str = get_pos_label(),
         leave_loadbar: bool = True,
         console_out: bool = True,
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
-        custom_score = None,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
@@ -519,10 +520,10 @@ class Classifier(Model):
         y_train: pd.Series,
         n_trails: int = 50,
         cv_num: int = 5,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         small_data_eval: bool = False,
         walltime_limit: float = 600,
@@ -607,10 +608,10 @@ class Classifier(Model):
         y_train: pd.Series,
         n_trails: int = 10,
         cv_num: int = 5,
-        scoring: str = get_scoring(),
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        secondary_scoring: str = get_secondary_scoring(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         small_data_eval: bool = False,
         leave_loadbar: bool = True,

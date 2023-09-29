@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pandas as pd
 from sklearn.preprocessing import (
     MaxAbsScaler,
@@ -19,7 +21,7 @@ logger = setup_logger(__name__)
 class Scaler(DATA):
     """ Scaler Wrapper class """
 
-    def __init__(self, algorithm: str = "standard", **kwargs):
+    def __init__(self, algorithm: Literal["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"] = "standard", **kwargs):
         """
         @param:
             algorithm: kind of scaler to use
