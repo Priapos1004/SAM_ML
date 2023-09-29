@@ -477,7 +477,7 @@ class Classifier(Model):
 
     def feature_importance(self) -> plt.show:
         """
-        feature_importance() generates a matplotlib plot of the feature importance from self.model
+        feature_importance() generates a matplotlib plot of the top45 feature importance from self.model
         """
         if not self.feature_names:
             raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
@@ -492,7 +492,8 @@ class Classifier(Model):
         else:
             importances = self.model.coef_[0]  # "normal"
 
-        feature_importances = pd.Series(importances, index=self.feature_names)
+        # top45 features
+        feature_importances = pd.Series(importances, index=self.feature_names).sort_values(ascending=False).head(45)
 
         fig, ax = plt.subplots()
         if self.model_type in ("RFC", "GBM", "ETC"):
