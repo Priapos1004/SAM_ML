@@ -414,7 +414,7 @@ class Regressor(Model):
 
         if self.model_type == "...":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Regressor
-        elif self.model_type in ("RFR", "DTR", "ETR"):
+        elif self.model_type in ("RFR", "DTR", "ETR", "XGBR"):
             importances = self.model.feature_importances_
         elif self.model_type in ():
             logger.warning(f"{self.model_type} does not have a feature importance")
@@ -477,7 +477,7 @@ class Regressor(Model):
 
         logger.debug("starting smac_search")
         # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
-        if self.model_type in ("RFR", "ETR"):
+        if self.model_type in ("RFR", "ETR", "XGBR"):
             grid = self.smac_grid
         else:
             grid = self.grid

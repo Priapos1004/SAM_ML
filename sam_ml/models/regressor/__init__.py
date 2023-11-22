@@ -6,6 +6,7 @@ from .LassoLarsCV import LLCV
 from .RandomForestRegressor import RFR
 from .RegressorTest import RTest
 from .SGDRegressor import SGDR
+from .XGBoostRegressor import XGBR
 
 __all__ = {
     "autoML class": "RTest",
@@ -16,4 +17,5 @@ __all__ = {
     "LassoLarsCV": "LLCV",
     "ElasticNet": "EN",
     "BayesianRidge": "BYR",
+    "XGBoostRegressor": "XGBR",
 }

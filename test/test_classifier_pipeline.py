@@ -49,6 +49,16 @@ def test_pipelines_fit_evaluate():
         model.evaluate(X, Y, console_out=False)
         model.evaluate_score(X, Y)
 
+def test_classifier_fit_predict_proba():
+    for classifier in get_models():
+        model = Pipeline(model=classifier, model_name=classifier.model_name)
+        model.fit(X, Y)
+        if model.model_type in ("LSVC", "SVC"):
+            with pytest.raises(NotImplementedError):
+                model.predict_proba(X)
+        else:
+            model.predict_proba(X)
+
 def test_evaluate_score_error():
     with pytest.raises(NotFittedError):
         for classifier in get_models():

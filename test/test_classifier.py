@@ -47,6 +47,15 @@ def test_classifier_fit_evaluate():
         classifier.fit(X, Y)
         classifier.evaluate(X, Y, console_out=False)
 
+def test_classifier_fit_predict_proba():
+    for classifier in get_models():
+        classifier.fit(X, Y)
+        if classifier.model_type in ("LSVC", "SVC"):
+            with pytest.raises(NotImplementedError):
+                classifier.predict_proba(X)
+        else:
+            classifier.predict_proba(X)
+
 def test_evaluate_score_error():
     with pytest.raises(NotFittedError):
         for classifier in get_models():

@@ -85,6 +85,16 @@ class Model:
             list with predictions
         """
         return list(self.model.predict(x_test))
+    
+    def predict_proba(self, x_test: pd.DataFrame) -> list:
+        """
+        @return:
+            list with prediction probabilities
+        """
+        try:
+            return list(self.model.predict_proba(x_test))
+        except:
+            raise NotImplementedError(f"predict_proba for {self.model_name} is not implemented")
 
     def get_params(self, deep: bool = True):
         return self.model.get_params(deep)

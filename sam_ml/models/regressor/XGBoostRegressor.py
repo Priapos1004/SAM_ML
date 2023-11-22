@@ -1,18 +1,18 @@
 from ConfigSpace import ConfigurationSpace, Float, Integer, Normal
-from xgboost import XGBClassifier
+from xgboost import XGBRegressor
 
 from sam_ml.config import get_n_jobs
 
-from ..main_classifier import Classifier
+from ..main_regressor import Regressor
 
 
-class XGBC(Classifier):
-    """ XGBoostClassifier Wrapper class """
+class XGBR(Regressor):
+    """ XGBoostRegressor Wrapper class """
 
     def __init__(
         self,
-        model_name: str = "XGBClassifier",
-        n_jobs: str = get_n_jobs(),
+        model_name: str = "XGBRegressor",
+        n_jobs: int = get_n_jobs(), 
         random_state: int = 42,
         **kwargs,
     ):
@@ -21,8 +21,8 @@ class XGBC(Classifier):
             random_state: random_state for model
             n_jobs: how many cores shall be used (-1 means all)
         """
-        model_type = "XGBC"
-        model = XGBClassifier(
+        model_type = "XGBR"
+        model = XGBRegressor(
             n_jobs=n_jobs,
             random_state=random_state,
             **kwargs,
