@@ -7,6 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'sam-ml-py'
@@ -18,6 +19,7 @@ release = '1.1.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 import sphinx_rtd_theme
+
 extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",

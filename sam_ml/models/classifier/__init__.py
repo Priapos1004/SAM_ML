@@ -17,7 +17,6 @@ from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 from .XGBoostClassifier import XGBC
 
-
 __all__ = [
     "CTest",
     "RFC",
