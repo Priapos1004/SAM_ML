@@ -1,7 +1,7 @@
 # SAM_ML
 
 [![PyPI version](https://badge.fury.io/py/sam-ml-py.svg)](https://badge.fury.io/py/sam-ml-py)
-![docs](https://github.com/priapos1004/SAM_ML/workflows/docs/badge.svg)
+[![docs](https://github.com/priapos1004/SAM_ML/workflows/docs/badge.svg)](https://priapos1004.github.io/SAM_ML/)
 
 a library created by Samuel Brinkmann
 
