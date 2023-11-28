@@ -1,4 +1,4 @@
-Classifier class {abstract}
+Classifier class
 =================================
 
 .. automodule:: sam_ml.models.main_classifier
