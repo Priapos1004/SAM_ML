@@ -1,14 +1,10 @@
 name: docs
 
-on: 
-  push:
-    branches: ["**"]
-# https://Priapos1004.github.io/SAM_ML
+on: push
+
 jobs:
   docs:
     name: Docs
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     steps:
 
@@ -21,13 +17,13 @@ jobs:
 
     - name: Install requirements
       run: |
-        pip3 install sphinx sphinx-rtd-theme
+        pip3 install sphinx-rtd-theme
         pip install -e ".[with_swig]"
     
     - name: Build docs
       run: |
         cd docs
-        make clean html
+        make html
     - name: Deploy
       if: success()
       uses: peaceiris/actions-gh-pages@v3
