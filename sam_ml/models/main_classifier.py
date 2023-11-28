@@ -185,6 +185,67 @@ class Classifier(Model):
             tuple of train score and train time
         """
         return super().train_warm_start(x_train, y_train, console_out, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+    
+    def __get_score(
+        self,
+        scoring: str,
+        y_test: pd.Series,
+        pred: list,
+        avg: str,
+        pos_label: int | str,
+        secondary_scoring: str | None,
+        strength: int,
+    ) -> float:
+        """ Calculate score """
+
+        if scoring == "accuracy":
+            score = accuracy_score(y_test, pred)
+        elif scoring == "precision":
+            score = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "recall":
+            score = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "s_score":
+            score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif scoring == "l_score":
+            score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif isfunction(scoring):
+            score = scoring(y_test, pred)
+        else:
+            raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score'")
+
+        return score
+    
+    def __get_all_scores(
+        self,
+        y_test: pd.Series,
+        pred: list,
+        avg: str,
+        pos_label: int | str,
+        secondary_scoring: str | None,
+        strength: int,
+        custom_score: Callable[[list[int], list[int]], float] | None,
+    ) -> dict[float]:
+        """ Calculate Accuracy, Precision, Recall, S_score, L_score, and optional custom_score Metrics """
+
+        accuracy = accuracy_score(y_test, pred)
+        precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        s_score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        l_score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+
+        scores = {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "s_score": s_score,
+            "l_score": l_score,
+        }
+
+        if isfunction(custom_score):
+            custom_scores = custom_score(y_test, pred)
+            scores["custom_score"] = custom_scores
+
+        return scores
 
     def evaluate(
         self,
@@ -211,42 +272,64 @@ class Classifier(Model):
 
             custom_score: score function with 'y_true' and 'y_pred' as parameter
 
-        @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score'
+        @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score', 'custom_score' (optional)
         """
         pred = self.predict(x_test)
-
-        # Calculate Accuracy, Precision and Recall Metrics
-        accuracy = accuracy_score(y_test, pred)
-        precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
-        recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
-        s_score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        l_score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-
-        if isfunction(custom_score):
-            custom_scores = custom_score(y_test, pred)
+        scores = self.__get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
 
         if console_out:
-            print("accuracy: ", accuracy)
-            print("precision: ", precision)
-            print("recall: ", recall)
-            print("s_score: ", s_score)
-            print("l_score: ", l_score)
-            if isfunction(custom_score):
-                print("custom score: ", custom_scores)
+            for key in scores:
+                print(f"{key}: {scores[key]}")
             print()
             print("classification report: ")
             print(classification_report(y_test, pred))
 
-        scores = {
-            "accuracy": accuracy,
-            "precision": precision,
-            "recall": recall,
-            "s_score": s_score,
-            "l_score": l_score,
-        }
+        return scores
+    
+    def evaluate_proba(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        console_out: bool = True,
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
+        strength: int = get_strength(),
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
+        probability: float = 0.5,
+    ) -> dict[str, float]:
+        """
+        probability prediction of different scores for binary classification
 
-        if isfunction(custom_score):
-            scores["custom_score"] = custom_scores
+        @param:
+            x_test, y_test: Data to evaluate model
+
+            avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+
+            console_out: shall the result be printed into the console
+
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
+            probability: probability for class 1 (value 0.5 is like normal predict function)
+
+        @return: dictionary with keys with scores: 'accuracy', 'precision', 'recall', 's_score', 'l_score', 'custom_score' (optional)
+        """
+        if len(set(y_test)) != 2:
+            raise ValueError(f"Expected binary classification data, but received y_test with {len(set(y_test))} classes")
+
+        pred_proba = self.predict_proba(x_test)
+        pred = [int(x > probability) for x in pred_proba[:, 1]]
+        scores = self.__get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
+
+        if console_out:
+            for key in scores:
+                print(f"{key}: {scores[key]}")
+            print()
+            print("classification report: ")
+            print(classification_report(y_test, pred))
 
         return scores
     
@@ -273,22 +356,43 @@ class Classifier(Model):
         @return: score as float
         """
         pred = self.predict(x_test)
+        score = self.__get_score(scoring, y_test, pred, avg, pos_label, secondary_scoring, strength)
 
-        # Calculate score
-        if scoring == "accuracy":
-            score = accuracy_score(y_test, pred)
-        elif scoring == "precision":
-            score = precision_score(y_test, pred, average=avg, pos_label=pos_label)
-        elif scoring == "recall":
-            score = recall_score(y_test, pred, average=avg, pos_label=pos_label)
-        elif scoring == "s_score":
-            score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        elif scoring == "l_score":
-            score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        elif isfunction(scoring):
-            score = scoring(y_test, pred)
-        else:
-            raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score' ")
+        return score
+    
+    def evaluate_score_proba(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
+        strength: int = get_strength(),
+        probability: float = 0.5,
+    ) -> float:
+        """
+        probability prediction of one score for binary classification
+
+        @param:
+            x_test, y_test: Data to evaluate model
+            scoring: metrics to evaluate the models ("accuracy", "precision", "recall", "s_score", "l_score", score function)
+
+            avg: average to use for precision and recall score (e.g. "micro", None, "weighted", "binary")
+            pos_label: if avg="binary", pos_label says which class to score. pos_label is used by s_score/l_score
+            secondary_scoring: weights the scoring (only for 's_score'/'l_score')
+            strength: higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for 's_score'/'l_score')
+
+            probability: probability for class 1 (value 0.5 is like normal predict function)
+
+        @return: score as float
+        """
+        if len(set(y_test)) != 2:
+            raise ValueError(f"Expected binary classification data, but received y_test with {len(set(y_test))} classes")
+
+        pred_proba = self.predict_proba(x_test)
+        pred = [int(x > probability) for x in pred_proba[:, 1]]
+        score = self.__get_score(scoring, y_test, pred, avg, pos_label, secondary_scoring, strength)
 
         return score
 

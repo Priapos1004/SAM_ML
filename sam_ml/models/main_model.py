@@ -3,6 +3,7 @@ import time
 from copy import deepcopy
 from datetime import timedelta
 
+import numpy as np
 import pandas as pd
 
 from sam_ml.config import setup_logger
@@ -86,13 +87,13 @@ class Model:
         """
         return list(self.model.predict(x_test))
     
-    def predict_proba(self, x_test: pd.DataFrame) -> list:
+    def predict_proba(self, x_test: pd.DataFrame) -> np.ndarray:
         """
         @return:
-            list with prediction probabilities
+            np.ndarray with prediction probabilities
         """
         try:
-            return list(self.model.predict_proba(x_test))
+            return self.model.predict_proba(x_test)
         except:
             raise NotImplementedError(f"predict_proba for {self.model_name} is not implemented")
 
