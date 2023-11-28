@@ -44,7 +44,7 @@ class Model:
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
         if console_out:
-            print("Train score: ", self.train_score, " - Train time: ", self.train_time)
+            print(f"Train score: {self.train_score} - Train time: {self.train_time}")
             
         logger.debug(f"training {self.model_name} - finished")
 
@@ -64,7 +64,7 @@ class Model:
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
         if console_out:
-            print("Train score: ", self.train_score, " - Train time: ", self.train_time)
+            print(f"Train score: {self.train_score} - Train time: {self.train_time}")
             
         logger.debug(f"training {self.model_name} - finished")
 

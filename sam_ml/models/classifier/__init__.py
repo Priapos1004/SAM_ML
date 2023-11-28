@@ -17,23 +17,25 @@ from .RandomForestClassifier import RFC
 from .SupportVectorClassifier import SVC
 from .XGBoostClassifier import XGBC
 
-__all__ = {
-    "AutoML class": "CTest",
-    "RandomForestClassifier": "RFC",
-    "LogisticRegression": "LR",
-    "DecisionTreeClassifier": "DCT",
-    "SupportVectorClassifier": "SVC",
-    "MLP Classifier": "MLPC",
-    "GradientBoostingMachine": "GBM",
-    "AdaBoostClassifier": "ABC",
-    "KNeighborsClassifier": "KNC",
-    "ExtraTreesClassifier": "ETC",
-    "GaussianNaiveBayes": "GNB",
-    "BernoulliNaiveBayes": "BNB",
-    "GaussianProcessClassifier": "GPC",
-    "QuadraticDiscriminantAnalysis": "QDA",
-    "LinearDiscriminantAnalysis": "LDA",
-    "BaggingClassifier": "BC",
-    "LinearSupportVectorClassifier": "LSVC",
-    "XGBoostClassifier": "XGBC",
-}
+
+__all__ = [
+    "CTest",
+    "RFC",
+    "LR",
+    "DCT",
+    "SVC",
+    "MLPC",
+    "GBM",
+    "ABC",
+    "KNC",
+    "ETC",
+    "GNB",
+    "BNB",
+    "GPC",
+    "QDA",
+    "LDA",
+    "BC",
+    "LSVC",
+    "XGBC",
+]
+

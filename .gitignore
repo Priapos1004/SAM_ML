@@ -142,3 +142,7 @@ find_best_model*.csv
 /examples/*.png
 */smac3_output/*
 smac3_output/*
+
+docs/_build/
+docs/_static/
+docs/_templates
