@@ -1,6 +1,7 @@
 # SAM_ML
 
 [![PyPI version](https://badge.fury.io/py/sam-ml-py.svg)](https://badge.fury.io/py/sam-ml-py)
+![docs](https://github.com/priapos1004/SAM_ML/workflows/docs/badge.svg)
 
 a library created by Samuel Brinkmann
 
@@ -48,4 +49,4 @@ from sam_ml.models.classifier import RFC
 RandomForestClassifier = RFC()
 ```
 
---> in the '[examples](https://github.com/Priapos1004/SAM_ML/tree/main/examples)' folder you can find notebooks with code snippets that explain the usage of the package and it is also worth to look into the [wiki](https://github.com/Priapos1004/SAM_ML/wiki) of the repo.
+--> in the '[examples](https://github.com/Priapos1004/SAM_ML/tree/main/examples)' folder you can find notebooks with code snippets that explain the usage of the package and it is also worth to look into the [wiki](https://github.com/Priapos1004/SAM_ML/wiki) and [docs](https://priapos1004.github.io/SAM_ML/) of the repo.
