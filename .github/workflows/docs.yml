@@ -1,6 +1,8 @@
 name: docs
 
-on: push
+on: 
+  push:
+    branches: ["**"]
 # https://Priapos1004.github.io/SAM_ML
 jobs:
   docs:
@@ -30,6 +32,6 @@ jobs:
       if: success()
       uses: peaceiris/actions-gh-pages@v3
       with:
-        #publish_branch: gh-pages
+        publish_branch: gh-pages
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html/
