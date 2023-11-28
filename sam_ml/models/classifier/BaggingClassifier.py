@@ -1,4 +1,5 @@
 import warnings
+from typing import Literal
 
 from ConfigSpace import Beta, Categorical, ConfigurationSpace, Float, Integer
 from sklearn.base import ClassifierMixin
@@ -21,7 +22,7 @@ class BC(Classifier):
         model_name: str = "BaggingClassifier",
         random_state: int = 42,
         n_jobs: int = get_n_jobs(),
-        estimator: str | ClassifierMixin = "DTC",
+        estimator: Literal["DTC", "RFC", "LR"] | ClassifierMixin = "DTC",
         **kwargs,
     ):
         """

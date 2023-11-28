@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pandas as pd
 import statsmodels.api as sm
 from sklearn.decomposition import PCA
@@ -23,7 +25,7 @@ logger = setup_logger(__name__)
 class Selector(DATA):
     """ feature selection algorithm Wrapper class """
 
-    def __init__(self, algorithm: str = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), **kwargs):
+    def __init__(self, algorithm: Literal["kbest", "kbest_chi2", "pca", "wrapper", "sequential", "select_model", "rfe", "rfecv"] = "kbest", num_features: int = 10, estimator = LinearSVC(penalty="l1", dual=False), **kwargs):
         """
         @params:
             algorithm:

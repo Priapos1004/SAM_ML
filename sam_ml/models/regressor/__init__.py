@@ -6,14 +6,16 @@ from .LassoLarsCV import LLCV
 from .RandomForestRegressor import RFR
 from .RegressorTest import RTest
 from .SGDRegressor import SGDR
+from .XGBoostRegressor import XGBR
 
-__all__ = {
-    "autoML class": "RTest",
-    "RandomForestRegressor": "RFR",
-    "DecisionTreeRegressor": "DTR",
-    "ExtraTreesRegressor": "ETR",
-    "SGDRegressor": "SGDR",
-    "LassoLarsCV": "LLCV",
-    "ElasticNet": "EN",
-    "BayesianRidge": "BYR",
-}
+__all__ = [
+    "RTest",
+    "RFR",
+    "DTR",
+    "ETR",
+    "SGDR",
+    "LLCV",
+    "EN",
+    "BYR",
+    "XGBR",
+]

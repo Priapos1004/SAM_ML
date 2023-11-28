@@ -7,11 +7,11 @@ from sklearn.exceptions import NotFittedError
 
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
 from sam_ml.models.main_regressor import SMAC_INSTALLED
-from sam_ml.models.regressor import BYR, DTR, EN, ETR, LLCV, RFR, SGDR
+from sam_ml.models.regressor import BYR, DTR, EN, ETR, LLCV, RFR, SGDR, XGBR
 
 
 def get_models() -> list:
-    return [RFR(), DTR(), ETR(), SGDR(), LLCV(), EN(), BYR()]
+    return [RFR(), DTR(), ETR(), SGDR(), LLCV(), EN(), BYR(), XGBR()]
 
 X, Y = make_regression(n_samples = 50,
                         n_features = 5,
@@ -21,10 +21,11 @@ X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 
 
-def test_regressor_fit_evaluate():
-    for regressor in get_models():
+def test_classifier_fit_predict_proba():
+     for regressor in get_models():
         regressor.fit(X, Y)
-        regressor.evaluate(X, Y, console_out=False)
+        with pytest.raises(NotImplementedError):
+            regressor.predict_proba(X)
 
 def test_evaluate_score_error():
     with pytest.raises(NotFittedError):

@@ -3,7 +3,9 @@ import os
 import sys
 import warnings
 from datetime import timedelta
+from inspect import isfunction
 from statistics import mean
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -139,7 +141,7 @@ class Regressor(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         console_out: bool = True
     ) -> tuple[float, str]:
         """
@@ -152,7 +154,7 @@ class Regressor(Model):
         self,
         x_train: pd.DataFrame,
         y_train: pd.Series, 
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         console_out: bool = True
     ) -> tuple[float, str]:
         """
@@ -166,12 +168,15 @@ class Regressor(Model):
         x_test: pd.DataFrame,
         y_test: pd.Series,
         console_out: bool = True,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         @param:
             x_test, y_test: Data to evaluate model
 
             console_out: shall the result be printed into the console
+
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
 
         @return: dictionary with keys with scores: "r2", "rmse", "d2_tweedie"
         """
@@ -180,15 +185,20 @@ class Regressor(Model):
         # Calculate Metrics
         r2 = r2_score(y_test, pred)
         rmse = mean_squared_error(y_test, pred, squared=False)
-        if all([y >= 0 for y in y_test]):
+        if all([y >= 0 for y in y_test]) and all([y > 0 for y in pred]):
             d2_tweedie = d2_tweedie_score(y_test, pred, power=1)
         else:
             d2_tweedie = -1
+
+        if isfunction(custom_score):
+            custom_scores = custom_score(y_test, pred)
 
         if console_out:
             print("r2 score: ", r2)
             print("rmse: ", rmse)
             print("d2 tweedie score: ", d2_tweedie)
+            if isfunction(custom_score):
+                print("custom score: ", custom_scores)
 
         scores = {
             "r2": r2,
@@ -196,18 +206,21 @@ class Regressor(Model):
             "d2_tweedie": d2_tweedie,
         }
 
+        if isfunction(custom_score):
+            scores["custom_score"] = custom_scores
+
         return scores
     
     def evaluate_score(
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
     ) -> float:
         """
         @param:
             x_test, y_test: Data to evaluate model
-            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie")
+            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie", score function)
 
         @return: score as float
         """
@@ -219,11 +232,13 @@ class Regressor(Model):
         elif scoring == "rmse":
             score = mean_squared_error(y_test, pred, squared=False)
         elif scoring == "d2_tweedie":
-            if all([y >= 0 for y in y_test]):
+            if all([y >= 0 for y in y_test]) and all([y > 0 for y in pred]):
                 score = d2_tweedie_score(y_test, pred, power=1)
             else:
-                logger.warning("There are y values smaller 0 -> d2_tweedie_score will always be -1")
+                logger.warning("There are y_test values smaller 0 or y_pred values smaller-equal 0 -> d2_tweedie_score will be -1")
                 score = -1
+        elif isfunction(scoring):
+            score = scoring(y_test, pred)
         else:
             raise ValueError(f"scoring='{scoring}' is not supported -> only  'r2', 'rmse', or 'd2_tweedie'")
 
@@ -235,6 +250,7 @@ class Regressor(Model):
         y: pd.Series,
         cv_num: int = 10,
         console_out: bool = True,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         @param:
@@ -242,6 +258,8 @@ class Regressor(Model):
             cv_num: number of different splits
 
             console_out: shall the result be printed into the console
+
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
 
         @return:
             dictionary with "r2", "rmse", "d2_tweedie", "train_score", "train_time"
@@ -264,6 +282,13 @@ class Regressor(Model):
                 "rmse": rmse,
             }
 
+        if isfunction(custom_score):
+            custom_scorer = make_scorer(custom_score)
+            scorer["custom_score"] = custom_scorer
+        elif custom_score is None:
+            custom_scorer = None
+        else:
+            raise ValueError("custom_score has to be a function")
 
         cv_scores = cross_validate(
             self,
@@ -288,6 +313,8 @@ class Regressor(Model):
                 "train_score": score[list(score.keys())[3]],
                 "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
             }
+            if isfunction(custom_score):
+                self.cv_scores["custom_score"] = score[list(score.keys())[8]]
         else:
             self.cv_scores = {
                 "r2": score[list(score.keys())[2]],
@@ -296,6 +323,8 @@ class Regressor(Model):
                 "train_score": score[list(score.keys())[3]],
                 "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
             }
+            if isfunction(custom_score):
+                self.cv_scores["custom_score"] = score[list(score.keys())[6]]
 
         logger.debug(f"cross validation {self.model_name} - finished")
 
@@ -310,6 +339,7 @@ class Regressor(Model):
         X: pd.DataFrame,
         y: pd.Series,
         leave_loadbar: bool = True,
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
     ) -> dict[str, float]:
         """
         Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
@@ -318,6 +348,8 @@ class Regressor(Model):
             X, y: data to cross validate on
 
             leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
+
+            custom_score: score function with 'y_true' and 'y_pred' as parameter
             
         @return:
             dictionary with "r2", "rmse", "d2_tweedie", "train_score", "train_time"
@@ -363,20 +395,26 @@ class Regressor(Model):
             "train_time": avg_train_time,
         }
 
+        if isfunction(custom_score):
+            custom_scores = custom_score(true_values, predictions)
+            self.cv_scores["custom_score"] = custom_scores
+        elif custom_score is not None:
+            raise ValueError("custom_score has to be a function -> results in .cv_scores")
+
         logger.debug(f"cross validation {self.model_name} - finished")
 
         return self.cv_scores
 
     def feature_importance(self) -> plt.show:
         """
-        feature_importance() generates a matplotlib plot of the feature importance from self.model
+        feature_importance() generates a matplotlib plot of the top45 feature importance from self.model
         """
         if not self.feature_names:
-            raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
+            raise NotFittedError("You have to first train the regressor before getting the feature importance (with train-method)")
 
         if self.model_type == "...":
             importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Regressor
-        elif self.model_type in ("RFR", "DTR", "ETR"):
+        elif self.model_type in ("RFR", "DTR", "ETR", "XGBR"):
             importances = self.model.feature_importances_
         elif self.model_type in ():
             logger.warning(f"{self.model_type} does not have a feature importance")
@@ -384,7 +422,8 @@ class Regressor(Model):
         else:
             importances = self.model.coef_[0]  # "normal"
 
-        feature_importances = pd.Series(importances, index=self.feature_names)
+        # top45 features
+        feature_importances = pd.Series(importances, index=self.feature_names).sort_values(ascending=False).head(45)
 
         fig, ax = plt.subplots()
         if self.model_type in ("RFR", "ETR"):
@@ -410,7 +449,7 @@ class Regressor(Model):
         y_train: pd.Series,
         n_trails: int = 50,
         cv_num: int = 5,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         small_data_eval: bool = False,
         walltime_limit: float = 600,
         log_level: int = 20,
@@ -423,7 +462,7 @@ class Regressor(Model):
             n_trails: max number of parameter sets to test
             cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
 
-            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie")
+            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie", score function)
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
             
@@ -438,7 +477,7 @@ class Regressor(Model):
 
         logger.debug("starting smac_search")
         # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
-        if self.model_type in ("RFR", "ETR"):
+        if self.model_type in ("RFR", "ETR", "XGBR"):
             grid = self.smac_grid
         else:
             grid = self.grid
@@ -453,15 +492,22 @@ class Regressor(Model):
         initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
         logger.debug(f"initial_design: {initial_design.select_configurations()}")
 
+        # custom scoring
+        if isfunction(scoring):
+            custom_score = scoring
+            scoring = "custom_score"
+        else:
+            custom_score = None
+
         # define target function
         def grid_train(config: Configuration, seed: int) -> float:
             logger.debug(f"config: {config}")
             model = self.get_deepcopy()
             model.set_params(**config)
             if small_data_eval:
-                score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False)
+                score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False, custom_score=custom_score)
             else:
-                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num)
+                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, custom_score=custom_score)
             
             # SMAC always minimizes (the smaller the better)
             if scoring == "rmse":
@@ -488,7 +534,7 @@ class Regressor(Model):
         y_train: pd.Series,
         n_trails: int = 10,
         cv_num: int = 5,
-        scoring: str = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
         small_data_eval: bool = False,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:
@@ -499,7 +545,7 @@ class Regressor(Model):
 
             n_trails: number of parameter sets to test
 
-            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie")
+            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie", score function)
 
             small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
 
@@ -512,6 +558,14 @@ class Regressor(Model):
         logger.debug("starting randomCVsearch")
         results = []
         configs = self.get_random_configs(n_trails)
+
+        # custom scoring
+        if isfunction(scoring):
+            custom_score = scoring
+            scoring = "custom_score"
+        else:
+            custom_score = None
+
         at_least_one_run: bool = False
         try:
             for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
@@ -519,9 +573,9 @@ class Regressor(Model):
                 model = self.get_deepcopy()
                 model.set_params(**config)
                 if small_data_eval:
-                    score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False)
+                    score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False, custom_score=custom_score)
                 else:
-                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False)
+                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, custom_score=custom_score)
                 config_dict = dict(config)
                 config_dict[scoring] = score[scoring]
                 results.append(config_dict)

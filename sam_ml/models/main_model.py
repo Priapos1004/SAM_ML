@@ -3,6 +3,7 @@ import time
 from copy import deepcopy
 from datetime import timedelta
 
+import numpy as np
 import pandas as pd
 
 from sam_ml.config import setup_logger
@@ -43,7 +44,7 @@ class Model:
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
         if console_out:
-            print("Train score: ", self.train_score, " - Train time: ", self.train_time)
+            print(f"Train score: {self.train_score} - Train time: {self.train_time}")
             
         logger.debug(f"training {self.model_name} - finished")
 
@@ -63,7 +64,7 @@ class Model:
         self.train_time = str(timedelta(seconds=int(end_time-start_time)))
 
         if console_out:
-            print("Train score: ", self.train_score, " - Train time: ", self.train_time)
+            print(f"Train score: {self.train_score} - Train time: {self.train_time}")
             
         logger.debug(f"training {self.model_name} - finished")
 
@@ -85,6 +86,16 @@ class Model:
             list with predictions
         """
         return list(self.model.predict(x_test))
+    
+    def predict_proba(self, x_test: pd.DataFrame) -> np.ndarray:
+        """
+        @return:
+            np.ndarray with prediction probabilities
+        """
+        try:
+            return self.model.predict_proba(x_test)
+        except:
+            raise NotImplementedError(f"predict_proba for {self.model_name} is not implemented")
 
     def get_params(self, deep: bool = True):
         return self.model.get_params(deep)

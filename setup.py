@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="sam_ml-py",
-    version="1.1.0",
+    version="1.2.0",
     description="a library for ML programing created by Samuel Brinkmann",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -25,7 +25,7 @@ setup(
     },
     scripts=[],
     install_requires=[
-        "scikit-learn<1.3",  # version 1.3 has some issues currently (04/07/2023)
+        "scikit-learn",
         "pandas",
         "matplotlib",
         "numpy",

@@ -27,7 +27,7 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
         sampling: type of "data.sampling.Sampler" or Sampler class object for sampling the train data (None for no sampling)
         model_name: name of the model
     """
-    
+
     class pipeline(type(model).__base__):
         """ pipeline class """
 
@@ -156,6 +156,10 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
         def predict(self, x_test: pd.DataFrame) -> list:
             x_test_pre, _ = self.__data_prepare(x_test, None, train_on=False)
             return super().predict(x_test_pre)
+
+        def predict_proba(self, x_test: pd.DataFrame) -> list:
+            x_test_pre, _ = self.__data_prepare(x_test, None, train_on=False)
+            return super().predict_proba(x_test_pre)
 
         def get_params(self, deep: bool = True) -> dict[str, any]:
             return dict(self.steps)

@@ -1,4 +1,5 @@
 import math
+from typing import Callable, Literal
 
 from sklearn.metrics import precision_score, recall_score
 
@@ -10,7 +11,7 @@ def lewis_function(x: float) -> float:
     return 1-(0.5-0.5*math.cos((x-1)*math.pi))**4
 
 
-def s_scoring(y_true: list, y_pred: list, scoring: str = None, pos_label: int = -1, strength: int = 3, score_func = samuel_function) -> float:
+def s_scoring(y_true: list, y_pred: list, scoring: Literal["precision", "recall"] | None = None, pos_label: int = -1, strength: int = 3, score_func: Callable[[float], float] = samuel_function) -> float:
     """
     @param:
         y_true, y_pred: data to evaluate on
