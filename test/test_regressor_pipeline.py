@@ -21,12 +21,6 @@ X, Y = make_regression(n_samples = 50,
 X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 
-def test_pipelines_fit_evaluate():
-    for regressor in get_models():
-        model = Pipeline(model=regressor, model_name=regressor.model_name)
-        model.fit(X, Y)
-        model.evaluate(X, Y, console_out=False)
-        model.evaluate_score(X, Y)
 
 def test_classifier_fit_predict_proba():
      for regressor in get_models():

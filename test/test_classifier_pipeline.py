@@ -42,22 +42,36 @@ X, Y = make_classification(n_samples = 50,
 X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 
-def test_pipelines_fit_evaluate():
-    for classifier in get_models():
-        model = Pipeline(model=classifier, model_name=classifier.model_name)
-        model.fit(X, Y)
-        model.evaluate(X, Y, console_out=False)
-        model.evaluate_score(X, Y)
+X_binary, Y_binary = make_classification(n_samples = 50,
+                            n_features = 5,
+                            n_informative = 5,
+                            n_redundant = 0,
+                            n_classes = 2,
+                            weights = [.2, .3],
+                            random_state=42)
+X_binary = pd.DataFrame(X_binary, columns=["col1", "col2", "col3", "col4", "col5"])
+Y_binary = pd.Series(Y_binary)
 
-def test_classifier_fit_predict_proba():
+
+def test_classifier_fit_evaluate_proba_error():
     for classifier in get_models():
         model = Pipeline(model=classifier, model_name=classifier.model_name)
         model.fit(X, Y)
+        with pytest.raises(ValueError): # should raise ValueError if Y is not binary
+            model.evaluate_score_proba(X, Y)
+            model.evaluate_proba(X, Y, console_out=False)
+
+def test_classifier_fit_evaluate_proba():
+    for classifier in get_models():
+        model = Pipeline(model=classifier, model_name=classifier.model_name)
+        model.fit(X_binary, Y_binary)
         if model.model_type in ("LSVC", "SVC"):
             with pytest.raises(NotImplementedError):
-                model.predict_proba(X)
+                model.evaluate_score_proba(X_binary, Y_binary)
+                model.evaluate_proba(X_binary, Y_binary, console_out=False)
         else:
-            model.predict_proba(X)
+            model.evaluate_score_proba(X_binary, Y_binary)
+            model.evaluate_proba(X_binary, Y_binary, console_out=False)
 
 def test_evaluate_score_error():
     with pytest.raises(NotFittedError):

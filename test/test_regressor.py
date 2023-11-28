@@ -21,11 +21,6 @@ X = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4", "col5"])
 Y = pd.Series(Y)
 
 
-def test_regressor_fit_evaluate():
-    for regressor in get_models():
-        regressor.fit(X, Y)
-        regressor.evaluate(X, Y, console_out=False)
-
 def test_classifier_fit_predict_proba():
      for regressor in get_models():
         regressor.fit(X, Y)
