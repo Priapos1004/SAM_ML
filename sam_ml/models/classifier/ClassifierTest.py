@@ -520,7 +520,8 @@ class CTest:
         self.__finish_sound()
         return self.scores
     
-    def find_best_model_mass_search(self,
+    def find_best_model_mass_search(
+        self,
         x_train: pd.DataFrame,
         y_train: pd.Series,
         x_test: pd.DataFrame,

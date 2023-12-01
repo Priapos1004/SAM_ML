@@ -145,4 +145,6 @@ smac3_output/*
 
 docs/_build/
 docs/_static/
-docs/_templates
+**/*.rst
+
+!docs/_templates/*.rst

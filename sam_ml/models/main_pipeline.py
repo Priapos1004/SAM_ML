@@ -145,12 +145,12 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
 
         def fit(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
             x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on=True)
-            self.feature_names = list(x_train_pre.columns)
+            self._feature_names = list(x_train_pre.columns)
             return super().fit(x_train_pre, y_train_pre, **kwargs)
         
         def fit_warm_start(self, x_train: pd.DataFrame, y_train: pd.Series, **kwargs):
             x_train_pre, y_train_pre = self.__data_prepare(x_train, y_train, train_on = not self._data_classes_trained)
-            self.feature_names = list(x_train_pre.columns)
+            self._feature_names = list(x_train_pre.columns)
             return super().fit(x_train_pre, y_train_pre, **kwargs)
 
         def predict(self, x_test: pd.DataFrame) -> list:

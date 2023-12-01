@@ -50,9 +50,9 @@ if not sys.warnoptions:
 
 
 class Classifier(Model):
-    """ Classifier parent class """
+    """ Classifier parent class {abstract} """
 
-    def __init__(self, model_object = None, model_name: str = "classifier", model_type: str = "Classifier", grid: ConfigurationSpace = ConfigurationSpace()):
+    def __init__(self, model_object, model_name: str, model_type: str, grid: ConfigurationSpace):
         """
         Parameters
         ----------
@@ -67,8 +67,8 @@ class Classifier(Model):
         """
         super().__init__(model_object, model_name, model_type)
         self._grid = grid
-        self.cv_scores: dict[str, float] = {}
-        self.rCVsearch_results: pd.DataFrame|None = None
+        self._cv_scores: dict[str, float] = {}
+        self._rCVsearch_results: pd.DataFrame|None = None
 
     def __repr__(self) -> str:
         params: str = ""
@@ -123,6 +123,26 @@ class Classifier(Model):
             hyperparameter tuning grid of the model
         """
         return self._grid
+    
+    @property
+    def cv_scores(self) -> dict[str, float]:
+        """
+        Returns
+        -------
+        cv_scores : dict[str, float]
+            dictionary with cross validation results
+        """
+        return self._cv_scores
+    
+    @property
+    def rCVsearch_results(self) -> pd.DataFrame|None:
+        """
+        Returns
+        -------
+        rCVsearch_results : pd.DataFrame or None
+            results from randomCV hyperparameter tuning. Is ``None`` if randomCVsearch was not used yet.
+        """
+        return self._rCVsearch_results
     
     def get_random_config(self) -> dict:
         """
@@ -279,6 +299,7 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
@@ -345,6 +366,7 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
@@ -555,6 +577,7 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
         >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
@@ -663,6 +686,7 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
         >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
@@ -752,6 +776,7 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
         >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
@@ -820,6 +845,7 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
         >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
@@ -917,8 +943,8 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
-        >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
         >>> 
@@ -987,7 +1013,7 @@ class Classifier(Model):
 
         score = pd_scores["average"]
 
-        self.cv_scores = {
+        self._cv_scores = {
             "accuracy": score[list(score.keys())[6]],
             "precision": score[list(score.keys())[2]],
             "recall": score[list(score.keys())[4]],
@@ -998,7 +1024,7 @@ class Classifier(Model):
         }
 
         if isfunction(custom_score):
-            self.cv_scores["custom_score"] = score[list(score.keys())[12]]
+            self._cv_scores["custom_score"] = score[list(score.keys())[12]]
 
         logger.debug(f"cross validation {self.model_name} - finished")
 
@@ -1006,7 +1032,7 @@ class Classifier(Model):
             print()
             print(pd_scores)
 
-        return self.cv_scores
+        return self._cv_scores
 
     def cross_validation_small_data(
         self,
@@ -1091,8 +1117,8 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
-        >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
         >>> 
@@ -1141,25 +1167,25 @@ class Classifier(Model):
             t_scores.append(train_score)
             t_times.append(train_time)
 
-        self.cv_scores = self.__get_all_scores(true_values, predictions, avg, pos_label, secondary_scoring, strength, custom_score)
+        self._cv_scores = self.__get_all_scores(true_values, predictions, avg, pos_label, secondary_scoring, strength, custom_score)
         avg_train_score = mean(t_scores)
         avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
-        self.cv_scores.update({
+        self._cv_scores.update({
             "train_score": avg_train_score,
             "train_time": avg_train_time,
         })
 
         if console_out:
-            for key in self.cv_scores:
-                print(f"{key}: {self.cv_scores[key]}")
+            for key in self._cv_scores:
+                print(f"{key}: {self._cv_scores[key]}")
             print()
             print("classification report:")
             print(classification_report(true_values, predictions))
 
         logger.debug(f"cross validation {self.model_name} - finished")
 
-        return self.cv_scores
+        return self._cv_scores
 
     def feature_importance(self) -> plt.show:
         """
@@ -1272,8 +1298,8 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
-        >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
         >>>
@@ -1414,8 +1440,8 @@ class Classifier(Model):
         Examples
         --------
         >>> # load data (replace with own data)
+        >>> import pandas as pd
         >>> from sklearn.datasets import load_iris
-        >>> from sklearn.model_selection import train_test_split
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
         >>>
@@ -1459,12 +1485,12 @@ class Classifier(Model):
                 return {}, -1
             
 
-        self.rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
+        self._rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
 
         # for-loop to keep dtypes of columns
         best_hyperparameters = {} 
-        for col in self.rCVsearch_results.columns:
-            value = self.rCVsearch_results[col].iloc[0]
+        for col in self._rCVsearch_results.columns:
+            value = self._rCVsearch_results[col].iloc[0]
             if str(value) != "nan":
                 best_hyperparameters[col] = value
 

@@ -20,12 +20,20 @@ class ABC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1), also possible is string 'DTC', 'RFC', and 'LR'
-            n_estimator: number of boosting stages to perform
-            learning_rate: shrinks the contribution of each tree by learning rate
-            algorithm: boosting algorithm
-            random_state: random_state for model
+        Parameters (important one)
+        --------------------------
+        estimator : {"DTC", "RFC", "LR"} or classifier object, \
+                default="DTC"
+            base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
+        n_estimator : int
+            number of boosting stages to perform
+        learning_rate : float
+            shrinks the contribution of each tree by learning rate
+        algorithm : str
+            boosting algorithm
+        random_state : int, \
+                default=42
+            random_state for model
         """
         model_type = "ABC"
 
