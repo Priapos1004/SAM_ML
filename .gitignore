@@ -148,3 +148,6 @@ docs/_static/
 **/*.rst
 
 !docs/_templates/*.rst
+!docs/index.rst
+!docs/data.rst
+!docs/models.rst

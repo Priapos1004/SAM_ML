@@ -56,3 +56,9 @@ html_domain_indices = False
 
 # If false, no index is generated.
 html_use_index = False
+
+# -------- generate rst files --------------
+
+from docs.class_generator import main
+
+main()
