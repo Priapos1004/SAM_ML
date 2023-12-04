@@ -17,8 +17,10 @@ class QDA(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            reg_param: regularizes the per-class covariance estimates by transforming
+        Parameters (important one)
+        --------------------------
+        reg_param : float,
+            regularizes the per-class covariance estimates by transforming
         """
         model_type = "QDA"
         model = QuadraticDiscriminantAnalysis(**kwargs)

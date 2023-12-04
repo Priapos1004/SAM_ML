@@ -22,11 +22,11 @@ class MethodInfo:
         self.name = name
         self.signature = inspect.signature(func)
         self.description = func.__doc__ or 'No description available.'
-        self.short_description = func.__doc__.split('\n')[1].strip() or 'No description available.'
+        self.short_description = func.__doc__.split('\n')[1].strip() if func.__doc__ else 'No description available.'
 
 class ClassInfo:
     def __init__(self, cls):
-        self.cls_name = cls().model_name.split(" ")[0] if hasattr(cls, "model_name") else cls.__name__
+        self.cls_name = cls().model_name.split(" (")[0] if hasattr(cls, "model_name") else cls.__name__
         self.full_cls_name = f"{cls.__module__}.{cls.__name__}"
         self.description = cls.__doc__ or 'No description available.'
         self.example = f"""

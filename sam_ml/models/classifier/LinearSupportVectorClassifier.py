@@ -20,13 +20,19 @@ class LSVC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            random_state: random_state for model
-            verbose: logging
-            penalty: specifies the norm used in the penalization
-            dual: select the algorithm to either solve the dual or primal optimization problem
-            C: Inverse of regularization strength
-            max_iter: Maximum number of iterations taken for the solvers to converge
+        Parameters (important one)
+        --------------------------
+        penalty : str,
+            specifies the norm used in the penalization
+        dual : bool,
+            select the algorithm to either solve the dual or primal optimization problem
+        C : float,
+            inverse of regularization strength
+        max_iter : int,
+            maximum number of iterations taken for the solvers to converge
+        random_state : int, \
+                default=42
+            random_state for model
         """
         model_type = "LSVC"
         model = LinearSVC(

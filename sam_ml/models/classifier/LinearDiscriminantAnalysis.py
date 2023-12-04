@@ -15,9 +15,12 @@ class LDA(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            solver: solver to use
-            shrinkage: shrinkage parameters (does not work with 'svd' solver)
+        Parameters (important one)
+        --------------------------
+        solver : str,
+            solver to use
+        shrinkage : float or str,
+            shrinkage parameters (does not work with 'svd' solver)
         """
         model_type = "LDA"
         model = LinearDiscriminantAnalysis(**kwargs)

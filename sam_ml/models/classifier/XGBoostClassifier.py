@@ -17,9 +17,11 @@ class XGBC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            random_state: random_state for model
-            n_jobs: how many cores shall be used (-1 means all)
+        Parameters (important one)
+        --------------------------
+        random_state : int, \
+                default=42
+            random_state for model
         """
         model_type = "XGBC"
         model = XGBClassifier(

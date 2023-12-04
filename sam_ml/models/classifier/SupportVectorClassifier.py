@@ -15,17 +15,21 @@ class SVC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            random_state: random_state for model
-            verbose: logging (True/False)
-            C: Inverse of regularization strength
-            kernel: kernel type to be used in the algorithm
-            gamma: Kernel coefficient for 'rbf', 'poly' and 'sigmoid'
-
-            class_weight: set class_weight="balanced" to deal with imbalanced data
-            probability: probability=True enables probability estimates for SVM algorithms
-
-            cache_size: Specify the size of the kernel cache (in MB)
+        Parameters (important one)
+        --------------------------
+        C : float,
+            inverse of regularization strength
+        kernel : str,
+            kernel type to be used in the algorithm
+        gamma : str or float,
+            kernel coefficient for 'rbf', 'poly' and 'sigmoid'
+        class_weight : dict or str,
+            set class_weight="balanced" to deal with imbalanced data
+        probability : bool,
+            probability=True enables probability estimates for SVM algorithms
+        random_state : int, \
+                default=42
+            random_state for model
         """
         model_type = "SVC"
         model = svc(
@@ -44,7 +48,15 @@ class SVC(Classifier):
         super().__init__(model, model_name, model_type, grid)
 
     def feature_importance(self):
+        """
+        Function to generate a matplotlib plot of the top45 feature importance from the model. 
+        You can only use the method if you trained your model before.
+
+        Returns
+        -------
+        plt.show object
+        """
         if self.model.kernel == "linear":
             super().feature_importance()
         else:
-            print(f"feature importance is only available for a linear kernel. You are currently using: {self.model.kernel}")
+            raise ValueError(f"feature importance is only available for a linear kernel. You are currently using: {self.model.kernel}")

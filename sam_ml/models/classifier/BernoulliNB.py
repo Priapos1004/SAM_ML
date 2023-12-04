@@ -13,9 +13,12 @@ class BNB(Classifier):
         **kwargs,
     ):
         """
-        @params (important one):
-            binarize: threshold for binarizing (mapping to booleans) of sample features. If None, input is presumed to already consist of binary vectors
-            fit_prior: whether to learn class prior probabilities or not. If false, a uniform prior will be used
+        Parameters (important one)
+        --------------------------
+        binarize : float,
+            threshold for binarizing (mapping to booleans) of sample features. If None, input is presumed to already consist of binary vectors
+        fit_prior : bool,
+            whether to learn class prior probabilities or not. If false, a uniform prior will be used
         """
         model_type = "BNB"
         model = BernoulliNB(**kwargs,)

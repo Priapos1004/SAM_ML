@@ -17,9 +17,12 @@ class GPC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            multi_class: specifies how multi-class classification problems are handled
-            max_iter_predict: the maximum number of iterations in Newton's method for approximating the posterior during predict
+        Parameters (important one)
+        --------------------------
+        multi_class : str,
+            specifies how multi-class classification problems are handled
+        max_iter_predict : int,
+            the maximum number of iterations in Newton's method for approximating the posterior during predict
         """
         model_type = "GPC"
         model = GaussianProcessClassifier(

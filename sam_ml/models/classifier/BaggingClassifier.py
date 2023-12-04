@@ -26,13 +26,24 @@ class BC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            estimator: base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1), also possible is string 'DTC', 'RFC', and 'LR'
-            n_estimator: number of boosting stages to perform
-            max_samples: the number of samples to draw from X to train each base estimator
-            max_features: the number of features to draw from X to train each base estimator
-            bootstrap: whether samples are drawn with replacement. If False, sampling without replacement is performed
-            bootstrap_features: whether features are drawn with replacement
+        Parameters (important one)
+        --------------------------
+        estimator : {"DTC", "RFC", "LR"} or classifier object, \
+                default="DTC"
+            base estimator from which the boosted ensemble is built (default: DecisionTreeClassifier with max_depth=1)
+        n_estimator : int
+            number of boosting stages to perform
+        max_samples : float or int,
+            the number of samples to draw from X to train each base estimator
+        max_features : float or int,
+            the number of features to draw from X to train each base estimator
+        bootstrap : bool,
+            whether samples are drawn with replacement. If False, sampling without replacement is performed
+        bootstrap_features : bool,
+            whether features are drawn with replacement
+        random_state : int, \
+                default=42
+            random_state for model
         """
         model_type = "BC"
 
