@@ -1,21 +1,21 @@
-from abc import abstractmethod
 import inspect
 import pickle
-from statistics import mean
 import time
+from abc import abstractmethod
 from copy import deepcopy
-from matplotlib import pyplot as plt
 from datetime import timedelta
+from statistics import mean
 from typing import Callable
-from ConfigSpace import Configuration, ConfigurationSpace
 
 import numpy as np
 import pandas as pd
+from ConfigSpace import Configuration, ConfigurationSpace
+from matplotlib import pyplot as plt
 from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import cross_validate
 from tqdm import tqdm
 
-from sam_ml.config import setup_logger, get_n_jobs
+from sam_ml.config import get_n_jobs, setup_logger
 
 SMAC_INSTALLED: bool
 try:
@@ -236,7 +236,7 @@ class Model:
         """
         return dict(self.grid.sample_configuration(1))
     
-    def get_random_configs(self, n_trails: int) -> list:
+    def get_random_configs(self, n_trails: int) -> list[dict]:
         """
         Function to generate grid configurations
 
