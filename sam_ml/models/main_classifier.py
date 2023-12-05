@@ -1,17 +1,12 @@
-import inspect
 import os
 import sys
 import warnings
 from datetime import timedelta
 from inspect import isfunction
-from statistics import mean
 from typing import Callable, Literal
 
-import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
-from matplotlib import pyplot as plt
-from sklearn.exceptions import NotFittedError
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -19,12 +14,9 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-from sklearn.model_selection import cross_validate
-from tqdm.auto import tqdm
 
 from sam_ml.config import (
     get_avg,
-    get_n_jobs,
     get_pos_label,
     get_scoring,
     get_secondary_scoring,
@@ -34,13 +26,6 @@ from sam_ml.config import (
 
 from .main_model import Model
 from .scorer import l_scoring, s_scoring
-
-SMAC_INSTALLED: bool
-try:
-    from smac import HyperparameterOptimizationFacade, Scenario
-    SMAC_INSTALLED = True
-except:
-    SMAC_INSTALLED = False
 
 logger = setup_logger(__name__)
 
@@ -65,186 +50,261 @@ class Classifier(Model):
         grid : ConfigurationSpace
             hyperparameter grid for the model
         """
-        super().__init__(model_object, model_name, model_type)
-        self._grid = grid
-        self._cv_scores: dict[str, float] = {}
-        self._rCVsearch_results: pd.DataFrame|None = None
+        super().__init__(model_object, model_name, model_type, grid)
 
-    def __repr__(self) -> str:
-        params: str = ""
-        param_dict = self._changed_parameters()
-        for key in param_dict:
-            if type(param_dict[key]) == str:
-                params+= key+"='"+str(param_dict[key])+"', "
-            else:
-                params+= key+"="+str(param_dict[key])+", "
-        params += f"model_name='{self.model_name}'"
-
-        return f"{self.model_type}({params})"
-    
-    def _changed_parameters(self):
-        """
-        Returns
-        -------
-        dictionary of model parameter that are different from default values
-        """
-        params = self.get_params(deep=False)
-        init_params = inspect.signature(self.__init__).parameters
-        init_params = {name: param.default for name, param in init_params.items()}
-
-        init_params_estimator = inspect.signature(self.model.__init__).parameters
-        init_params_estimator = {name: param.default for name, param in init_params_estimator.items()}
-
-        def has_changed(k, v):
-            if k not in init_params:  # happens if k is part of a **kwargs
-                if k not in init_params_estimator: # happens if k is part of a **kwargs
-                    return True
-                else:
-                    if v != init_params_estimator[k]:
-                        return True
-                    else:
-                        return False
-
-            if init_params[k] == inspect._empty:  # k has no default value
-                return True
-            elif init_params[k] != v:
-                return True
-            
-            return False
-
-        return {k: v for k, v in params.items() if has_changed(k, v)}
-
-    @property
-    def grid(self) -> ConfigurationSpace:
-        """
-        Returns
-        -------
-        grid : ConfigurationSpace
-            hyperparameter tuning grid of the model
-        """
-        return self._grid
-    
-    @property
-    def cv_scores(self) -> dict[str, float]:
-        """
-        Returns
-        -------
-        cv_scores : dict[str, float]
-            dictionary with cross validation results
-        """
-        return self._cv_scores
-    
-    @property
-    def rCVsearch_results(self) -> pd.DataFrame|None:
-        """
-        Returns
-        -------
-        rCVsearch_results : pd.DataFrame or None
-            results from randomCV hyperparameter tuning. Is ``None`` if randomCVsearch was not used yet.
-        """
-        return self._rCVsearch_results
-    
-    def get_random_config(self) -> dict:
-        """
-        Function to generate one grid configuration
-
-        Returns
-        -------
-        config : dict
-            dictionary of random parameter configuration from grid
-
-        Examples
-        --------
-        >>> from sam_ml.models.classifier import LR
-        >>> 
-        >>> model = LR()
-        >>> model.get_random_config()
-        {'C': 0.31489116479568624,
-        'penalty': 'elasticnet',
-        'solver': 'saga',
-        'l1_ratio': 0.6026718993550663}
-        """
-        return dict(self.grid.sample_configuration(1))
-    
-    def get_random_configs(self, n_trails: int) -> list:
-        """
-        Function to generate grid configurations
+    def _get_score(
+        self,
+        scoring: str,
+        y_test: pd.Series,
+        pred: list,
+        avg: str,
+        pos_label: int | str,
+        secondary_scoring: str | None,
+        strength: int,
+    ) -> float:
+        """ 
+        Calculate a score for given y true and y prediction values
 
         Parameters
         ----------
-        n_trails : int
-            number of grid configurations
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
+                default="accuracy"
+            metrics to evaluate the models
+
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+        y_test, pred : pd.Series, pd.Series
+            Data to evaluate model
+        avg : {"micro", "macro", "binary", "weighted"} or None, \
+                default="macro"
+            average to use for precision and recall score. If ``None``, the scores for each class are returned.
+        pos_label : int or str, \
+                default=-1
+            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
+        secondary_scoring : {"precision", "recall"} or None, \
+                default=None
+            weights the scoring (only for "s_score"/"l_score")
+        strength : int, \
+                default=3
+            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
 
         Returns
         -------
-        configs : list
-            list with sets of random parameter from grid
-
-        Notes
-        -----
-        filter out duplicates -> could be less than n_trails
-
-        Examples
-        --------
-        >>> from sam_ml.models.classifier import LR
-        >>> 
-        >>> model = LR()
-        >>> model.get_random_configs(3)
-        [Configuration(values={
-            'C': 1.0,
-            'penalty': 'l2',
-            'solver': 'lbfgs',
-        }),
-        Configuration(values={
-            'C': 2.5378155082656657,
-            'penalty': 'l2',
-            'solver': 'saga',
-        }),
-        Configuration(values={
-            'C': 2.801635158716261,
-            'penalty': 'l2',
-            'solver': 'lbfgs',
-        })]
+        score : float 
+            metrics score value
         """
-        if n_trails<1:
-            raise ValueError(f"n_trails has to be greater 0, but {n_trails}<1")
-        
-        configs = [self._grid.get_default_configuration()]
-        if n_trails == 2:
-            configs += [self._grid.sample_configuration(n_trails-1)]
+        if scoring == "accuracy":
+            score = accuracy_score(y_test, pred)
+        elif scoring == "precision":
+            score = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "recall":
+            score = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        elif scoring == "s_score":
+            score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif scoring == "l_score":
+            score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        elif isfunction(scoring):
+            score = scoring(y_test, pred)
         else:
-            configs += self._grid.sample_configuration(n_trails-1)
-        # remove duplicates
-        configs = list(dict.fromkeys(configs))
-        return configs
+            raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score'")
 
-    def replace_grid(self, new_grid: ConfigurationSpace):
-        """
-        Function to replace self.grid
+        return score
+    
+    def _get_all_scores(
+        self,
+        y_test: pd.Series,
+        pred: list,
+        avg: str,
+        pos_label: int | str,
+        secondary_scoring: str | None,
+        strength: int,
+        custom_score: Callable[[list[int], list[int]], float] | None,
+    ) -> dict[str, float]:
+        """ 
+        Calculate accuracy, precision, recall, s_score, l_score, and optional custom_score metrics
 
         Parameters
         ----------
-        new_grid : ConfigurationSpace
-            new grid to replace the old one with
+        y_test, pred : pd.Series, pd.Series
+            Data to evaluate model
+        avg : {"micro", "macro", "binary", "weighted"} or None, \
+                default="macro"
+            average to use for precision and recall score. If ``None``, the scores for each class are returned.
+        pos_label : int or str, \
+                default=-1
+            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
+        secondary_scoring : {"precision", "recall"} or None, \
+                default=None
+            weights the scoring (only for "s_score"/"l_score")
+        strength : int, \
+                default=3
+            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
+        custom_score : callable or None, \
+                default=None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
 
         Returns
         -------
-        changes self.grid variable
+        scores : dict 
+            dictionary of format:
 
-        Examples
-        --------
-        >>> from sam_ml.models.classifier import LDA
-        >>>
-        >>> model = LDA()
-        >>> new_grid = ConfigurationSpace(
-        ...     seed=42,
-        ...     space={
-        ...         "solver": Categorical("solver", ["lsqr", "eigen"]),
-        ...         "shrinkage": Float("shrinkage", (0, 0.5)),
-        ...     })
-        >>> model.replace_grid(new_grid)
+                {'accuracy': ...,
+                'precision': ...,
+                'recall': ...,
+                's_score': ...,
+                'l_score': ...}
+
+            or if ``custom_score != None``:
+
+                {'accuracy': ...,
+                'precision': ...,
+                'recall': ...,
+                's_score': ...,
+                'l_score': ...,
+                'custom_score': ...,}
         """
-        self._grid = new_grid
+        accuracy = accuracy_score(y_test, pred)
+        precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
+        recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
+        s_score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        l_score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+
+        scores = {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "s_score": s_score,
+            "l_score": l_score,
+        }
+
+        if isfunction(custom_score):
+            custom_scores = custom_score(y_test, pred)
+            scores["custom_score"] = custom_scores
+
+        return scores
+    
+    def _print_scores(self, scores: dict, y_test: pd.Series, pred: list):
+        """
+        Function to print out the values of a dictionary
+
+        Parameters
+        ----------
+        scores: dict
+            dictionary with score names and values
+        y_test : pd.Series
+            true y values
+        pred : list
+            predicted y values of model
+
+        Returns
+        -------
+        key-value pairs in console (format: "key1: value1\\n key2: value2...")
+        """
+        super()._print_scores(scores)
+        print()
+        print("classification report:")
+        print(classification_report(y_test, pred))
+
+    def _make_scorer(
+        self,
+        avg: str,
+        pos_label: int | str,
+        secondary_scoring: str | None,
+        strength: int,
+        custom_score: Callable | None,
+    ) -> dict[str, Callable]:
+        """
+        Function to create a dictionary with scorer for the crossvalidation
+        
+        Parameters
+        ----------
+        avg : {"micro", "macro", "binary", "weighted"} or None
+            average to use for precision and recall score. If ``None``, the scores for each class are returned.
+        pos_label : int or str
+            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
+        secondary_scoring : {"precision", "recall"} or None
+            weights the scoring (only for "s_score"/"l_score")
+        strength : int
+            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
+        custom_score : callable or None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        scorer : dict[str, Callable]
+            dictionary with scorer functions
+        """
+        precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
+        recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
+        s_scorer = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+        l_scorer = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
+
+        if avg == "binary":
+            scorer = {
+                f"precision ({avg}, label={pos_label})": precision_scorer,
+                f"recall ({avg}, label={pos_label})": recall_scorer,
+                "accuracy": "accuracy",
+                "s_score": s_scorer,
+                "l_score": l_scorer,
+            }
+        else:
+            scorer = {
+                f"precision ({avg})": precision_scorer,
+                f"recall ({avg})": recall_scorer,
+                "accuracy": "accuracy",
+                "s_score": s_scorer,
+                "l_score": l_scorer,
+            }            
+
+        if isfunction(custom_score):
+            scorer["custom_score"] = make_scorer(custom_score)
+
+        return scorer
+    
+    def _make_cv_scores(
+            self,
+            score: dict,
+            custom_score: Callable | None = None,
+    ) -> dict[str, float]:
+        """
+        Function to create from the crossvalidation results a dictionary
+        
+        Parameters
+        ----------
+        score : dict
+            crossvalidation average column results
+        custom_score : callable or None, \
+                default=None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        cv_scores : dict
+            restructured dictionary
+        """
+        cv_scores = {
+            "accuracy": score[list(score.keys())[6]],
+            "precision": score[list(score.keys())[2]],
+            "recall": score[list(score.keys())[4]],
+            "s_score": score[list(score.keys())[8]],
+            "l_score": score[list(score.keys())[10]],
+            "train_score": score[list(score.keys())[7]],
+            "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+        }
+
+        if isfunction(custom_score):
+            cv_scores["custom_score"] = score[list(score.keys())[12]]
+        
+        return cv_scores
 
     def train(
         self,
@@ -379,148 +439,14 @@ class Classifier(Model):
         Train score: 0.9891840171120917 - Train time: 0:00:02
         """
         return super().train_warm_start(x_train, y_train, console_out, scoring=scoring, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
-    
-    def __get_score(
-        self,
-        scoring: str,
-        y_test: pd.Series,
-        pred: list,
-        avg: str,
-        pos_label: int | str,
-        secondary_scoring: str | None,
-        strength: int,
-    ) -> float:
-        """ 
-        Calculate a score for given y true and y prediction values
-
-        Parameters
-        ----------
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
-            metrics to evaluate the models
-
-            custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
-        y_test, pred : pd.Series, pd.Series
-            Data to evaluate model
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
-            average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
-            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
-            weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
-            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-
-        Returns
-        -------
-        score : float 
-            metrics score value
-        """
-        if scoring == "accuracy":
-            score = accuracy_score(y_test, pred)
-        elif scoring == "precision":
-            score = precision_score(y_test, pred, average=avg, pos_label=pos_label)
-        elif scoring == "recall":
-            score = recall_score(y_test, pred, average=avg, pos_label=pos_label)
-        elif scoring == "s_score":
-            score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        elif scoring == "l_score":
-            score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        elif isfunction(scoring):
-            score = scoring(y_test, pred)
-        else:
-            raise ValueError(f"scoring='{scoring}' is not supported -> only  'accuracy', 'precision', 'recall', 's_score', or 'l_score'")
-
-        return score
-    
-    def __get_all_scores(
-        self,
-        y_test: pd.Series,
-        pred: list,
-        avg: str,
-        pos_label: int | str,
-        secondary_scoring: str | None,
-        strength: int,
-        custom_score: Callable[[list[int], list[int]], float] | None,
-    ) -> dict[float]:
-        """ 
-        Calculate accuracy, precision, recall, s_score, l_score, and optional custom_score metrics
-
-        Parameters
-        ----------
-        y_test, pred : pd.Series, pd.Series
-            Data to evaluate model
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
-            average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
-            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
-            weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
-            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable, \
-                default=None
-            custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
-
-            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-
-        Returns
-        -------
-        scores : dict 
-            dictionary of format:
-
-                {'accuracy': ...,
-                'precision': ...,
-                'recall': ...,
-                's_score': ...,
-                'l_score': ...}
-
-            or if ``custom_score != None``:
-
-                {'accuracy': ...,
-                'precision': ...,
-                'recall': ...,
-                's_score': ...,
-                'l_score': ...,
-                'custom_score': ...,}
-        """
-        accuracy = accuracy_score(y_test, pred)
-        precision = precision_score(y_test, pred, average=avg, pos_label=pos_label)
-        recall = recall_score(y_test, pred, average=avg, pos_label=pos_label)
-        s_score = s_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        l_score = l_scoring(y_test, pred, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-
-        scores = {
-            "accuracy": accuracy,
-            "precision": precision,
-            "recall": recall,
-            "s_score": s_score,
-            "l_score": l_score,
-        }
-
-        if isfunction(custom_score):
-            custom_scores = custom_score(y_test, pred)
-            scores["custom_score"] = custom_scores
-
-        return scores
 
     def evaluate(
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
+        console_out: bool = True,
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        console_out: bool = True,
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         custom_score: Callable[[list[int], list[int]], float] | None = None,
@@ -532,22 +458,22 @@ class Classifier(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
+        console_out : bool, \
+                default=True
+            shall the result of the different scores and a classification_report be printed into the console
         avg : {"micro", "macro", "binary", "weighted"} or None, \
                 default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
         pos_label : int or str, \
                 default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        console_out : bool, \
-                default=True
-            shall the result of the different scores and a classification_report be printed into the console
         secondary_scoring : {"precision", "recall"} or None, \
                 default=None
             weights the scoring (only for "s_score"/"l_score")
         strength : int, \
                 default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable, \
+        custom_score : callable or None, \
                 default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
@@ -607,25 +533,15 @@ class Classifier(Model):
         weighted avg    0.80        0.80    0.80        500
         <BLANKLINE>
         """
-        pred = self.predict(x_test)
-        scores = self.__get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
-
-        if console_out:
-            for key in scores:
-                print(f"{key}: {scores[key]}")
-            print()
-            print("classification report:")
-            print(classification_report(y_test, pred))
-
-        return scores
+        return super().evaluate(x_test, y_test, console_out=console_out, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
     
     def evaluate_proba(
         self,
         x_test: pd.DataFrame,
         y_test: pd.Series,
+        console_out: bool = True,
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        console_out: bool = True,
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         custom_score: Callable[[list[int], list[int]], float] | None = None,
@@ -638,22 +554,22 @@ class Classifier(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
+        console_out : bool, \
+                default=True
+            shall the result of the different scores and a classification_report be printed
         avg : {"micro", "macro", "binary", "weighted"} or None, \
                 default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
         pos_label : int or str, \
                 default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        console_out : bool, \
-                default=True
-            shall the result of the different scores and a classification_report be printed
         secondary_scoring : {"precision", "recall"} or None, \
                 default=None
             weights the scoring (only for "s_score"/"l_score")
         strength : int, \
                 default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable, \
+        custom_score : callable or None, \
                 default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
@@ -721,14 +637,10 @@ class Classifier(Model):
 
         pred_proba = self.predict_proba(x_test)
         pred = [int(x > probability) for x in pred_proba[:, 1]]
-        scores = self.__get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
+        scores = self._get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
 
         if console_out:
-            for key in scores:
-                print(f"{key}: {scores[key]}")
-            print()
-            print("classification report:")
-            print(classification_report(y_test, pred))
+            self._print_scores(scores, y_test, pred)
 
         return scores
     
@@ -792,10 +704,7 @@ class Classifier(Model):
         >>> print(f"recall: {recall}")
         recall: 0.4
         """
-        pred = self.predict(x_test)
-        score = self.__get_score(scoring, y_test, pred, avg, pos_label, secondary_scoring, strength)
-
-        return score
+        return super().evaluate_score(scoring, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
     
     def evaluate_score_proba(
         self,
@@ -866,7 +775,7 @@ class Classifier(Model):
 
         pred_proba = self.predict_proba(x_test)
         pred = [int(x > probability) for x in pred_proba[:, 1]]
-        score = self.__get_score(scoring, y_test, pred, avg, pos_label, secondary_scoring, strength)
+        score = self._get_score(scoring, y_test, pred, avg, pos_label, secondary_scoring, strength)
 
         return score
 
@@ -875,9 +784,9 @@ class Classifier(Model):
         X: pd.DataFrame,
         y: pd.Series,
         cv_num: int = 10,
+        console_out: bool = True,
         avg: str = get_avg(),
         pos_label: int | str = get_pos_label(),
-        console_out: bool = True,
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         custom_score: Callable[[list[int], list[int]], float] | None = None,
@@ -892,22 +801,22 @@ class Classifier(Model):
         cv_num : int, \
                 default=10
             number of different random splits
+        console_out : bool, \
+                default=True
+            shall the result dataframe of the different scores for the different runs be printed
         avg : {"micro", "macro", "binary", "weighted"} or None, \
                 default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
         pos_label : int or str, \
                 default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        console_out : bool, \
-                default=True
-            shall the result dataframe of the different scores for the different runs be printed
         secondary_scoring : {"precision", "recall"} or None, \
                 default=None
             weights the scoring (only for "s_score"/"l_score")
         strength : int, \
                 default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable, \
+        custom_score : callable or None, \
                 default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
@@ -968,80 +877,16 @@ class Classifier(Model):
         test_l_score                0.998393  0.998836  0.998575    0.998602
         train_l_score               1.000000  1.000000  1.000000    1.000000
         """
-        logger.debug(f"cross validation {self.model_name} - started")
-
-        precision_scorer = make_scorer(precision_score, average=avg, pos_label=pos_label)
-        recall_scorer = make_scorer(recall_score, average=avg, pos_label=pos_label)
-        s_scorer = make_scorer(s_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-        l_scorer = make_scorer(l_scoring, strength=strength, scoring=secondary_scoring, pos_label=pos_label)
-
-        if avg == "binary":
-            scorer = {
-                f"precision ({avg}, label={pos_label})": precision_scorer,
-                f"recall ({avg}, label={pos_label})": recall_scorer,
-                "accuracy": "accuracy",
-                "s_score": s_scorer,
-                "l_score": l_scorer,
-            }
-        else:
-            scorer = {
-                f"precision ({avg})": precision_scorer,
-                f"recall ({avg})": recall_scorer,
-                "accuracy": "accuracy",
-                "s_score": s_scorer,
-                "l_score": l_scorer,
-            }            
-
-        if isfunction(custom_score):
-            custom_scorer = make_scorer(custom_score)
-            scorer["custom_score"] = custom_scorer
-        else:
-            custom_scorer = None
-
-        cv_scores = cross_validate(
-            self,
-            X,
-            y,
-            scoring=scorer,
-            cv=cv_num,
-            return_train_score=True,
-            n_jobs=get_n_jobs(),
-        )
-
-        pd_scores = pd.DataFrame(cv_scores).transpose()
-        pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
-
-        score = pd_scores["average"]
-
-        self._cv_scores = {
-            "accuracy": score[list(score.keys())[6]],
-            "precision": score[list(score.keys())[2]],
-            "recall": score[list(score.keys())[4]],
-            "s_score": score[list(score.keys())[8]],
-            "l_score": score[list(score.keys())[10]],
-            "train_score": score[list(score.keys())[7]],
-            "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
-        }
-
-        if isfunction(custom_score):
-            self._cv_scores["custom_score"] = score[list(score.keys())[12]]
-
-        logger.debug(f"cross validation {self.model_name} - finished")
-
-        if console_out:
-            print()
-            print(pd_scores)
-
-        return self._cv_scores
+        return super().cross_validation(X, y, cv_num=cv_num, console_out=console_out, custom_score=custom_score, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
 
     def cross_validation_small_data(
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        avg: str = get_avg(),
-        pos_label: int | str = get_pos_label(),
         leave_loadbar: bool = True,
         console_out: bool = True,
+        avg: str = get_avg(),
+        pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         custom_score: Callable[[list[int], list[int]], float] | None = None,
@@ -1063,25 +908,25 @@ class Classifier(Model):
         ----------
         X, y : pd.DataFrame, pd.Series
             Data to cross validate on
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
-            average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
-            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
         leave_loadbar : bool, \
                 default=True
             shall the loading bar of the training be visible after training (True - load bar will still be visible)
         console_out : bool, \
                 default=True
             shall the result of the different scores and a classification_report be printed into the console
+        avg : {"micro", "macro", "binary", "weighted"} or None, \
+                default="macro"
+            average to use for precision and recall score. If ``None``, the scores for each class are returned.
+        pos_label : int or str, \
+                default=-1
+            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
         secondary_scoring : {"precision", "recall"} or None, \
                 default=None
             weights the scoring (only for "s_score"/"l_score")
         strength : int, \
                 default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable, \
+        custom_score : callable or None, \
                 default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
@@ -1146,89 +991,7 @@ class Classifier(Model):
         weighted avg    0.76        0.70    0.67        150
         <BLANKLINE>
         """
-        logger.debug(f"cross validation {self.model_name} - started")
-
-        predictions = []
-        true_values = []
-        t_scores = []
-        t_times = []
-        
-        for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
-            x_train = X.drop(idx)
-            y_train = y.drop(idx)
-            x_test = X.loc[[idx]]
-            y_test = y.loc[idx]
-
-            train_score, train_time = self.train(x_train, y_train, console_out=False)
-            prediction = self.predict(x_test)
-
-            predictions.append(prediction)
-            true_values.append(y_test)
-            t_scores.append(train_score)
-            t_times.append(train_time)
-
-        self._cv_scores = self.__get_all_scores(true_values, predictions, avg, pos_label, secondary_scoring, strength, custom_score)
-        avg_train_score = mean(t_scores)
-        avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
-
-        self._cv_scores.update({
-            "train_score": avg_train_score,
-            "train_time": avg_train_time,
-        })
-
-        if console_out:
-            for key in self._cv_scores:
-                print(f"{key}: {self._cv_scores[key]}")
-            print()
-            print("classification report:")
-            print(classification_report(true_values, predictions))
-
-        logger.debug(f"cross validation {self.model_name} - finished")
-
-        return self._cv_scores
-
-    def feature_importance(self) -> plt.show:
-        """
-        Function to generate a matplotlib plot of the top45 feature importance from the model. 
-        You can only use the method if you trained your model before.
-
-        Returns
-        -------
-        plt.show object
-        """
-        if not self.feature_names:
-            raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")
-
-        if self.model_type == "MLPC":
-            importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Classifier
-        elif self.model_type in ("DTC", "RFC", "GBM", "CBC", "ABC", "ETC", "XGBC"):
-            importances = self.model.feature_importances_
-        elif self.model_type in ("KNC", "GNB", "BNB", "GPC", "QDA", "BC"):
-            logger.warning(f"{self.model_type} does not have a feature importance")
-            return
-        else:
-            importances = self.model.coef_[0]  # "normal"
-
-        # top45 features
-        feature_importances = pd.Series(importances, index=self.feature_names).sort_values(ascending=False).head(45)
-
-        fig, ax = plt.subplots()
-        if self.model_type in ("RFC", "GBM", "ETC"):
-            if self.model_type in ("RFC", "ETC"):
-                std = np.std(
-                    [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
-                )
-            elif self.model_type == "GBM":
-                std = np.std(
-                    [tree[0].feature_importances_ for tree in self.model.estimators_], axis=0,
-                )
-            feature_importances.plot.bar(yerr=std, ax=ax)
-        else:
-            feature_importances.plot.bar(ax=ax)
-        ax.set_title("Feature importances of " + str(self.model_name))
-        ax.set_ylabel("use of coefficients as importance scores")
-        fig.tight_layout()
-        plt.show()
+        return super().cross_validation_small_data(X,y,leave_loadbar=leave_loadbar, console_out=console_out, custom_score=custom_score, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
     
     def smac_search(
         self,
@@ -1327,56 +1090,7 @@ class Classifier(Model):
         'solver': 'lbfgs',
         })
         """
-        if not SMAC_INSTALLED:
-            raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
-
-        logger.debug("starting smac_search")
-        # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
-        if self.model_type in ("RFC", "ETC", "GBM", "XGBC"):
-            grid = self.smac_grid
-        else:
-            grid = self.grid
-
-        scenario = Scenario(
-            grid,
-            n_trials=n_trails,
-            deterministic=True,
-            walltime_limit=walltime_limit,
-        )
-
-        initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
-        logger.debug(f"initial_design: {initial_design.select_configurations()}")
-
-        # custom scoring
-        if isfunction(scoring):
-            custom_score = scoring
-            scoring = "custom_score"
-        else:
-            custom_score = None
-
-        # define target function
-        def grid_train(config: Configuration, seed: int) -> float:
-            logger.debug(f"config: {config}")
-            model = self.get_deepcopy()
-            model.set_params(**config)
-            if small_data_eval:
-                score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
-            else:
-                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
-            return 1 - score[scoring]  # SMAC always minimizes (the smaller the better)
-
-        # use SMAC to find the best hyperparameters
-        smac = HyperparameterOptimizationFacade(
-            scenario,
-            grid_train,
-            initial_design=initial_design,
-            overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
-            logging_level=log_level,
-        )
-
-        incumbent = smac.optimize()
-        logger.debug("finished smac_search")
-        return incumbent
+        return super().smac_search(x_train, y_train, scoring=scoring, n_trails=n_trails, cv_num=cv_num, small_data_eval=small_data_eval, walltime_limit=walltime_limit, log_level=log_level, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
 
     def randomCVsearch(
         self,
@@ -1437,6 +1151,10 @@ class Classifier(Model):
         best_score : float
             the score of the best hyperparameter set
 
+        Notes
+        -----
+        if you interrupt the keyboard during the run of randomCVsearch, the interim result will be returned
+
         Examples
         --------
         >>> # load data (replace with own data)
@@ -1454,49 +1172,4 @@ class Classifier(Model):
         >>> print(f"best hyperparameters: {best_hyperparam}, best score: {best_score}")
         best hyperparameters: {'C': 8.471801418819979, 'penalty': 'l2', 'solver': 'newton-cg'}, best score: 0.765
         """
-        logger.debug("starting randomCVsearch")
-        results = []
-        configs = self.get_random_configs(n_trails)
-
-        # custom scoring
-        if isfunction(scoring):
-            custom_score = scoring
-            scoring = "custom_score"
-        else:
-            custom_score = None
-
-        at_least_one_run: bool = False
-        try:
-            for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
-                logger.debug(f"config: {config}")
-                model = self.get_deepcopy()
-                model.set_params(**config)
-                if small_data_eval:
-                    score = model.cross_validation_small_data(x_train, y_train, console_out=False, leave_loadbar=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
-                else:
-                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
-                config_dict = dict(config)
-                config_dict[scoring] = score[scoring]
-                results.append(config_dict)
-                at_least_one_run = True
-        except KeyboardInterrupt:
-            logger.info("KeyboardInterrupt - output interim result")
-            if not at_least_one_run:
-                return {}, -1
-            
-
-        self._rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
-
-        # for-loop to keep dtypes of columns
-        best_hyperparameters = {} 
-        for col in self._rCVsearch_results.columns:
-            value = self._rCVsearch_results[col].iloc[0]
-            if str(value) != "nan":
-                best_hyperparameters[col] = value
-
-        best_score = best_hyperparameters[scoring]
-        best_hyperparameters.pop(scoring)
-
-        logger.debug("finished randomCVsearch")
-        
-        return best_hyperparameters, best_score
+        return super().randomCVsearch(x_train, y_train, n_trails=n_trails, cv_num=cv_num, scoring=scoring, small_data_eval=small_data_eval, leave_loadbar=leave_loadbar, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)

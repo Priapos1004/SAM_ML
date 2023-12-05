@@ -26,7 +26,7 @@ from sam_ml.models.classifier import (
     SVC,
     XGBC,
 )
-from sam_ml.models.main_classifier import SMAC_INSTALLED
+from sam_ml.models.main_model import SMAC_INSTALLED
 
 
 def get_models() -> list:

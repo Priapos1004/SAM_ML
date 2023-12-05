@@ -6,7 +6,7 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 
 from sam_ml.data.preprocessing import Sampler, Scaler, Selector
-from sam_ml.models.main_classifier import SMAC_INSTALLED
+from sam_ml.models.main_model import SMAC_INSTALLED
 
 os.environ["SAM_ML_SOUND_ON"] = "False"
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
