@@ -54,12 +54,12 @@ class Classifier(Model):
 
     def _get_score(
         self,
-        scoring: str,
+        scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float],
         y_test: pd.Series,
         pred: list,
-        avg: str,
+        avg: str | None,
         pos_label: int | str,
-        secondary_scoring: str | None,
+        secondary_scoring: Literal["precision", "recall"] | None,
         strength: int,
     ) -> float:
         """ 
@@ -67,25 +67,20 @@ class Classifier(Model):
 
         Parameters
         ----------
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score)
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
         y_test, pred : pd.Series, pd.Series
             Data to evaluate model
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
 
         Returns
@@ -114,9 +109,9 @@ class Classifier(Model):
         self,
         y_test: pd.Series,
         pred: list,
-        avg: str,
+        avg: str | None,
         pos_label: int | str,
-        secondary_scoring: str | None,
+        secondary_scoring: Literal["precision", "recall"] | None,
         strength: int,
         custom_score: Callable[[list[int], list[int]], float] | None,
     ) -> dict[str, float]:
@@ -127,20 +122,15 @@ class Classifier(Model):
         ----------
         y_test, pred : pd.Series, pd.Series
             Data to evaluate model
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -211,11 +201,11 @@ class Classifier(Model):
 
     def _make_scorer(
         self,
-        avg: str,
+        avg: str | None,
         pos_label: int | str,
-        secondary_scoring: str | None,
+        secondary_scoring: Literal["precision", "recall"] | None,
         strength: int,
-        custom_score: Callable | None,
+        custom_score: Callable[[list[int], list[int]], float] | None,
     ) -> dict[str, Callable]:
         """
         Function to create a dictionary with scorer for the crossvalidation
@@ -271,7 +261,7 @@ class Classifier(Model):
     def _make_cv_scores(
             self,
             score: dict,
-            custom_score: Callable | None = None,
+            custom_score: Callable[[list[int], list[int]], float] | None,
     ) -> dict[str, float]:
         """
         Function to create from the crossvalidation results a dictionary
@@ -280,8 +270,7 @@ class Classifier(Model):
         ----------
         score : dict
             crossvalidation average column results
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -312,7 +301,7 @@ class Classifier(Model):
         x_train: pd.DataFrame,
         y_train: pd.Series, 
         scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -379,7 +368,7 @@ class Classifier(Model):
         x_train: pd.DataFrame,
         y_train: pd.Series, 
         scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -446,7 +435,7 @@ class Classifier(Model):
         x_test: pd.DataFrame,
         y_test: pd.Series,
         console_out: bool = True,
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -541,7 +530,7 @@ class Classifier(Model):
         x_test: pd.DataFrame,
         y_test: pd.Series,
         console_out: bool = True,
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -650,7 +639,7 @@ class Classifier(Model):
         x_test: pd.DataFrame,
         y_test: pd.Series,
         scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -712,7 +701,7 @@ class Classifier(Model):
         x_test: pd.DataFrame,
         y_test: pd.Series,
         scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -786,7 +775,7 @@ class Classifier(Model):
         y: pd.Series,
         cv_num: int = 10,
         console_out: bool = True,
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -886,7 +875,7 @@ class Classifier(Model):
         y: pd.Series,
         leave_loadbar: bool = True,
         console_out: bool = True,
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -1001,7 +990,7 @@ class Classifier(Model):
         n_trails: int = 50,
         cv_num: int = 5,
         scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
@@ -1067,11 +1056,10 @@ class Classifier(Model):
         >>> df = load_iris()
         >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
         >>>
-        >>> # initialise model
-        >>> from sam_ml.models.classifier import LR
-        >>> model = LR()
-        >>>
         >>> # use smac_search
+        >>> from sam_ml.models.classifier import LR
+        >>> 
+        >>> model = LR()
         >>> best_hyperparam = model.smac_search(X, y, n_trails=20, cv_num=5, scoring="recall")
         >>> print(f"best hyperparameters: {best_hyperparam}")
         [INFO][abstract_initial_design.py:82] Using `n_configs` and ignoring `n_configs_per_hyperparameter`.
@@ -1100,7 +1088,7 @@ class Classifier(Model):
         n_trails: int = 10,
         cv_num: int = 5,
         scoring: Literal["accuracy", "precision", "recall", "s_score", "l_score"] | Callable[[list[int], list[int]], float] = get_scoring(),
-        avg: str = get_avg(),
+        avg: str | None = get_avg(),
         pos_label: int | str = get_pos_label(),
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),

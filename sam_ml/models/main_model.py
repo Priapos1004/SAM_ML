@@ -794,17 +794,15 @@ class Model:
             x_train = X.drop(idx)
             y_train = y.drop(idx)
             x_test = X.loc[[idx]]
-            y_test = y.loc[idx]
 
             train_score, train_time = self.train(x_train, y_train, console_out=False)
             prediction = self.predict(x_test)
 
-            predictions.append(prediction)
-            true_values.append(y_test)
+            predictions += prediction
             t_scores.append(train_score)
             t_times.append(train_time)
 
-        self._cv_scores = self._get_all_scores(true_values, predictions, **kwargs, custom_score=custom_score)
+        self._cv_scores = self._get_all_scores(y_test=y, pred=predictions, **kwargs, custom_score=custom_score)
         avg_train_score = mean(t_scores)
         avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
 
