@@ -203,7 +203,8 @@ class Classifier(Model):
         -------
         key-value pairs in console (format: "key1: value1\\n key2: value2...")
         """
-        super()._print_scores(scores)
+        for key in scores:
+            print(f"{key}: {scores[key]}")
         print()
         print("classification report:")
         print(classification_report(y_test, pred))
