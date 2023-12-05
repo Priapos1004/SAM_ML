@@ -13,8 +13,10 @@ class EN(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            selection: if set to 'random', a random coefficient is updated every iteration rather than looping over features sequentially by default. This (setting to 'random') often leads to significantly faster convergence especially when tol is higher than 1e-4
+        Parameters (important one)
+        --------------------------
+        selection : str,
+            if set to 'random', a random coefficient is updated every iteration rather than looping over features sequentially by default. This (setting to 'random') often leads to significantly faster convergence especially when tol is higher than 1e-4
         """
         model_type = "EN"
         model = ElasticNet(**kwargs)

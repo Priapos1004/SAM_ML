@@ -13,8 +13,10 @@ class LLCV(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            max_iter: maximum number of iterations to perform
+        Parameters (important one)
+        --------------------------
+        max_iter : int
+            maximum number of iterations to perform
         """
         model_type = "LLCV"
         model = LassoLarsCV(**kwargs)

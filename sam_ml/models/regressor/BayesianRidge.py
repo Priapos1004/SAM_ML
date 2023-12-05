@@ -13,9 +13,12 @@ class BYR(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            alpha_init: initial value for alpha (precision of the noise)
-            lambda_init: initial value for lambda (precision of the weights)
+        Parameters (important one)
+        --------------------------
+        alpha_init : float
+            initial value for alpha (precision of the noise)
+        lambda_init : float
+            initial value for lambda (precision of the weights)
         """
         model_type = "BYR"
         model = BayesianRidge(**kwargs)

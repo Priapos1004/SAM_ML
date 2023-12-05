@@ -201,6 +201,7 @@ class Model:
 
         Examples
         --------
+        >>> from ConfigSpace import ConfigurationSpace
         >>> from sam_ml.models.classifier import LDA
         >>>
         >>> model = LDA()

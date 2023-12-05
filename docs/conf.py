@@ -22,7 +22,6 @@ release = sam_ml.__version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 import sphinx_copybutton
-import sphinx_rtd_theme
 from sphinx.application import Sphinx
 
 extensions = [
@@ -45,7 +44,11 @@ add_function_parentheses = False
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
+import sphinx_rtd_theme
+
 html_theme = "sphinx_rtd_theme"
+
+
 html_static_path = ['_static']
 
 # A shorter title for the navigation bar.  Default is the same as html_title.

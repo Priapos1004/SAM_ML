@@ -14,9 +14,12 @@ class SGDR(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            penalty: Specify the norm of the penalty
-            alpha: Constant that multiplies the regularization term (the higher the value, the stronger the regularization)
+        Parameters (important one)
+        --------------------------
+        penalty : str or None
+            Specify the norm of the penalty
+        alpha : float
+            Constant that multiplies the regularization term (the higher the value, the stronger the regularization)
         """
         model_type = "SGDR"
         model = SGDRegressor(random_state=random_state, **kwargs)
