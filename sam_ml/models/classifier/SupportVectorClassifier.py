@@ -48,14 +48,7 @@ class SVC(Classifier):
         super().__init__(model, model_name, model_type, grid)
 
     def feature_importance(self):
-        """
-        Function to generate a matplotlib plot of the top45 feature importance from the model. 
-        You can only use the method if you trained your model before.
-
-        Returns
-        -------
-        plt.show object
-        """
+        self.feature_importance.__doc__ = super().feature_importance.__doc__
         if self.model.kernel == "linear":
             super().feature_importance()
         else:

@@ -786,7 +786,6 @@ class Model:
         logger.debug(f"cross validation {self.model_name} - started")
 
         predictions = []
-        true_values = []
         t_scores = []
         t_times = []
         
@@ -812,7 +811,7 @@ class Model:
         })
 
         if console_out:
-            self._print_scores(self._cv_scores, y_test=true_values, pred=predictions)
+            self._print_scores(self._cv_scores, y_test=y, pred=predictions)
 
         logger.debug(f"cross validation {self.model_name} - finished")
 
@@ -826,6 +825,21 @@ class Model:
         Returns
         -------
         plt.show object
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import load_iris
+        >>> df = load_iris()
+        >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
+        >>> 
+        >>> # train and plot features of model
+        >>> from sam_ml.models.classifier import LR
+        >>>
+        >>> model = LR()
+        >>> model.train(X, y)
+        >>> model.feature_importance()
         """
         if not self.feature_names:
             raise NotFittedError("You have to first train the classifier before getting the feature importance (with train-method)")

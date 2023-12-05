@@ -4,6 +4,8 @@ on:
   push:
     branches: ["**"]
     tags: ["*"]
+  schedule:
+    - cron: "0 13 * * 1"
 
 jobs:
   code-checks:

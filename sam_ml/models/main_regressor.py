@@ -267,7 +267,7 @@ class Regressor(Model):
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>>
         >>> # train model
         >>> from sam_ml.models.regressor import RFR
@@ -318,7 +318,7 @@ class Regressor(Model):
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>>
         >>> # train model
         >>> from sam_ml.models.regressor import RFR
@@ -376,10 +376,10 @@ class Regressor(Model):
         >>> from sklearn.datasets import make_regression
         >>> from sklearn.model_selection import train_test_split
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>>
-        >>> # train model
+        >>> # train and evaluate model
         >>> from sam_ml.models.regressor import RFR
         >>> 
         >>> model = RFR()
@@ -423,10 +423,10 @@ class Regressor(Model):
         >>> from sklearn.datasets import make_regression
         >>> from sklearn.model_selection import train_test_split
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>>
-        >>> # train model
+        >>> # train and evaluate model
         >>> from sam_ml.models.regressor import RFR
         >>> 
         >>> model = RFR()
@@ -489,9 +489,9 @@ class Regressor(Model):
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>>
-        >>> # train model
+        >>> # cross validate model
         >>> from sam_ml.models.regressor import RFR
         >>> 
         >>> model = RFR()
@@ -571,9 +571,9 @@ class Regressor(Model):
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=150, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>>
-        >>> # train model
+        >>> # cross validate model
         >>> from sam_ml.models.regressor import RFR
         >>> 
         >>> model = RFR()
@@ -641,7 +641,7 @@ class Regressor(Model):
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>>
         >>> # use smac_search
         >>> from sam_ml.models.regressor import RFR
@@ -724,9 +724,9 @@ class Regressor(Model):
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
-        >>> X, y = pd.DataFrame(x, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>>
-        >>> # use smac_search
+        >>> # use randomCVsearch
         >>> from sam_ml.models.regressor import RFR
         >>> 
         >>> model = RFR()
