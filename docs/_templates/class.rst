@@ -13,8 +13,7 @@
      - {{ init_method.description }}
 
    * - Attributes
-     - 
-       {% for prop in properties %}
+     - {% for prop in properties %}
          {{ prop.description }}
        {% endfor %}
 

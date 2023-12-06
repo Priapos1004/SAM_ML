@@ -48,7 +48,6 @@ class SVC(Classifier):
         super().__init__(model, model_name, model_type, grid)
 
     def feature_importance(self):
-        self.feature_importance.__doc__ = super().feature_importance.__doc__
         if self.model.kernel == "linear":
             super().feature_importance()
         else:

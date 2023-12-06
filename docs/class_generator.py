@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 import sam_ml.data.preprocessing
 import sam_ml.models.classifier
 import sam_ml.models.regressor
-from sam_ml.data.preprocessing.main_data import DATA
+from sam_ml.data.preprocessing.main_data import Data
 from sam_ml.models.main_classifier import Classifier
 from sam_ml.models.main_regressor import Regressor
 
@@ -18,19 +18,22 @@ class PropertyInfo:
         self.description = func.__doc__ or 'No description available.'
 
 class MethodInfo:
-    def __init__(self, name: str, func: Callable):
+    def __init__(self, name: str, func: Callable, init: bool = False):
         self.name = name
         self.signature = inspect.signature(func)
-        self.description = func.__doc__ or 'No description available.'
-        self.short_description = func.__doc__.split('\n')[1].strip() if func.__doc__ else 'No description available.'
+        if init:
+            self.description = func.__doc__ or 'No description available.'
+        else:
+            self.description = inspect.getdoc(func) or 'No description available.'
+        self.short_description = inspect.getdoc(func).split('\n')[0].strip() if inspect.getdoc(func) else 'No description available.'
 
 class ClassInfo:
     def __init__(self, cls):
         self.cls_name = cls().model_name.split(" (")[0] if hasattr(cls, "model_name") else cls.__name__
         self.full_cls_name = f"{cls.__module__}.{cls.__name__}"
-        self.description = cls.__doc__ or 'No description available.'
+        self.description = inspect.getdoc(cls) or 'No description available.'
         self.example = f"""
->>> from sam_ml.models.classifier import {cls.__name__}
+>>> from {cls.__module__.rpartition(".")[0]} import {cls.__name__}
 >>>
 >>> model = {cls.__name__}()
 >>> print(model)
@@ -39,7 +42,7 @@ class ClassInfo:
 
 def get_class_info(cls):
     cls_info = ClassInfo(cls)
-    init_method = MethodInfo(cls.__name__, cls.__init__)
+    init_method = MethodInfo(cls.__name__, cls.__init__, init=True)
     methods = [MethodInfo(func, getattr(cls, func)) for func in dir(cls) if callable(getattr(cls, func)) and not func.startswith("_")]
     properties = [PropertyInfo(attr_name, getattr(cls, attr_name)) for attr_name in dir(cls) if isinstance(getattr(cls, attr_name), property)]
     return cls_info, methods, properties, init_method
@@ -89,7 +92,7 @@ def main():
     # generate regressor folder
     generate_folder(Regressor, "regressor/", "Regressor")
     # generate preprocessing folder
-    generate_folder(DATA, "preprocessing/", "Preprocessing")
+    generate_folder(Data, "preprocessing/", "Preprocessing")
 
 if __name__ == "__main__":
     main()

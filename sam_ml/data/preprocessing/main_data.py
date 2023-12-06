@@ -1,11 +1,23 @@
 import inspect
+from abc import abstractmethod
 
 
-class DATA:
+class Data:
+    """ Data preprocessing parent class {abstract} """
 
     def __init__(self, algorithm: str,  transformer: any):
-        self.algorithm = algorithm
-        self.transformer = transformer
+        """
+        Function to get the parameter from the data object
+
+        Parameters
+        ----------
+        algorithm : str
+            name of the used algorithm
+        transformer : data object
+            data object (e.g. StandardScaler)
+        """
+        self._algorithm = algorithm
+        self._transformer = transformer
 
     def __repr__(self) -> str:
         transformer_params: str = ""
@@ -15,14 +27,20 @@ class DATA:
                 transformer_params += key+"='"+str(param_dict[key])+"', "
             else:
                 transformer_params += key+"="+str(param_dict[key])+", "
+
         return f"{self.__class__.__name__}({transformer_params})"
 
     def _changed_parameters(self):
+        """
+        Returns
+        -------
+        dictionary of model parameter that are different from default values
+        """
         params = self.get_params(deep=False)
         init_params = inspect.signature(self.__init__).parameters
         init_params = {name: param.default for name, param in init_params.items()}
 
-        init_params_transformer = inspect.signature(self.transformer.__init__).parameters
+        init_params_transformer = inspect.signature(self._transformer.__init__).parameters
         init_params_transformer = {name: param.default for name, param in init_params_transformer.items()}
 
         def has_changed(k, v):
@@ -44,9 +62,69 @@ class DATA:
 
         return {k: v for k, v in params.items() if has_changed(k, v)}
     
-    def get_params(self, deep: bool = True):
+    @property
+    def algorithm(self) -> str:
+        """
+        Returns
+        -------
+        algorithm : str
+            name of the used algorithm
+        """
+        return self._algorithm
+    
+    @property
+    def transformer(self) -> any:
+        """
+        Returns
+        -------
+        transformer : data object
+            data object (e.g. StandardScaler)
+        """
+        return self._transformer
+    
+    @staticmethod
+    @abstractmethod
+    def params() -> dict:
+        """
+        Function to get the possible/recommended parameter values for the class
+
+        Returns
+        -------
+        param : dict
+            possible/recommended values for the parameters
+        """
+        pass
+    
+    def get_params(self, deep: bool = True) -> dict:
+        """
+        Function to get the parameter from the data object
+
+        Parameters
+        ----------
+        deep : bool, \
+                default=True
+            If True, will return the parameters for this estimator and contained sub-objects that are estimators
+
+        Returns
+        -------
+        params: dict
+            parameter names mapped to their values
+        """
         return {"algorithm": self.algorithm} | self.transformer.get_params(deep)
 
     def set_params(self, **params):
-        self.transformer.set_params(**params)
+        """
+        Function to set the parameter of the data object
+
+        Parameters
+        ----------
+        **params : dict
+            Estimator parameters
+
+        Returns
+        -------
+        self : estimator instance
+            Estimator instance
+        """
+        self._transformer.set_params(**params)
         return self

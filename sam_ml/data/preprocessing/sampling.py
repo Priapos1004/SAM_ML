@@ -12,33 +12,38 @@ from imblearn.under_sampling import (
 
 from sam_ml.config import setup_logger
 
-from .main_data import DATA
+from .main_data import Data
 
 logger = setup_logger(__name__)
 
 
-class Sampler(DATA):
+class Sampler(Data):
     """ sample algorithm Wrapper class """
 
-    def __init__(self, algorithm: Literal["SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"] = "ros", random_state: int = 42, sampling_strategy="auto", **kwargs):
+    def __init__(self, algorithm: Literal["SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"] = "ros", random_state: int = 42, sampling_strategy: str|float = "auto", **kwargs):
         """
-        @param:
-            algorithm: which sampling algorithm to use:
-                SMOTE: Synthetic Minority Oversampling Technique (upsampling)
-                BSMOTE: BorderlineSMOTE (upsampling)
-                ros: RandomOverSampler (upsampling) (default)
-                rus: RandomUnderSampler (downsampling)
-                tl: TomekLinks (cleaning downsampling)
-                nm: NearMiss (downsampling)
-                cc: ClusterCentroids (downsampling)
-                oss: OneSidedSelection (cleaning downsampling)
-            
-            random_state: seed for random sampling
+        Parameters
+        ----------
+        algorithm : {"SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"}, \
+                defautl="ros
+            which sampling algorithm to use:
+            - SMOTE: Synthetic Minority Oversampling Technique (upsampling)
+            - BSMOTE: BorderlineSMOTE (upsampling)
+            - ros: RandomOverSampler (upsampling) (default)
+            - rus: RandomUnderSampler (downsampling)
+            - tl: TomekLinks (cleaning downsampling)
+            - nm: NearMiss (downsampling)
+            - cc: ClusterCentroids (downsampling)
+            - oss: OneSidedSelection (cleaning downsampling)
 
-            sampling_strategy: percentage of minority class size of majority class size
-
-            **kwargs:
-                additional parameters for sampler
+        random_state : int, \
+                default=42
+            seed for random sampling
+        sampling_strategy : str or float, \
+                default="auto"
+            percentage of class size of minority in relation to the class size of the majority
+        **kwargs:
+            additional parameters for sampler
         """
         if algorithm == "SMOTE":
             sampler = SMOTE(random_state=random_state, sampling_strategy=sampling_strategy, **kwargs)
@@ -64,7 +69,11 @@ class Sampler(DATA):
     @staticmethod
     def params() -> dict:
         """
-        @return:
+        Function to get the possible parameter values for the class
+
+        Returns
+        -------
+        param : dict
             possible values for the parameters
         """
         param = {"algorithm": ["SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"]}
@@ -74,9 +83,54 @@ class Sampler(DATA):
         """
         Function for up- and downsampling
 
-        @return:
-            tuple x_train_sampled, y_train_sampled
+        Parameters
+        ----------
+        x_train, y_train : pd.DataFrame, pd.Series
+            data to sample
+
+        Returns
+        -------
+        x_train_sampled : pd.DataFrame
+            sampled x data
+        y_train_sampled : pd.Series
+            sampled y data
+
+        Notes
+        -----
+        ONLY sample the `train data`. NEVER all data because then you will have the same samples in train and test data with random splitting
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import load_iris
+        >>> from sklearn.model_selection import train_test_split
+        >>> df = load_iris()
+        >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
+        >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
+        >>>
+        >>> # sample data
+        >>> from sam_ml.data.preprocessing import Sampler
+        >>>
+        >>> model = Sampler()
+        >>> x_train_sampled, y_train_sampled = model.sample(x_train, y_train)
+        >>> print("before sampling:")
+        >>> print(y_train.value_counts())
+        >>> print()
+        >>> print("after sampling:")
+        >>> print(y_train_sampled.value_counts())
+        before sampling:
+        1    41
+        0    40
+        2    39
+        Name: count, dtype: int64
+        <BLANKLINE>
+        after sampling:
+        0    41
+        1    41
+        2    41
+        Name: count, dtype: int64
         """
-        x_train_sampled, y_train_sampled = self.transformer.fit_resample(x_train, y_train)
+        x_train_sampled, y_train_sampled = self._transformer.fit_resample(x_train, y_train)
 
         return x_train_sampled, y_train_sampled
