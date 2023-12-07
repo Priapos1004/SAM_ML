@@ -74,7 +74,22 @@ class Sampler(Data):
         Returns
         -------
         param : dict
-            possible values for the parameters
+            possible values for the parameter "algorithm"
+
+        Examples
+        --------
+        >>> # get possible parameters
+        >>> from sam_ml.data.preprocessing import Sampler
+        >>>
+        >>> # first way without class object
+        >>> params1 = Sampler.params()
+        >>> print(params1)
+        {"algorithm": ["ros", ...]}
+        >>> # second way with class object
+        >>> model = Sampler()
+        >>> params2 = model.params()
+        >>> print(params2)
+        {"algorithm": ["ros", ...]}
         """
         param = {"algorithm": ["SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"]}
         return param
@@ -97,7 +112,7 @@ class Sampler(Data):
 
         Notes
         -----
-        ONLY sample the `train data`. NEVER all data because then you will have the same samples in train and test data with random splitting
+        ONLY sample the `train data`. NEVER all data because then you will have some samples in train as well as in test data with random splitting
 
         Examples
         --------

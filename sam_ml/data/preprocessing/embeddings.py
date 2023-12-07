@@ -23,6 +23,7 @@ class Embeddings_builder(Data):
         ----------
         algorithm : {"bert", "count", "tfidf"}, \
                 default="tfidf
+            which vectorizing algorithm to use:
             - 'count': CountVectorizer (default)
             - 'tfidf': TfidfVectorizer
             - 'bert': SentenceTransformer("quora-distilbert-multilingual")
@@ -49,7 +50,22 @@ class Embeddings_builder(Data):
         Returns
         -------
         param : dict
-            possible values for the parameters
+            possible values for the parameter "algorithm"
+
+        Examples
+        --------
+        >>> # get possible parameters
+        >>> from sam_ml.data.preprocessing import Embeddings_builder
+        >>>
+        >>> # first way without class object
+        >>> params1 = Embeddings_builder.params()
+        >>> print(params1)
+        {"algorithm": ["tfidf", ...]}
+        >>> # second way with class object
+        >>> model = Embeddings_builder()
+        >>> params2 = model.params()
+        >>> print(params2)
+        {"algorithm": ["tfidf", ...]}
         """
         param = {"algorithm": ["bert", "count", "tfidf"]}
         return param

@@ -60,7 +60,7 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
             else:
                 raise ValueError(f"wrong input '{model}' for model")
 
-            if vectorizer in Embeddings_builder.params()["vec"]:
+            if vectorizer in Embeddings_builder.params()["algorithm"]:
                 self.vectorizer = Embeddings_builder(algorithm=vectorizer)
             elif type(vectorizer) == Embeddings_builder or vectorizer is None:
                 self.vectorizer = vectorizer
@@ -91,7 +91,7 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
 
             if sampler in Sampler.params()["algorithm"]:
                 self.sampler = Sampler(algorithm=sampler)
-            elif type(sampler) ==str and SamplerPipeline.check_is_valid_algorithm(sampler):
+            elif type(sampler) ==str:
                 self.sampler = SamplerPipeline(algorithm=sampler)
             elif type(sampler) in (Sampler, SamplerPipeline) or sampler is None:
                 self.sampler = sampler

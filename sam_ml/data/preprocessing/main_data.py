@@ -7,14 +7,12 @@ class Data:
 
     def __init__(self, algorithm: str,  transformer: any):
         """
-        Function to get the parameter from the data object
-
         Parameters
         ----------
         algorithm : str
             name of the used algorithm
-        transformer : data object
-            data object (e.g. StandardScaler)
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
         """
         self._algorithm = algorithm
         self._transformer = transformer
@@ -77,8 +75,8 @@ class Data:
         """
         Returns
         -------
-        transformer : data object
-            data object (e.g. StandardScaler)
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
         """
         return self._transformer
     
@@ -97,7 +95,7 @@ class Data:
     
     def get_params(self, deep: bool = True) -> dict:
         """
-        Function to get the parameter from the data object
+        Function to get the parameter from the transformer instance
 
         Parameters
         ----------
@@ -114,7 +112,7 @@ class Data:
 
     def set_params(self, **params):
         """
-        Function to set the parameter of the data object
+        Function to set the parameter of the transformer instance
 
         Parameters
         ----------

@@ -38,6 +38,7 @@ class Selector(Data):
         ----------
         algorithm : {"kbest", "kbest_chi2", "pca", "wrapper", "sequential", "select_model", "rfe", "rfecv"}, \
                 default="kbest"
+            which selecting algorithm to use:
             - 'kbest': SelectKBest
             - 'kbest_chi2': SelectKBest with score_func=chi2 (only non-negative values)
             - 'pca': PCA (new column names after transformation)
@@ -107,7 +108,22 @@ class Selector(Data):
         Returns
         -------
         param : dict
-            possible/recommended values for the parameters
+            possible values for the parameter "algorithm" and recommended values for "estimator"
+
+        Examples
+        --------
+        >>> # get possible/recommended parameters
+        >>> from sam_ml.data.preprocessing import Selector
+        >>>
+        >>> # first way without class object
+        >>> params1 = Selector.params()
+        >>> print(params1)
+        {"algorithm": ["kbest", ...], "estimator": [LinearSVC(penalty="l1", dual=False), ...]}
+        >>> # second way with class object
+        >>> model = Selector()
+        >>> params2 = model.params()
+        >>> print(params2)
+        {"algorithm": ["kbest", ...], "estimator": [LinearSVC(penalty="l1", dual=False), ...]}
         """
         param = {
             "algorithm": ["kbest", "kbest_chi2", "pca", "wrapper", "sequential", "select_model", "rfe", "rfecv"], 
@@ -179,10 +195,12 @@ class Selector(Data):
         >>> x_test_selected = model.select(x_test, train_on=False) # select test data
         >>> print("all feature names:")
         >>> print(list(x_train.columns))
+        >>> print()
         >>> print("selected features:")
         >>> print(list(x_train_selected.columns))
         all feature names:
         ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
+        <BLANKLINE>
         selected features:
         ['petal length (cm)', 'petal width (cm)']
         """

@@ -27,7 +27,7 @@ class Scaler(Data):
         ----------
         algorithm : {"standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"}, \
                 default="standard"
-            kind of scaler to use:
+            which scaling algorithm to use:
             - 'standard': StandardScaler
             - 'minmax': MinMaxScaler
             - 'maxabs': MaxAbsScaler
@@ -69,9 +69,24 @@ class Scaler(Data):
         Returns
         -------
         param : dict
-            possible values for the parameters
+            possible values for the parameter "algorithm"
+
+        Examples
+        --------
+        >>> # get possible parameters
+        >>> from sam_ml.data.preprocessing import Scaler
+        >>>
+        >>> # first way without class object
+        >>> params1 = Scaler.params()
+        >>> print(params1)
+        {"algorithm": ["standard", ...]}
+        >>> # second way with class object
+        >>> model = Scaler()
+        >>> params2 = model.params()
+        >>> print(params2)
+        {"algorithm": ["standard", ...]}
         """
-        param = {"scaler": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
+        param = {"algorithm": ["standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"]}
         return param
 
     def scale(self, data: pd.DataFrame, train_on: bool = True) -> pd.DataFrame:
@@ -109,6 +124,7 @@ class Scaler(Data):
         >>> x_test_scaled = model.scale(x_test, train_on=False) # scale test data
         >>> print("before scaling:")
         >>> print(x_train.iloc[0])
+        >>> print()
         >>> print("after scaling:")
         >>> print(x_train_scaled.iloc[0])
         before scaling:
