@@ -30,7 +30,7 @@ def test_eval_models_selectors():
     ctest.eval_models(x_train, y_train, x_test, y_test)
 
 def test_eval_models_scalers():
-    scalers = Scaler.params()["scaler"]
+    scalers = Scaler.params()["algorithm"]
     ctest = CTest(models="all", scaler=scalers)
     ctest.eval_models(x_train, y_train, x_test, y_test)
 

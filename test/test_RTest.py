@@ -27,7 +27,7 @@ def test_eval_models_selectors():
     rtest.eval_models(x_train, y_train, x_test, y_test)
 
 def test_eval_models_scalers():
-    scalers = Scaler.params()["scaler"]
+    scalers = Scaler.params()["algorithm"]
     rtest = RTest(models="all", scaler=scalers)
     rtest.eval_models(x_train, y_train, x_test, y_test)
 
