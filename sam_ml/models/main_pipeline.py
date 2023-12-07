@@ -67,7 +67,7 @@ def Pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings_builde
             else:
                 raise ValueError(f"wrong input '{vectorizer}' for vectorizer")
 
-            if scaler in Scaler.params()["scaler"]:
+            if scaler in Scaler.params()["algorithm"]:
                 self.scaler = Scaler(algorithm=scaler)
             elif type(scaler) == Scaler or scaler is None:
                 self.scaler = scaler
