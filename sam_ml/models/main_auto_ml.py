@@ -603,7 +603,7 @@ class AutoML:
                 for config in configs:
                     model_new = model.get_deepcopy()
                     model_new = model_new.set_params(**config)
-                    if not model_new.model_type in ("XGBC") + ("XGBR"):
+                    if not model_new.model_type in ["XGBC"] + ["XGBR"]:
                         model_new = model_new.set_params(**{"warm_start": True})
                     model_name = f"{key} {dict(config)}"
                     model_dict[model_name] = model_new
@@ -646,7 +646,7 @@ class AutoML:
                     logger.debug(f"total length of train data after pipeline pre-processing: {len(pre_x)} ({key})")
 
                 # XGBoostClassifier has different warm_start implementation
-                if (not model_dict[key].model_type in ("XGBC") + ("XGBR")) or split_idx==0:
+                if (not model_dict[key].model_type in ["XGBC"] + ["XGBR"]) or split_idx==0:
                     tscore, ttime = model_dict[key].train_warm_start(x_train_train, y_train_train, scoring=scoring, console_out=False, **kwargs)
                 else:
                     start = time.time()
