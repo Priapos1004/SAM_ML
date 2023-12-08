@@ -27,9 +27,7 @@ class MethodInfo:
             self.description = func.__doc__.replace("        Parameters (important one)\n        --------------------------\n", "").replace("        Parameters\n        ----------\n", "").split("        Notes\n        -----\n")[0] or 'No description available.'
             notes_split = func.__doc__.split("        Notes\n        -----\n")
             if len(notes_split)==2:
-                notes_header = """.. raw:: html
-
-   <h2>Notes</h2>\n\n"""
+                notes_header = """.. note::\n\n   """
                 self.notes = notes_header+notes_split[1].strip()
             else:
                 self.notes = ""

@@ -5,6 +5,7 @@ from datetime import timedelta
 from inspect import isfunction
 from typing import Callable, Literal
 
+import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
 from sklearn.metrics import (
@@ -301,6 +302,43 @@ class Classifier(Model):
             cv_scores["custom_score"] = score[list(score.keys())[12]]
         
         return cv_scores
+    
+    @staticmethod
+    def _create_prediction_proba(pred_proba: np.ndarray, probability: float) -> tuple[list[int], dict]:
+        """
+        Function to convert probability of classes into class numbers
+
+        Parameters
+        ----------
+        pred_proba : np.ndarray
+            np.ndarray with probability for every class per datapoint
+        probability: float (0 to 1)
+            probability for class 1 (with value 0.5 is like ``evaluate_score`` method). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
+        
+        Returns
+        -------
+        pred : list[int]
+            list with class numbers
+        proba_stats : dict
+            dictionary with stats of probabilities for class 1, format:
+
+            {'min proba': ...,
+            'max proba': ...,
+            'mean proba': ...,
+            'median proba': ...,
+            'std proba': ...}
+
+        """
+        class_1_proba = pred_proba[:, 1]
+        pred = [int(x > probability) for x in class_1_proba]
+        proba_stats = {
+            "min proba": np.min(class_1_proba),
+            "max proba": np.max(class_1_proba),
+            "mean proba": np.mean(class_1_proba),
+            "median proba": np.median(class_1_proba),
+            "std proba": np.std(class_1_proba),
+        }
+        return pred, proba_stats
 
     def train(
         self,
@@ -494,6 +532,7 @@ class Classifier(Model):
         >>> model = LR()
         >>> model.train(x_train, y_train)
         >>> scores = model.evaluate(x_test, y_test)
+        Train score: 0.9891840171120917 - Train time: 0:00:02
         accuracy: 0.802
         precision: 0.8030604133545309
         recall: 0.7957575757575757
@@ -512,108 +551,6 @@ class Classifier(Model):
         <BLANKLINE>
         """
         return super().evaluate(x_test, y_test, console_out=console_out, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength, custom_score=custom_score)
-    
-    def evaluate_proba(
-        self,
-        x_test: pd.DataFrame,
-        y_test: pd.Series,
-        console_out: bool = True,
-        avg: str | None = get_avg(),
-        pos_label: int | str = get_pos_label(),
-        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
-        strength: int = get_strength(),
-        custom_score: Callable[[list[int], list[int]], float] | None = None,
-        probability: float = 0.5,
-    ) -> dict[str, float]:
-        """
-        Function to create multiple scores for binary classification with predict_proba function of model
-
-        Parameters
-        ----------
-        x_test, y_test : pd.DataFrame, pd.Series
-            Data to evaluate model
-        console_out : bool, default=True
-            shall the result of the different scores and a classification_report be printed
-        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
-            average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, default=-1
-            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, default=None
-            weights the scoring (only for "s_score"/"l_score")
-        strength : int, default=3
-            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable or None, default=None
-            custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
-
-            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        probability: float (0 to 1), default=0.5
-            probability for class 1 (with value 0.5 is like evaluate_score function). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
-
-        Returns
-        -------
-        scores : dict 
-            dictionary of format:
-
-                {'accuracy': ...,
-                'precision': ...,
-                'recall': ...,
-                's_score': ...,
-                'l_score': ...}
-
-            or if ``custom_score != None``:
-
-                {'accuracy': ...,
-                'precision': ...,
-                'recall': ...,
-                's_score': ...,
-                'l_score': ...,
-                'custom_score': ...,}
-
-        Examples
-        --------
-        >>> # load data (replace with own data)
-        >>> import pandas as pd
-        >>> from sklearn.datasets import load_iris
-        >>> from sklearn.model_selection import train_test_split
-        >>> df = load_iris()
-        >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
-        >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
-        >>> 
-        >>> # train and evaluate model
-        >>> from sam_ml.models.classifier import LR
-        >>>
-        >>> model = LR()
-        >>> model.train(x_train, y_train)
-        >>> scores = model.evaluate_proba(x_test, y_test, probability=0.4)
-        accuracy: 0.802
-        precision: 0.8030604133545309
-        recall: 0.7957575757575757
-        s_score: 0.9395778023942218
-        l_score: 0.9990945415060262
-        <BLANKLINE>
-        classification report: 
-                        precision   recall  f1-score    support
-        <BLANKLINE>
-                0       0.81        0.73    0.77        225
-                1       0.80        0.86    0.83        275
-        <BLANKLINE>
-        accuracy                            0.80        500
-        macro avg       0.80        0.80    0.80        500
-        weighted avg    0.80        0.80    0.80        500
-        <BLANKLINE>
-        """
-        if len(set(y_test)) != 2:
-            raise ValueError(f"Expected binary classification data, but received y_test with {len(set(y_test))} classes")
-
-        pred_proba = self.predict_proba(x_test)
-        pred = [int(x > probability) for x in pred_proba[:, 1]]
-        scores = self._get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
-
-        if console_out:
-            self._print_scores(scores, y_test, pred)
-
-        return scores
     
     def evaluate_score(
         self,
@@ -665,12 +602,120 @@ class Classifier(Model):
         >>> from sam_ml.models.classifier import LR
         >>>
         >>> model = LR()
-        >>> model.train(x_train, y_train)
+        >>> model.fit(x_train, y_train)
         >>> recall = model.evaluate_score(x_test, y_test, scoring="recall")
         >>> print(f"recall: {recall}")
         recall: 0.4
         """
         return super().evaluate_score(scoring, x_test, y_test, avg=avg, pos_label=pos_label, secondary_scoring=secondary_scoring, strength=strength)
+    
+    def evaluate_proba(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        console_out: bool = True,
+        avg: str | None = get_avg(),
+        pos_label: int | str = get_pos_label(),
+        secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
+        strength: int = get_strength(),
+        custom_score: Callable[[list[int], list[int]], float] | None = None,
+        probability: float = 0.5,
+    ) -> dict[str, float]:
+        """
+        Function to create multiple scores for binary classification with predict_proba function of model
+
+        Parameters
+        ----------
+        x_test, y_test : pd.DataFrame, pd.Series
+            Data to evaluate model
+        console_out : bool, default=True
+            shall the result of the different scores and a classification_report be printed. Also prints stats for the probabilities
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
+            average to use for precision and recall score. If ``None``, the scores for each class are returned.
+        pos_label : int or str, default=-1
+            if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
+        secondary_scoring : {"precision", "recall"} or None, default=None
+            weights the scoring (only for "s_score"/"l_score")
+        strength : int, default=3
+            higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
+        custom_score : callable or None, default=None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+        probability: float (0 to 1), default=0.5
+            probability for class 1 (with value 0.5 is like ``evaluate_score`` method). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
+
+        Returns
+        -------
+        scores : dict 
+            dictionary of format:
+
+                {'accuracy': ...,
+                'precision': ...,
+                'recall': ...,
+                's_score': ...,
+                'l_score': ...}
+
+            or if ``custom_score != None``:
+
+                {'accuracy': ...,
+                'precision': ...,
+                'recall': ...,
+                's_score': ...,
+                'l_score': ...,
+                'custom_score': ...,}
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.model_selection import train_test_split
+        >>> X, y = make_classification(n_samples=3000, n_features=4, n_classes=2, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(y)
+        >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
+        >>> 
+        >>> # train and evaluate model
+        >>> from sam_ml.models.classifier import LR
+        >>>
+        >>> model = LR()
+        >>> model.train(x_train, y_train)
+        >>> scores = model.evaluate_proba(x_test, y_test, probability=0.4)
+        Train score: 0.9775 - Train time: 0:00:00
+        accuracy: 0.9733333333333334
+        precision: 0.9728695961572674
+        recall: 0.9742405994915028
+        s_score: 0.9930964441542017
+        l_score: 0.9999999991441061
+        min proba: 5.126066053780961e-12
+        max proba: 0.9999731025066587
+        mean proba: 0.4701783612343521
+        median proba: 0.11068735707926472
+        std proba: 0.474678546763958
+        <BLANKLINE>
+        classification report:
+                        precision   recall  f1-score   support
+        <BLANKLINE>
+                0       0.99        0.96    0.97       318
+                1       0.96        0.99    0.97       282
+        <BLANKLINE>
+        accuracy                            0.97       600
+        macro avg       0.97        0.97    0.97       600
+        weighted avg    0.97        0.97    0.97       600
+        <BLANKLINE>
+        """
+        if len(set(y_test)) != 2:
+            raise ValueError(f"Expected binary classification data, but received y_test with {len(set(y_test))} classes")
+
+        pred_proba = self.predict_proba(x_test)
+        pred, proba_stats = self._create_prediction_proba(pred_proba, probability=probability)
+        scores = self._get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
+
+        if console_out:
+            self._print_scores({**scores, **proba_stats}, y_test, pred)
+
+        return scores
     
     def evaluate_score_proba(
         self,
@@ -704,7 +749,7 @@ class Classifier(Model):
         strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
         probability: float (0 to 1), default=0.5
-            probability for class 1 (with value 0.5 is like evaluate_score function). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
+            probability for class 1 (with value 0.5 is like ``evaluate_score`` method). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
 
         Returns
         -------
@@ -715,26 +760,26 @@ class Classifier(Model):
         --------
         >>> # load data (replace with own data)
         >>> import pandas as pd
-        >>> from sklearn.datasets import load_iris
+        >>> from sklearn.datasets import make_classification
         >>> from sklearn.model_selection import train_test_split
-        >>> df = load_iris()
-        >>> X, y = pd.DataFrame(df.data, columns=df.feature_names), pd.Series(df.target)
+        >>> X, y = make_classification(n_samples=3000, n_features=4, n_classes=2, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(y)
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>> 
         >>> # train and evaluate model
         >>> from sam_ml.models.classifier import LR
         >>>
         >>> model = LR()
-        >>> model.train(x_train, y_train)
+        >>> model.fit(x_train, y_train)
         >>> recall = model.evaluate_score_proba(x_test, y_test, scoring="recall", probability=0.4)
         >>> print(f"recall: {recall}")
-        recall: 0.55
+        recall: 0.9742405994915028
         """
         if len(set(y_test)) != 2:
             raise ValueError(f"Expected binary classification data, but received y_test with {len(set(y_test))} classes")
 
         pred_proba = self.predict_proba(x_test)
-        pred = [int(x > probability) for x in pred_proba[:, 1]]
+        pred, _ = self._create_prediction_proba(pred_proba, probability=probability)
         score = self._get_score(scoring, y_test, pred, avg, pos_label, secondary_scoring, strength)
 
         return score

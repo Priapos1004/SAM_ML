@@ -28,6 +28,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     'sphinx_copybutton',
+    "sphinx.ext.mathjax",
 ]
 
 templates_path = ['_templates']

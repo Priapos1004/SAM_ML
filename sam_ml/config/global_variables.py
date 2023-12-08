@@ -66,5 +66,5 @@ def get_strength() -> int:
     elif str(strength).isnumeric():
         return int(strength)
     else:
-        raise ValueError(f"SAM_ML_STRENGTH cannot be '{strength}' -> has to be a string of a integer greater-equal 1")
+        raise ValueError(f"SAM_ML_STRENGTH cannot be '{strength}' -> has to be a string of a integer greater 0")
     

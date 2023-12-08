@@ -33,7 +33,7 @@ def s_scoring(y_true: list, y_pred: list, scoring: Literal["precision", "recall"
         score as float between 0 and 1
     """
     if strength < 1:
-        raise ValueError(f"strength has to be positiv integer greater-equal 1, but strength={strength}")
+        raise ValueError(f"strength has to be positiv integer greater 0, but strength={strength}")
 
     prec = precision_score(y_true, y_pred, average=None)
     rec = recall_score(y_true, y_pred, average=None)

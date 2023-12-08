@@ -379,6 +379,7 @@ class Regressor(Model):
         >>> model = RFR()
         >>> model.train(X, y)
         >>> scores = model.evaluate(x_test, y_test)
+        Train score: 0.9938023719617127 - Train time: 0:00:01
         r2: 0.9471767309072388
         rmse: 11.46914444113609
         d2_tweedie: 0.9214227488752569
@@ -423,7 +424,7 @@ class Regressor(Model):
         >>> from sam_ml.models.regressor import RFR
         >>> 
         >>> model = RFR()
-        >>> model.train(X, y)
+        >>> model.fit(X, y)
         >>> rmse = model.evaluate_score(x_test, y_test, scoring="rmse")
         >>> print(f"rmse: {rmse}")
         rmse: 11.46914444113609

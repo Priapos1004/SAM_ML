@@ -149,3 +149,6 @@ docs/_static/
 
 !docs/_templates/*.rst
 !docs/index.rst
+!docs/swig_installation.rst
+!docs/scoring.rst
+!docs/global_variables.rst
