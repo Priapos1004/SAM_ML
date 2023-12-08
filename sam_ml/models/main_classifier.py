@@ -713,7 +713,7 @@ class Classifier(Model):
         scores = self._get_all_scores(y_test, pred, avg, pos_label, secondary_scoring, strength, custom_score)
 
         if console_out:
-            self._print_scores({**scores, **proba_stats}, y_test, pred)
+            self._print_scores(scores | proba_stats, y_test, pred)
 
         return scores
     
