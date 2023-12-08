@@ -116,7 +116,7 @@ class Data:
 
         Parameters
         ----------
-        **params : dict
+        \*\*params : dict
             Estimator parameters
 
         Returns

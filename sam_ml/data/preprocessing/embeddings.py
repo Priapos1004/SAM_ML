@@ -28,7 +28,7 @@ class Embeddings_builder(Data):
             - 'tfidf': TfidfVectorizer
             - 'bert': SentenceTransformer("quora-distilbert-multilingual")
 
-        **kwargs:
+        \*\*kwargs:
             additional parameters for CountVectorizer or TfidfVectorizer
         """
         if algorithm == "bert":

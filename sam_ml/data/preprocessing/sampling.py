@@ -42,7 +42,7 @@ class Sampler(Data):
         sampling_strategy : str or float, \
                 default="auto"
             percentage of class size of minority in relation to the class size of the majority
-        **kwargs:
+        \*\*kwargs:
             additional parameters for sampler
         """
         if algorithm == "SMOTE":

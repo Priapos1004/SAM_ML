@@ -191,7 +191,13 @@ class Classifier(Model):
 
         Returns
         -------
-        key-value pairs in console (format: "key1: value1\\n key2: value2...")
+        key-value pairs in console, format: 
+        
+        key1: value1
+
+        key2: value2
+        
+        ...
         """
         for key in scores:
             print(f"{key}: {scores[key]}")
@@ -317,26 +323,20 @@ class Classifier(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the score and time be printed out
 
         Returns
@@ -384,26 +384,20 @@ class Classifier(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the score and time be printed out
 
         Returns
@@ -448,23 +442,17 @@ class Classifier(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result of the different scores and a classification_report be printed into the console
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -544,29 +532,22 @@ class Classifier(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result of the different scores and a classification_report be printed
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        probability: float (0 to 1), \
-                default=0.5
+        probability: float (0 to 1), default=0.5
             probability for class 1 (with value 0.5 is like evaluate_score function). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
 
         Returns
@@ -651,23 +632,18 @@ class Classifier(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
 
         Returns
@@ -714,26 +690,20 @@ class Classifier(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        probability: float (0 to 1), \
-                default=0.5
+        probability: float (0 to 1), default=0.5
             probability for class 1 (with value 0.5 is like evaluate_score function). With increasing the probability parameter, precision will likely increase and recall will decrease (with decreasing the probability parameter, the otherway around).
 
         Returns
@@ -788,26 +758,19 @@ class Classifier(Model):
         ----------
         X, y : pd.DataFrame, pd.Series
             Data to cross validate on
-        cv_num : int, \
-                default=10
+        cv_num : int, default=10
             number of different random splits
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result dataframe of the different scores for the different runs be printed
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -898,26 +861,19 @@ class Classifier(Model):
         ----------
         X, y : pd.DataFrame, pd.Series
             Data to cross validate on
-        leave_loadbar : bool, \
-                default=True
+        leave_loadbar : bool, default=True
             shall the loading bar of the training be visible after training (True - load bar will still be visible)
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result of the different scores and a classification_report be printed into the console
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -995,11 +951,11 @@ class Classifier(Model):
         secondary_scoring: Literal["precision", "recall"] | None = get_secondary_scoring(),
         strength: int = get_strength(),
         small_data_eval: bool = False,
-        walltime_limit: float = 600,
+        walltime_limit: int = 600,
         log_level: int = 20,
     ) -> Configuration:
         """
-        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the version with swig]
+        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig]
 
         The smac_search-method will more "intelligent" search your hyperparameter space than the randomCVsearch and 
         returns the best hyperparameter set. Additionally to the n_trails parameter, it also takes a walltime_limit parameter 
@@ -1009,38 +965,28 @@ class Classifier(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to cross validate on
-        n_trails : int, \
-                default=50
+        n_trails : int, default=50
             max number of parameter sets to test
-        cv_num : int, \
-                default=5
+        cv_num : int, default=5
             number of different random splits
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        small_data_eval : bool, \
-                default=False
+        small_data_eval : bool, default=False
             if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-        walltime_limit : float, \
-                default=500
+        walltime_limit : int, default=600
             the maximum time in seconds that SMAC is allowed to run
-        log_level : int, \
-                default=20
+        log_level : int, default=20
             10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
 
         Returns
@@ -1102,35 +1048,26 @@ class Classifier(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to cross validate on
-        n_trails : int, \
-                default=10
+        n_trails : int, default=10
             max number of parameter sets to test
-        cv_num : int, \
-                default=5
+        cv_num : int, default=5
             number of different random splits
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        avg : {"micro", "macro", "binary", "weighted"} or None, \
-                default="macro"
+        avg : {"micro", "macro", "binary", "weighted"} or None, default="macro"
             average to use for precision and recall score. If ``None``, the scores for each class are returned.
-        pos_label : int or str, \
-                default=-1
+        pos_label : int or str, default=-1
             if ``avg="binary"``, pos_label says which class to score. pos_label is used by s_score/l_score
-        secondary_scoring : {"precision", "recall"} or None, \
-                default=None
+        secondary_scoring : {"precision", "recall"} or None, default=None
             weights the scoring (only for "s_score"/"l_score")
-        strength : int, \
-                default=3
+        strength : int, default=3
             higher strength means a higher weight for the preferred secondary_scoring/pos_label (only for "s_score"/"l_score")
-        small_data_eval : bool, \
-                default=False
+        small_data_eval : bool, default=False
             if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-        leave_loadbar : bool, \
-                default=True
+        leave_loadbar : bool, default=True
             shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
 
         Returns

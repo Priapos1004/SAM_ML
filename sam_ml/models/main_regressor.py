@@ -92,7 +92,7 @@ class Regressor(Model):
         ----------
         y_test, pred : pd.Series, pd.Series
             Data to evaluate model
-        custom_score : callable
+        custom_score : callable or None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -244,14 +244,12 @@ class Regressor(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), \
-                default="r2"
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the score and time be printed out
 
         Returns
@@ -295,14 +293,12 @@ class Regressor(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), \
-                default="r2"
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the score and time be printed out
 
         Returns
@@ -343,11 +339,9 @@ class Regressor(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result of the different scores and a classification_report be printed into the console
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -404,8 +398,7 @@ class Regressor(Model):
         ----------
         x_test, y_test : pd.DataFrame, pd.Series
             Data to evaluate model
-        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), \
-                default="r2"
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
@@ -452,14 +445,11 @@ class Regressor(Model):
         ----------
         X, y : pd.DataFrame, pd.Series
             Data to cross validate on
-        cv_num : int, \
-                default=10
+        cv_num : int, default=10
             number of different random splits
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result dataframe of the different scores for the different runs be printed
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -534,14 +524,11 @@ class Regressor(Model):
         ----------
         X, y : pd.DataFrame, pd.Series
             Data to cross validate on
-        leave_loadbar : bool, \
-                default=True
+        leave_loadbar : bool, default=True
             shall the loading bar of the training be visible after training (True - load bar will still be visible)
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the result of the different scores and a classification_report be printed into the console
-        custom_score : callable or None, \
-                default=None
+        custom_score : callable or None, default=None
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
 
@@ -594,11 +581,11 @@ class Regressor(Model):
         cv_num: int = 5,
         scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float] = "r2",
         small_data_eval: bool = False,
-        walltime_limit: float = 600,
+        walltime_limit: int = 600,
         log_level: int = 20,
     ) -> Configuration:
         """
-        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the version with swig]
+        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig]
 
         The smac_search-method will more "intelligent" search your hyperparameter space than the randomCVsearch and 
         returns the best hyperparameter set. Additionally to the n_trails parameter, it also takes a walltime_limit parameter 
@@ -608,26 +595,20 @@ class Regressor(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to cross validate on
-        n_trails : int, \
-                default=50
+        n_trails : int, default=50
             max number of parameter sets to test
-        cv_num : int, \
-                default=5
+        cv_num : int, default=5
             number of different random splits
-        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), \
-                default="r2"
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        small_data_eval : bool, \
-                default=False
+        small_data_eval : bool, default=False
             if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-        walltime_limit : float, \
-                default=500
+        walltime_limit : int, default=600
             the maximum time in seconds that SMAC is allowed to run
-        log_level : int, \
-                default=20
+        log_level : int, default=20
             10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
 
         Returns
@@ -688,23 +669,18 @@ class Regressor(Model):
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to cross validate on
-        n_trails : int, \
-                default=10
+        n_trails : int, default=10
             max number of parameter sets to test
-        cv_num : int, \
-                default=5
+        cv_num : int, default=5
             number of different random splits
-        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), \
-                default="r2"
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
             `score_func(y, y_pred, **kwargs)`
-        small_data_eval : bool, \
-                default=False
+        small_data_eval : bool, default=False
             if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-        leave_loadbar : bool, \
-                default=True
+        leave_loadbar : bool, default=True
             shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
 
         Returns
@@ -720,7 +696,7 @@ class Regressor(Model):
 
         Examples
         --------
-         >>> # load data (replace with own data)
+        >>> # load data (replace with own data)
         >>> import pandas as pd
         >>> from sklearn.datasets import make_regression
         >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)

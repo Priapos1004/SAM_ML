@@ -37,7 +37,7 @@ class Scaler(Data):
             - 'quantile': QuantileTransformer (default of QuantileTransformer)
             - 'quantile_normal': QuantileTransformer with output_distribution="normal" (gaussian pdf)
 
-        **kwargs:
+        \*\*kwargs:
             additional parameters for scaler
         """
         if algorithm == "standard":

@@ -50,11 +50,12 @@ class DTR(Regressor):
     
     def plot_tree(self):
         """
-        function to plot decision tree structure
+        Function to plot decision tree structure
 
         Returns
         -------
-        plt.show -> directly shows the plot
+        plt.show:
+            directly shows the plot
         annotations : list
             list containing the artists for the annotation boxes making up the tree.
         """

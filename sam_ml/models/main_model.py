@@ -66,6 +66,8 @@ class Model:
     
     def _changed_parameters(self):
         """
+        Function to get parameters that differ from the default ones
+
         Returns
         -------
         dictionary of model parameter that are different from default values
@@ -302,7 +304,13 @@ class Model:
 
         Returns
         -------
-        key-value pairs in console (format: "key1: value1\\n key2: value2...")
+        key-value pairs in console, format: 
+        
+        key1: value1
+
+        key2: value2
+
+        ...
         """
         for key in scores:
             print(f"{key}: {scores[key]}")
@@ -320,10 +328,10 @@ class Model:
         ----------
         custom_score : callable or None
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        **kwargs:
+        \*\*kwargs:
             additional parameters from child-class
 
         Returns
@@ -348,7 +356,7 @@ class Model:
             crossvalidation average column results
         custom_score : callable or None
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
 
@@ -372,12 +380,11 @@ class Model:
 
         Parameters
         ----------
-        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), \
-                default="accuracy"
+        scoring : {"accuracy", "precision", "recall", "s_score", "l_score"} or callable (custom score), default="accuracy"
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
         y_test, pred : pd.Series, pd.Series
             Data to evaluate model
 
@@ -405,10 +412,10 @@ class Model:
             Data to evaluate model
         custom_score : callable or None
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        **kwargs:
+        \*\*kwargs:
             additional parameters from child-class
 
         Returns
@@ -426,11 +433,10 @@ class Model:
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the score and time be printed out
-        **kwargs:
-            additional parameters from child-class
+        \*\*kwargs:
+            additional parameters from child-class for ``evaluate_score`` method
 
         Returns
         -------
@@ -465,11 +471,10 @@ class Model:
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        console_out : bool, \
-                default=True
+        console_out : bool, default=True
             shall the score and time be printed out
-        **kwargs:
-            additional parameters from child-class
+        \*\*kwargs:
+            additional parameters from child-class for ``evaluate_score`` method
 
         Returns
         -------
@@ -501,8 +506,8 @@ class Model:
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        **kwargs:
-            additional parameters from child-class
+        \*\*kwargs:
+            additional parameters from child-class for ``fit`` method
 
         Returns
         -------
@@ -524,8 +529,8 @@ class Model:
         ----------
         x_train, y_train : pd.DataFrame, pd.Series
             Data to train model
-        **kwargs:
-            additional parameters from child-class
+        \*\*kwargs:
+            additional parameters from child-class for ``fit`` method
 
         Returns
         -------
@@ -577,8 +582,7 @@ class Model:
 
         Parameters
         ----------
-        deep : bool, \
-                default=True
+        deep : bool, default=True
             If True, will return the parameters for this estimator and contained sub-objects that are estimators
 
         Returns
@@ -594,7 +598,7 @@ class Model:
 
         Parameters
         ----------
-        **params : dict
+        \*\*params : dict
             Estimator parameters
 
         Returns
@@ -624,16 +628,16 @@ class Model:
             shall the result of the different scores and a classification_report be printed into the console
         custom_score : callable or None
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        **kwargs:
-            additional parameters from child-class for self._get_all_scores
+        \*\*kwargs:
+            additional parameters from child-class for ``_get_all_scores`` method
 
         Returns
         -------
         scores : dict 
-            dictionary of the format from the self.__get_all_scores function
+            dictionary of the format from the self._get_all_scores function
         """
         pred = self.predict(x_test)
         scores = self._get_all_scores(y_test, pred, custom_score=custom_score, **kwargs)
@@ -659,11 +663,11 @@ class Model:
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
         x_test, y_test : pd.DataFrame, pd.Series
             Data for evaluating the model
-        **kwargs:
-            additional parameters from child-class for self._get_score
+        \*\*kwargs:
+            additional parameters from child-class for ``_get_score`` method
 
         Returns
         -------
@@ -697,11 +701,11 @@ class Model:
             shall the result dataframe of the different scores for the different runs be printed
         custom_score : callable or None
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        **kwargs:
-            additional parameters from child-class for self._make_scorer
+        \*\*kwargs:
+            additional parameters from child-class for ``make_scorer`` method
 
         Returns
         -------
@@ -771,16 +775,16 @@ class Model:
             shall the result of the different scores and a classification_report be printed into the console
         custom_score : callable or None
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
 
             If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
-        **kwargs:
-            additional parameters from child-class for self._get_all_scores
+        \*\*kwargs:
+            additional parameters from child-class for ``_get_all_scores`` method
 
         Returns
         -------
         scores : dict 
-            dictionary of the format from the self.__get_all_scores function
+            dictionary of the format from the self._get_all_scores function
 
         The scores are also saved in ``self.cv_scores``.
         """
@@ -884,12 +888,12 @@ class Model:
         n_trails: int,
         cv_num: int,
         small_data_eval: bool,
-        walltime_limit: float,
+        walltime_limit: int,
         log_level: int,
         **kwargs,
     ) -> Configuration:
         """
-        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the version with swig]
+        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig]
 
         The smac_search-method will more "intelligent" search your hyperparameter space than the randomCVsearch and 
         returns the best hyperparameter set. Additionally to the n_trails parameter, it also takes a walltime_limit parameter 
@@ -903,19 +907,19 @@ class Model:
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
         n_trails : int
             max number of parameter sets to test
         cv_num : int
             number of different random splits
         small_data_eval : bool
             if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-        walltime_limit : float
+        walltime_limit : int
             the maximum time in seconds that SMAC is allowed to run
         log_level : int
             10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
-        **kwargs:
-            additional parameters from child-class for cross validation
+        \*\*kwargs:
+            additional parameters from child-class for ``cross validation`` methods
 
         Returns
         -------
@@ -999,13 +1003,13 @@ class Model:
             metrics to evaluate the models
 
             custom score function (or loss function) with signature
-            `score_func(y, y_pred, **kwargs)`
+            `score_func(y, y_pred, \*\*kwargs)`
         small_data_eval : bool
             if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
         leave_loadbar : bool
             shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
-        **kwargs:
-            additional parameters from child-class for cross validation
+        \*\*kwargs:
+            additional parameters from child-class for ``cross validation`` methods
 
         Returns
         -------
@@ -1084,8 +1088,7 @@ class Model:
         ----------
         path : str
             path to save the model with suffix '.pkl'
-        only_estimator : bool, \
-                default=False
+        only_estimator : bool, default=False
             If True, only the estimator of the class object will be saved
         """
         logger.debug(f"saving {self.model_name} - started")

@@ -149,5 +149,3 @@ docs/_static/
 
 !docs/_templates/*.rst
 !docs/index.rst
-!docs/data.rst
-!docs/models.rst

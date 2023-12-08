@@ -53,7 +53,7 @@ class Selector(Data):
             number of features to select
         estimator : estimator instance
             parameter is needed for SequentialFeatureSelector, SelectFromModel, RFE, RFECV (default: LinearSVC)
-        **kwargs:
+        \*\*kwargs:
             additional parameters for selector
         """
         self._num_features = num_features

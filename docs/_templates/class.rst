@@ -3,7 +3,7 @@
 
 .. class:: {{ init_method.name }}{{ init_method.signature }}
 
-{{ cls_info.description }}
+{{ cls_info.description }} - parent class :class:`{{ cls_info.parent_class }}`
 
 .. list-table::
    :widths: 25 75
@@ -17,9 +17,7 @@
          {{ prop.description }}
        {% endfor %}
 
-.. raw:: html
-
-   <h2>Example</h2>
+{{ init_method.notes }}
 
 {{ cls_info.example }}
 
