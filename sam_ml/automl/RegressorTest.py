@@ -3,7 +3,6 @@ import sys
 import warnings
 from typing import Callable, Literal
 
-import numpy as np
 import pandas as pd
 
 # to deactivate pygame promt 
@@ -17,18 +16,17 @@ from sam_ml.data.preprocessing import (
     Scaler,
     Selector,
 )
+from sam_ml.models.main_regressor import Regressor
+from sam_ml.models.regressor.BayesianRidge import BYR
+from sam_ml.models.regressor.DecisionTreeRegressor import DTR
+from sam_ml.models.regressor.ElasticNet import EN
+from sam_ml.models.regressor.ExtraTreesRegressor import ETR
+from sam_ml.models.regressor.LassoLarsCV import LLCV
+from sam_ml.models.regressor.RandomForestRegressor import RFR
+from sam_ml.models.regressor.SGDRegressor import SGDR
+from sam_ml.models.regressor.XGBoostRegressor import XGBR
 
-from ..main_auto_ml import AutoML
-from ..main_regressor import Regressor
-
-from.RandomForestRegressor import RFR
-from .BayesianRidge import BYR
-from .DecisionTreeRegressor import DTR
-from .ElasticNet import EN
-from .ExtraTreesRegressor import ETR
-from .LassoLarsCV import LLCV
-from .SGDRegressor import SGDR
-from .XGBoostRegressor import XGBR
+from .main_auto_ml import AutoML
 
 logger = setup_logger(__name__)
 

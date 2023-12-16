@@ -10,7 +10,7 @@ from sam_ml.models.main_model import SMAC_INSTALLED
 
 os.environ["SAM_ML_SOUND_ON"] = "False"
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
-from sam_ml.models.classifier import CTest
+from sam_ml.automl import CTest
 
 X, Y = make_classification(n_samples = 50,
                             n_features = 5,

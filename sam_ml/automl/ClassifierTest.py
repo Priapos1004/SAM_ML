@@ -20,26 +20,26 @@ from sam_ml.data.preprocessing import (
     Scaler,
     Selector,
 )
+from sam_ml.models.classifier.AdaBoostClassifier import ABC
+from sam_ml.models.classifier.BaggingClassifier import BC
+from sam_ml.models.classifier.BernoulliNB import BNB
+from sam_ml.models.classifier.DecisionTreeClassifier import DTC
+from sam_ml.models.classifier.ExtraTreesClassifier import ETC
+from sam_ml.models.classifier.GaussianNB import GNB
+from sam_ml.models.classifier.GaussianProcessClassifier import GPC
+from sam_ml.models.classifier.GradientBoostingMachine import GBM
+from sam_ml.models.classifier.KNeighborsClassifier import KNC
+from sam_ml.models.classifier.LinearDiscriminantAnalysis import LDA
+from sam_ml.models.classifier.LinearSupportVectorClassifier import LSVC
+from sam_ml.models.classifier.LogisticRegression import LR
+from sam_ml.models.classifier.MLPClassifier import MLPC
+from sam_ml.models.classifier.QuadraticDiscriminantAnalysis import QDA
+from sam_ml.models.classifier.RandomForestClassifier import RFC
+from sam_ml.models.classifier.SupportVectorClassifier import SVC
+from sam_ml.models.classifier.XGBoostClassifier import XGBC
+from sam_ml.models.main_classifier import Classifier
 
-from ..main_auto_ml import AutoML
-from ..main_classifier import Classifier
-from .AdaBoostClassifier import ABC
-from .BaggingClassifier import BC
-from .BernoulliNB import BNB
-from .DecisionTreeClassifier import DTC
-from .ExtraTreesClassifier import ETC
-from .GaussianNB import GNB
-from .GaussianProcessClassifier import GPC
-from .GradientBoostingMachine import GBM
-from .KNeighborsClassifier import KNC
-from .LinearDiscriminantAnalysis import LDA
-from .LinearSupportVectorClassifier import LSVC
-from .LogisticRegression import LR
-from .MLPClassifier import MLPC
-from .QuadraticDiscriminantAnalysis import QDA
-from .RandomForestClassifier import RFC
-from .SupportVectorClassifier import SVC
-from .XGBoostClassifier import XGBC
+from .main_auto_ml import AutoML
 
 logger = setup_logger(__name__)
 

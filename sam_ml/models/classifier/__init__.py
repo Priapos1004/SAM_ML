@@ -1,7 +1,6 @@
 from .AdaBoostClassifier import ABC
 from .BaggingClassifier import BC
 from .BernoulliNB import BNB
-from .ClassifierTest import CTest
 from .DecisionTreeClassifier import DTC
 from .ExtraTreesClassifier import ETC
 from .GaussianNB import GNB
@@ -18,10 +17,9 @@ from .SupportVectorClassifier import SVC
 from .XGBoostClassifier import XGBC
 
 __all__ = [
-    "CTest",
     "RFC",
     "LR",
-    "DCT",
+    "DTC",
     "SVC",
     "MLPC",
     "GBM",

@@ -10,7 +10,7 @@ from sam_ml.models.main_model import SMAC_INSTALLED
 
 os.environ["SAM_ML_SOUND_ON"] = "False"
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
-from sam_ml.models.regressor import RTest
+from sam_ml.automl import RTest
 
 X, Y = make_regression(n_samples = 50,
                         n_features = 5,
