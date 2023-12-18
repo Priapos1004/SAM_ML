@@ -21,6 +21,10 @@ class QDA(Classifier):
         --------------------------
         reg_param : float,
             regularizes the per-class covariance estimates by transforming
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "QDA"
         model = QuadraticDiscriminantAnalysis(**kwargs)

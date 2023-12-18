@@ -29,7 +29,14 @@ extensions = [
     "sphinx.ext.autodoc",
     'sphinx_copybutton',
     "sphinx.ext.mathjax",
+    "sphinx.ext.graphviz",
+    "sphinxcontrib.plantuml", # brew install plantuml
 ]
+
+# Path to plantuml (executable or jar file)
+pplantuml = 'plantuml'
+
+graphviz_output_format = 'svg'  # For scalable vector graphics
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

@@ -1,6 +1,8 @@
 Scoring
 =======
 
+.. _classifier-scoring-section:
+
 Classification
 --------------
 

@@ -9,6 +9,7 @@ Welcome to sam-ml-py's documentation!
    swig_installation
    scoring
    global_variables
+   package_graph
 
 .. toctree::
    :maxdepth: 2
@@ -17,7 +18,7 @@ Welcome to sam-ml-py's documentation!
 
    classifier/index
    regressor/index
-   auto_ml/index
+   automl/index
 
 .. toctree::
    :maxdepth: 2
@@ -66,9 +67,9 @@ without SMAC
 Let's get started
 -----------------
 
-I recommend to read the advanced :doc:`scoring` documentation for classification problems because it is one of the major advantages of this library.
+I recommend to read the :doc:`advanced scoring documentation <scoring>` for classification problems because it is one of the major advantages of this library.
 
-Here an example for binary classification with precision optimisation of label 1 (underrepresented):
+Another big advantage, are the two auto-ml classes for :class:`classification <CTest>` and :class:`regression <RTest>`. Here an example use for binary classification with precision optimisation of label 1 (underrepresented):
 
 >>> # load data (replace with own data)
 >>> import pandas as pd

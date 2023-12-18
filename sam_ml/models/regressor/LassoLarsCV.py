@@ -17,6 +17,10 @@ class LLCV(Regressor):
         --------------------------
         max_iter : int
             maximum number of iterations to perform
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "LLCV"
         model = LassoLarsCV(**kwargs)

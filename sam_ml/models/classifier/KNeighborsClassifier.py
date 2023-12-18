@@ -25,6 +25,10 @@ class KNC(Classifier):
             leaf size passed to BallTree or KDTree
         p : int,
             number of metric that is used (manhattan, euclidean, minkowski)
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "KNC"
         model = KNeighborsClassifier(**kwargs,)

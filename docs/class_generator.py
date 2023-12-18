@@ -4,12 +4,12 @@ from typing import Callable
 
 from jinja2 import Environment, FileSystemLoader
 
-import sam_ml.automl
 import sam_ml.data.preprocessing
+import sam_ml.models.automl
 import sam_ml.models.classifier
 import sam_ml.models.regressor
-from sam_ml.automl.main_auto_ml import AutoML
 from sam_ml.data.preprocessing.main_data import Data
+from sam_ml.models.main_auto_ml import AutoML
 from sam_ml.models.main_classifier import Classifier
 from sam_ml.models.main_model import Model
 from sam_ml.models.main_regressor import Regressor
@@ -37,7 +37,7 @@ class MethodInfo:
         self.short_description = inspect.getdoc(func).split('\n')[0].strip() if inspect.getdoc(func) else 'No description available.'
 
 class ClassInfo:
-    def __init__(self, cls, abstract_class: bool):
+    def __init__(self, cls, abstract_class: bool, scoring_note: bool):
         if abstract_class:
             self.cls_name = f"{cls.__name__} class"
         else:
@@ -46,6 +46,11 @@ class ClassInfo:
         self.full_cls_name = f"{cls.__module__}.{cls.__name__}"
         self.description = inspect.getdoc(cls) or 'No description available.'
         self.parent_class = cls.__base__.__name__
+
+        if scoring_note or self.cls_name == "CTest":
+            self.scoring_note =""".. note::\n\n   A lot of methods use parameters for advanced scoring. For additional information on advanced scoring, see :ref:`scoring documentation <classifier-scoring-section>`"""
+        else:
+            self.scoring_note = ""
 
         if abstract_class:
             self.example = ""
@@ -61,8 +66,8 @@ class ClassInfo:
 {cls().__repr__()}
         """
 
-def get_class_info(cls, abstract_class: bool):
-    cls_info = ClassInfo(cls, abstract_class=abstract_class)
+def get_class_info(cls, abstract_class: bool, scoring_note: bool):
+    cls_info = ClassInfo(cls, abstract_class=abstract_class, scoring_note=scoring_note)
     init_method = MethodInfo(cls.__name__, cls.__init__, init=True)
     if abstract_class:
         methods = [MethodInfo(func, getattr(cls, func)) for func in dir(cls) if callable(getattr(cls, func)) and not func.startswith("__")]
@@ -84,13 +89,13 @@ def get_all_subclasses(cls):
 
     return subclasses
 
-def generate_folder(classes: list, folder_path: str, category_name: str, abstract_class: bool = False):
+def generate_folder(classes: list, folder_path: str, category_name: str, abstract_class: bool = False, scoring_note: bool = False):
     env = Environment(loader=FileSystemLoader('_templates'))
     template = env.get_template('class.rst')
 
     classes_names = []
     for cls in classes:
-        cls_info, methods, properties, init_method = get_class_info(cls, abstract_class=abstract_class)
+        cls_info, methods, properties, init_method = get_class_info(cls, abstract_class=abstract_class, scoring_note=scoring_note)
         classes_names.append(cls_info.cls_name)
 
         # If the folder does not exist, create it
@@ -117,13 +122,13 @@ def generate_folder(classes: list, folder_path: str, category_name: str, abstrac
 
 def main():
     # generate classifier folder
-    generate_folder(get_all_subclasses(Classifier), "classifier/", "Classifier")
+    generate_folder(get_all_subclasses(Classifier), "classifier/", "Classifier", scoring_note=True)
     # generate regressor folder
     generate_folder(get_all_subclasses(Regressor), "regressor/", "Regressor")
     # generate preprocessing folder
     generate_folder(get_all_subclasses(Data), "preprocessing/", "Preprocessing")
     # generate auto_ml folder
-    generate_folder(get_all_subclasses(AutoML), "auto_ml/", "Auto-ML")
+    generate_folder(get_all_subclasses(AutoML), "automl/", "Auto-ML")
     # generate abstract_classes folder
     generate_folder([Model, Classifier, Regressor, Data, AutoML], "abstract_classes/", "Abstract classes", abstract_class=True)
 

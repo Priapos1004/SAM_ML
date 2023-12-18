@@ -26,7 +26,7 @@ from sam_ml.models.regressor.RandomForestRegressor import RFR
 from sam_ml.models.regressor.SGDRegressor import SGDR
 from sam_ml.models.regressor.XGBoostRegressor import XGBR
 
-from .main_auto_ml import AutoML
+from ..main_auto_ml import AutoML
 
 logger = setup_logger(__name__)
 

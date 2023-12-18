@@ -36,6 +36,7 @@
      - {{ method.short_description }}
    {% endfor %}
 
+{{ cls_info.scoring_note }}
 
 {% for method in methods %}
 .. automethod:: {{ cls_info.full_cls_name }}.{{ method.name }}

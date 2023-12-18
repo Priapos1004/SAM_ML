@@ -39,7 +39,7 @@ from sam_ml.models.classifier.SupportVectorClassifier import SVC
 from sam_ml.models.classifier.XGBoostClassifier import XGBC
 from sam_ml.models.main_classifier import Classifier
 
-from .main_auto_ml import AutoML
+from ..main_auto_ml import AutoML
 
 logger = setup_logger(__name__)
 

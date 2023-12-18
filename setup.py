@@ -20,7 +20,7 @@ setup(
             "data/regio/*.prj",
             "data/regio/*.shp",
             "data/regio/*.shx",
-            "automl/microwave_finish_sound.mp3",
+            "models/microwave_finish_sound.mp3",
         ]
     },
     scripts=[],

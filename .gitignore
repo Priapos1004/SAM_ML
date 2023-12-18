@@ -152,3 +152,4 @@ docs/_static/
 !docs/swig_installation.rst
 !docs/scoring.rst
 !docs/global_variables.rst
+!docs/package_graph.rst

@@ -21,6 +21,10 @@ class LDA(Classifier):
             solver to use
         shrinkage : float or str,
             shrinkage parameters (does not work with 'svd' solver)
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "LDA"
         model = LinearDiscriminantAnalysis(**kwargs)

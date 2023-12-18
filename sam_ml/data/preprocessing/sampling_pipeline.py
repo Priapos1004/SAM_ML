@@ -17,6 +17,7 @@ class SamplerPipeline(Data):
         algorithm : str or list[Sampler], \
                 default="SMOTE_rus_20_50"
             algorithm format:
+            
             - "A1\_A2\_..._An_x1_x2_..._xn" with A1, A2, ... Sampler algorithm and x1, x2, ... their sampling_strategy
             
               first, use Sampler A1 with sampling_strategy x1% on data, then Sampler A2 with sampling_strategy x2% until Sampler An with sampling_strategy xn on data (ONLY works for binary data!!!)

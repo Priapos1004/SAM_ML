@@ -114,7 +114,7 @@ class Model:
         Returns
         -------
         model_name : str
-            name of the model
+            name of the model. Used in loading bars and dictionaries as identifier of the model
         """
         return self._model_name
     
@@ -190,7 +190,7 @@ class Model:
     
     def replace_grid(self, new_grid: ConfigurationSpace):
         """
-        Function to replace self.grid
+        Function to replace self.grid, see `ConfigurationSpace documentation <https://automl.github.io/ConfigSpace/main/>`_.
 
         Parameters
         ----------

@@ -19,6 +19,10 @@ class GNB(Classifier):
             prior probabilities of the classes. If specified the priors are not adjusted according to the data
         var_smoothing : float,
             portion of the largest variance of all features that is added to variances for calculation stability
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "GNB"
         model = GaussianNB(**kwargs,)

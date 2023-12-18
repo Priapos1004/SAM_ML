@@ -20,6 +20,10 @@ class SGDR(Regressor):
             Specify the norm of the penalty
         alpha : float
             Constant that multiplies the regularization term (the higher the value, the stronger the regularization)
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "SGDR"
         model = SGDRegressor(random_state=random_state, **kwargs)

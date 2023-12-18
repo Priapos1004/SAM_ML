@@ -19,6 +19,10 @@ class BYR(Regressor):
             initial value for alpha (precision of the noise)
         lambda_init : float
             initial value for lambda (precision of the weights)
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "BYR"
         model = BayesianRidge(**kwargs)

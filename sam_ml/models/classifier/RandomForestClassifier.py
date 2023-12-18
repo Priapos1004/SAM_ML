@@ -36,6 +36,10 @@ class RFC(Classifier):
         random_state : int, \
                 default=42
             random_state for model
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "RFC"
         model = RandomForestClassifier(
