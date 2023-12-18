@@ -203,7 +203,7 @@ class Model:
 
         Examples
         --------
-        >>> from ConfigSpace import ConfigurationSpace
+        >>> from ConfigSpace import ConfigurationSpace, Categorical, Float
         >>> from sam_ml.models.classifier import LDA
         >>>
         >>> model = LDA()

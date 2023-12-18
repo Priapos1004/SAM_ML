@@ -294,8 +294,8 @@ class Classifier(Model):
             "recall": score[list(score.keys())[4]],
             "s_score": score[list(score.keys())[8]],
             "l_score": score[list(score.keys())[10]],
-            "train_score": score[list(score.keys())[7]],
             "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+            "train_score": score[list(score.keys())[7]],
         }
 
         if isfunction(custom_score):
@@ -831,8 +831,8 @@ class Classifier(Model):
                 'recall': ...,
                 's_score': ...,
                 'l_score': ...,
-                'train_score': ...,
-                'train_time': ...,}
+                'train_time': ...,
+                'train_score': ...,}
 
             or if ``custom_score != None``:
 
@@ -841,8 +841,8 @@ class Classifier(Model):
                 'recall': ...,
                 's_score': ...,
                 'l_score': ...,
-                'train_score': ...,
                 'train_time': ...,
+                'train_score': ...,
                 'custom_score': ...,}
 
         The scores are also saved in ``self.cv_scores``.
@@ -934,8 +934,8 @@ class Classifier(Model):
                 'recall': ...,
                 's_score': ...,
                 'l_score': ...,
-                'train_score': ...,
-                'train_time': ...,}
+                'train_time': ...,
+                'train_score': ...,}
 
             or if ``custom_score != None``:
 
@@ -944,8 +944,8 @@ class Classifier(Model):
                 'recall': ...,
                 's_score': ...,
                 'l_score': ...,
-                'train_score': ...,
                 'train_time': ...,
+                'train_score': ...,
                 'custom_score': ...,}
 
         The scores are also saved in ``self.cv_scores``.
@@ -968,8 +968,8 @@ class Classifier(Model):
         recall: 0.672883787661406
         s_score: 0.40853182756324635
         l_score: 0.7812935895658734
-        train_score: 0.9946286670687757
         train_time: 0:00:00
+        train_score: 0.9946286670687757
         <BLANKLINE>
         classification report:
                         precision   recall  f1-score    support

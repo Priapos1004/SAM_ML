@@ -79,7 +79,7 @@ Here an example for binary classification with precision optimisation of label 1
 >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
 >>> 
 >>> # start modelling
->>> from sam_ml.models.classifier import CTest
+>>> from sam_ml.automl import CTest
 >>> 
 >>> # initialise auot-ml class
 >>> ctest = CTest(models = "all", scaler = "standard", selector = None, sampler = "ros")
@@ -96,7 +96,7 @@ randomCVsearch (QuadraticDiscriminantAnalysis (vec=None, scaler=standard, select
 2023-12-08 21:12:58,010 - sam_ml.models.main_auto_ml - INFO - QuadraticDiscriminantAnalysis (vec=None, scaler=standard, selector=None, sampler=ros) - score: 0.8788135203591323 (s_score) - parameters: {'reg_param': 0.0}
 <BLANKLINE>
 ...
-<BLANKLINE>                  
+<BLANKLINE>
                                                       accuracy    precision   recall      s_score     l_score     train_time  train_score  best_score (rCVs)  best_hyperparameters (rCVs)
 AdaBoostClassifier (DTC based) (vec=None, scale...    0.983333    0.943396    0.877193    0.984656    0.999998    0:00:02     0.995061     0.985320           {'algorithm': 'SAMME', 'estimator__max_depth':...
 AdaBoostClassifier (RFC based) (vec=None, scale...    0.983333    0.943396    0.877193    0.984656    0.999998    0:00:01     0.995061     0.984980           {'algorithm': 'SAMME', 'estimator__max_depth':...

@@ -317,8 +317,8 @@ class AutoML:
                 score = self._models[key].evaluate(
                     x_test, y_test, console_out=False, **kwargs, custom_score=custom_score,
                 )
-                score["train_score"] = tscore
                 score["train_time"] = ttime
+                score["train_score"] = tscore
                 self._scores[key] = score
 
             self.__finish_sound()
@@ -527,7 +527,7 @@ class AutoML:
 
         for key in tqdm(self._models.keys(), desc="smac_search"):
             best_hyperparameters = self._models[key].smac_search(x_train, y_train, n_trails=n_trails, scoring=scoring, small_data_eval=small_data_eval, cv_num=cv_num, walltime_limit=walltime_limit_per_modeltype, log_level=smac_log_level, **kwargs)
-            logger.info(f"{self._models[key].model_name} - parameters: {best_hyperparameters}")
+            logger.info(f"{self._models[key].model_name} - parameters: {dict(best_hyperparameters)}")
             
             model_best = self._models[key].get_deepcopy()
             model_best.set_params(**best_hyperparameters)
@@ -565,7 +565,8 @@ class AutoML:
         """
         Function to run a successive halving hyperparameter search for every model
 
-        It uses the ``warm_start`` parameter of the model and is an own implementation
+        It uses the ``warm_start`` parameter of the model and is an own implementation.
+        Recommended to use as a fast method to narrow down different preprocessing steps and model combinations, but ``find_best_model_smac`` or ``randomCVsearch`` return better results.
 
         Parameters
         ----------
@@ -655,8 +656,8 @@ class AutoML:
                     tscore, ttime = model_dict[key].evaluate_score(x_train_train, y_train_train, scoring=scoring, **kwargs), str(timedelta(seconds=int(end-start)))
 
                 score = model_dict[key].evaluate(x_train_test, y_train_test, console_out=False, custom_score=custom_score, **kwargs)
-                score["train_score"] = tscore
                 score["train_time"] = ttime
+                score["train_score"] = tscore
                 split_scores[key] = score
 
 
@@ -672,7 +673,7 @@ class AutoML:
             if save_results_path is not None:
                 sorted_split_scores_pd.to_csv(save_results_path.split(".")[0]+f"_split{split_idx+1}."+save_results_path.split(".")[1])
 
-            logger.info(f"Split scores (top 5): \n{sorted_split_scores_pd.head(5)}")
+            logger.info(f"Split scores (top {len(sorted_split_scores_pd.head(5))}): \n{sorted_split_scores_pd.head(5)}")
 
             # only keep better half of the models
             for key in list(sorted_split_scores.keys())[int(len(sorted_split_scores)/2):]:
@@ -688,6 +689,6 @@ class AutoML:
         y_train_train = y_train[int(split_idx*1/split_num*len(y_train)):]
         tscore, ttime = best_model.train_warm_start(x_train_train, y_train_train, console_out=False, scoring=scoring)
         score = best_model.evaluate(x_test, y_test, console_out=True, custom_score=custom_score, **kwargs)
-        score["train_score"] = tscore
         score["train_time"] = ttime
+        score["train_score"] = tscore
         return best_model_name, score

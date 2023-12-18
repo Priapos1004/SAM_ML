@@ -209,8 +209,8 @@ class Regressor(Model):
                 "r2": score[list(score.keys())[2]],
                 "rmse": score[list(score.keys())[4]],
                 "d2_tweedie": score[list(score.keys())[6]],
-                "train_score": score[list(score.keys())[3]],
                 "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+                "train_score": score[list(score.keys())[3]],
             }
             if isfunction(custom_score):
                 cv_scores["custom_score"] = score[list(score.keys())[8]]
@@ -219,8 +219,8 @@ class Regressor(Model):
                 "r2": score[list(score.keys())[2]],
                 "rmse": score[list(score.keys())[4]],
                 "d2_tweedie": -1,
-                "train_score": score[list(score.keys())[3]],
                 "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+                "train_score": score[list(score.keys())[3]],
             }
             if isfunction(custom_score):
                 cv_scores["custom_score"] = score[list(score.keys())[6]]
@@ -463,13 +463,17 @@ class Regressor(Model):
 
                 {'r2': ...,
                 'rmse': ...,
-                'd2_tweedie': ...,}
+                'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,}
 
             or if ``custom_score != None``:
 
                 {'r2': ...,
                 'rmse': ...,
                 'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,
                 'custom_score': ...,}
 
         The scores are also saved in ``self.cv_scores``.
@@ -542,13 +546,17 @@ class Regressor(Model):
 
                 {'r2': ...,
                 'rmse': ...,
-                'd2_tweedie': ...,}
+                'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,}
 
             or if ``custom_score != None``:
 
                 {'r2': ...,
                 'rmse': ...,
                 'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,
                 'custom_score': ...,}
 
         The scores are also saved in ``self.cv_scores``.
@@ -569,8 +577,8 @@ class Regressor(Model):
         r2: 0.5914164661854215
         rmse: 50.2870203230133
         d2_tweedie: 0.58636121702529
-        train_score: 0.9425178468662095
         train_time: 0:00:00
+        train_score: 0.9425178468662095
         """
         return super().cross_validation_small_data(X,y,leave_loadbar=leave_loadbar, console_out=console_out, custom_score=custom_score)
     

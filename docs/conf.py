@@ -35,7 +35,7 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # Specify how to identify the prompt when copying code snippets
-copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_text = r"^\s*(?:>>>|\.\.\.) (\s*(?:#|\S).*\S).*|^\s*>>>" # trying to optimize the copyable code string
 copybutton_prompt_is_regexp = True
 copybutton_exclude = "style"
 
