@@ -8,7 +8,7 @@ import sam_ml.data.preprocessing
 import sam_ml.models.automl
 import sam_ml.models.classifier
 import sam_ml.models.regressor
-from sam_ml.data.preprocessing.main_data import Data
+from sam_ml.data.main_data import Data
 from sam_ml.models.main_auto_ml import AutoML
 from sam_ml.models.main_classifier import Classifier
 from sam_ml.models.main_model import Model

@@ -2,7 +2,7 @@ import pandas as pd
 
 from sam_ml.config import setup_logger
 
-from .main_data import Data
+from ..main_data import Data
 from .sampling import Sampler
 
 logger = setup_logger(__name__)

@@ -9,7 +9,7 @@ from tqdm.auto import tqdm
 
 from sam_ml.config import setup_logger
 
-from .main_data import Data
+from ..main_data import Data
 
 logger = setup_logger(__name__)
 
