@@ -137,6 +137,7 @@ dmypy.json
 mlruns/
 *.pkl
 find_best_model*.csv
+*_old.py
 /examples/ex_*.ipynb
 /examples/*.csv
 /examples/*.png

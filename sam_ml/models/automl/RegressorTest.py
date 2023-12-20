@@ -53,7 +53,7 @@ class RTest(AutoML):
             object or algorithm of :class:`Scaler` class for scaling the data (None for no scaling)
         selector : str, Selector, or None
             object or algorithm of :class:`Selector` class for feature selection (None for no selecting)
-        sampling : str, Sampler, or None
+        sampler : str, Sampler, or None
             object or algorithm of :class:`Sampler` class for sampling the train data (None for no sampling)
 
         Notes
@@ -166,7 +166,7 @@ class RTest(AutoML):
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>> 
         >>> # start modelling
-        >>> from sam_ml.automl import RTest
+        >>> from sam_ml.models.automl import RTest
         >>> 
         >>> # initialise auot-ml class
         >>> rtest = RTest(models = "all", scaler = "standard")
@@ -231,7 +231,7 @@ class RTest(AutoML):
         >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
         >>> 
         >>> # start modelling
-        >>> from sam_ml.automl import RTest
+        >>> from sam_ml.models.automl import RTest
         >>> 
         >>> # initialise auot-ml class
         >>> rtest = RTest(models = "all", scaler = "standard")
@@ -307,7 +307,7 @@ class RTest(AutoML):
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>> 
         >>> # start modelling
-        >>> from sam_ml.automl import RTest
+        >>> from sam_ml.models.automl import RTest
         >>> 
         >>> # initialise auot-ml class
         >>> rtest = RTest(models = "all", scaler = "standard")
@@ -394,7 +394,7 @@ class RTest(AutoML):
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>> 
         >>> # start modelling
-        >>> from sam_ml.automl import RTest
+        >>> from sam_ml.models.automl import RTest
         >>> 
         >>> # initialise auot-ml class
         >>> rtest = RTest(models = "all", scaler = "standard")
@@ -470,7 +470,7 @@ class RTest(AutoML):
         >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
         >>> 
         >>> # start modelling
-        >>> from sam_ml.automl import RTest
+        >>> from sam_ml.models.automl import RTest
         >>> 
         >>> # initialise auot-ml class
         >>> rtest = RTest(models = "all", scaler = "standard")

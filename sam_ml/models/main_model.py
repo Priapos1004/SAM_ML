@@ -190,7 +190,9 @@ class Model:
     
     def replace_grid(self, new_grid: ConfigurationSpace):
         """
-        Function to replace self.grid, see `ConfigurationSpace documentation <https://automl.github.io/ConfigSpace/main/>`_.
+        Function to replace self.grid
+        
+        See `ConfigurationSpace documentation <https://automl.github.io/ConfigSpace/main/>`_.
 
         Parameters
         ----------

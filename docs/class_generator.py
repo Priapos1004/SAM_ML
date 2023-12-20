@@ -12,6 +12,7 @@ from sam_ml.data.main_data import Data
 from sam_ml.models.main_auto_ml import AutoML
 from sam_ml.models.main_classifier import Classifier
 from sam_ml.models.main_model import Model
+from sam_ml.models.main_pipeline import BasePipeline
 from sam_ml.models.main_regressor import Regressor
 
 
@@ -130,7 +131,7 @@ def main():
     # generate auto_ml folder
     generate_folder(get_all_subclasses(AutoML), "automl/", "Auto-ML")
     # generate abstract_classes folder
-    generate_folder([Model, Classifier, Regressor, Data, AutoML], "abstract_classes/", "Abstract classes", abstract_class=True)
+    generate_folder([Model, Classifier, Regressor, BasePipeline, Data, AutoML], "abstract_classes/", "Abstract classes", abstract_class=True)
 
 if __name__ == "__main__":
     main()

@@ -35,6 +35,7 @@ Welcome to sam-ml-py's documentation!
    abstract_classes/Model_class
    abstract_classes/Regressor_class
    abstract_classes/Classifier_class
+   abstract_classes/BasePipeline_class
    abstract_classes/Data_class
    abstract_classes/AutoML_class
 
@@ -80,7 +81,7 @@ Another big advantage, are the two auto-ml classes for :class:`classification <C
 >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
 >>> 
 >>> # start modelling
->>> from sam_ml.automl import CTest
+>>> from sam_ml.models.automl import CTest
 >>> 
 >>> # initialise auot-ml class
 >>> ctest = CTest(models = "all", scaler = "standard", selector = None, sampler = "ros")

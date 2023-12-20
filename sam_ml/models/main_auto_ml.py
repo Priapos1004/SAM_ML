@@ -25,7 +25,7 @@ from sam_ml.data.preprocessing import (
     Scaler,
     Selector,
 )
-from sam_ml.models.main_pipeline import Pipeline
+from sam_ml.models.main_pipeline import create_pipeline
 
 logger = setup_logger(__name__)
 
@@ -52,7 +52,7 @@ class AutoML:
             object or algorithm of :class:`Scaler` class for scaling the data (None for no scaling)
         selector : str, Selector, or None
             object or algorithm of :class:`Selector` class for feature selection (None for no selecting)
-        sampling : str, Sampler, or None
+        sampler : str, Sampler, or None
             object or algorithm of :class:`Sampler` class for sampling the train data (None for no sampling)
 
         Notes
@@ -179,7 +179,7 @@ class AutoML:
                 for sel in self._selector:
                     for sam in self._sampler:
                         model_pipe_name = model.model_name+f" (vec={vec}, scaler={scal}, selector={sel}, sampler={sam})"
-                        self._models[model_pipe_name] = Pipeline(vectorizer=vec,  scaler=scal, selector=sel, sampler=sam, model=model, model_name=model_pipe_name)
+                        self._models[model_pipe_name] = create_pipeline(vectorizer=vec,  scaler=scal, selector=sel, sampler=sam, model=model, model_name=model_pipe_name)
 
     @staticmethod
     @abstractmethod
@@ -643,7 +643,7 @@ class AutoML:
             for key in tqdm(model_dict.keys(), desc=f"split {split_idx+1}", leave=leave_loadbar):
                 # train data classes in first split on all train data
                 if split_idx == 0:
-                    pre_x, _ = model_dict[key]._pipeline__data_prepare(x_train, y_train)
+                    pre_x, _ = model_dict[key].data_prepare(x_train, y_train)
                     logger.debug(f"total length of train data after pipeline pre-processing: {len(pre_x)} ({key})")
 
                 # XGBoostClassifier has different warm_start implementation
