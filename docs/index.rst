@@ -19,6 +19,7 @@ Welcome to sam-ml-py's documentation!
    classifier/index
    regressor/index
    automl/index
+   pipeline_factory
 
 .. toctree::
    :maxdepth: 2

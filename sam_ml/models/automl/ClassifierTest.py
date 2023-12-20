@@ -74,9 +74,9 @@ class CTest(AutoML):
         scaler : str, Scaler, or None
             object or algorithm of :class:`Scaler` class for scaling the data (None for no scaling)
         selector : str, Selector, or None
-            object or algorithm of :class:`Selector` class for feature selection (None for no selecting)
-        sampler : str, Sampler, or None
-            object or algorithm of :class:`Sampler` class for sampling the train data (None for no sampling)
+            object, tuple of algorithm and feature number, or algorithm of :class:`Selector` class for feature selection (None for no selecting)
+        sampler : str, Sampler, SamplerPipeline, or None
+            object or algorithm of :class:`Sampler` / :class:`SamplerPipeline` class for sampling the train data (None for no sampling)
 
         Notes
         -----

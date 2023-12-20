@@ -51,9 +51,9 @@ class AutoML:
         scaler : str, Scaler, or None
             object or algorithm of :class:`Scaler` class for scaling the data (None for no scaling)
         selector : str, Selector, or None
-            object or algorithm of :class:`Selector` class for feature selection (None for no selecting)
-        sampler : str, Sampler, or None
-            object or algorithm of :class:`Sampler` class for sampling the train data (None for no sampling)
+            object, tuple of algorithm and feature number, or algorithm of :class:`Selector` class for feature selection (None for no selecting)
+        sampler : str, Sampler, SamplerPipeline, or None
+            object or algorithm of :class:`Sampler` / :class:`SamplerPipeline` class for sampling the train data (None for no sampling)
 
         Notes
         -----
@@ -643,7 +643,7 @@ class AutoML:
             for key in tqdm(model_dict.keys(), desc=f"split {split_idx+1}", leave=leave_loadbar):
                 # train data classes in first split on all train data
                 if split_idx == 0:
-                    pre_x, _ = model_dict[key].data_prepare(x_train, y_train)
+                    pre_x, _ = model_dict[key]._data_prepare(x_train, y_train)
                     logger.debug(f"total length of train data after pipeline pre-processing: {len(pre_x)} ({key})")
 
                 # XGBoostClassifier has different warm_start implementation

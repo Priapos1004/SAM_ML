@@ -154,3 +154,4 @@ docs/_static/
 !docs/scoring.rst
 !docs/global_variables.rst
 !docs/package_graph.rst
+!docs/pipeline_factory.rst
