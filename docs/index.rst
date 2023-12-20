@@ -27,6 +27,7 @@ Welcome to sam-ml-py's documentation!
    :caption: 📊 Data
 
    preprocessing/index
+   regio_data
 
 .. toctree::
    :maxdepth: 1
@@ -69,9 +70,12 @@ without SMAC
 Let's get started
 -----------------
 
-I recommend to read the :doc:`advanced scoring documentation <scoring>` for classification problems because it is one of the major advantages of this library.
+You can start with jumping directly into the :doc:`Auto-ML <automl/index>` classes and utilising the combined power of this library. 
+Or you can start by getting an overview of the modules and their interrelationships in the :doc:`Package Graph <package_graph>`.
 
-Another big advantage, are the two auto-ml classes for :class:`classification <CTest>` and :class:`regression <RTest>`. Here an example use for binary classification with precision optimisation of label 1 (underrepresented):
+I also recommend to read the :doc:`advanced scoring documentation <scoring>` for classification problems as this is one of the biggest advantages of this library.
+
+As already mentioned, another big advantage of this library are the two auto-ml classes for :class:`classification <CTest>` and :class:`regression <RTest>`. Here an example use for binary classification with precision optimisation of label 1 (underrepresented):
 
 >>> # load data (replace with own data)
 >>> import pandas as pd

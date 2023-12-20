@@ -90,7 +90,7 @@ def get_all_subclasses(cls):
 
     return subclasses
 
-def generate_folder(classes: list, folder_path: str, category_name: str, abstract_class: bool = False, scoring_note: bool = False):
+def generate_folder(classes: list, folder_path: str, category_name: str, module_text: str = "", abstract_class: bool = False, scoring_note: bool = False):
     env = Environment(loader=FileSystemLoader('_templates'))
     template = env.get_template('class.rst')
 
@@ -116,6 +116,7 @@ def generate_folder(classes: list, folder_path: str, category_name: str, abstrac
         with open(f"{folder_path}index.rst", "w") as f:
             f.write(f"{category_name}\n")
             f.write("="*len(category_name)+"\n\n")
+            f.write(f"{module_text}\n\n")
             f.write(".. toctree::\n")
             f.write("   :maxdepth: 1\n\n")
             for name in sorted(classes_names):
@@ -123,13 +124,17 @@ def generate_folder(classes: list, folder_path: str, category_name: str, abstrac
 
 def main():
     # generate classifier folder
-    generate_folder(get_all_subclasses(Classifier), "classifier/", "Classifier", scoring_note=True)
+    classifier_text = "The ``sam_ml.models.classifier`` module contains several classifier wrapper models."
+    generate_folder(get_all_subclasses(Classifier), "classifier/", "Classifier", classifier_text, scoring_note=True)
     # generate regressor folder
-    generate_folder(get_all_subclasses(Regressor), "regressor/", "Regressor")
+    regressor_text = "The ``sam_ml.models.regressor`` module contains several regressor wrapper models."
+    generate_folder(get_all_subclasses(Regressor), "regressor/", "Regressor", regressor_text)
     # generate preprocessing folder
-    generate_folder(get_all_subclasses(Data), "preprocessing/", "Preprocessing")
+    preprocessing_text = "The ``sam_ml.data.preprocessing`` module contains several data preprocessing step wrapper transformers for different tasks, e.g. feature selection or sampling."
+    generate_folder(get_all_subclasses(Data), "preprocessing/", "Preprocessing", preprocessing_text)
     # generate auto_ml folder
-    generate_folder(get_all_subclasses(AutoML), "automl/", "Auto-ML")
+    automl_text = "The ``sam_ml.models.automl`` module contains two Auto-ML classes. One for Classifier and one for Regressor."
+    generate_folder(get_all_subclasses(AutoML), "automl/", "Auto-ML", automl_text)
     # generate abstract_classes folder
     generate_folder([Model, Classifier, Regressor, BasePipeline, Data, AutoML], "abstract_classes/", "Abstract classes", abstract_class=True)
 

@@ -483,7 +483,7 @@ class AutoML:
         **kwargs,
     ) -> dict[str, dict]:
         """
-        Function to run a Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig] for every model
+        Function to run a Hyperparametertuning with SMAC library HyperparameterOptimizationFacade for every model [can only be used in the sam_ml version with swig]
 
         The smac_search-method will more "intelligent" search your hyperparameter space than the randomCVsearch and 
         returns the best hyperparameter set. Additionally to the n_trails parameter, it also takes a walltime_limit parameter 

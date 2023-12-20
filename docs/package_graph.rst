@@ -14,6 +14,9 @@ Package Graph
             package "sam_ml.data.preprocessing" {
                 circle " "
             }
+            package "sam_ml.data.regio" {
+                circle "     "
+            }
         }
 
         package "sam_ml.models" {
@@ -53,7 +56,7 @@ Package Graph
 
 .. note::
 
-    Class Factory **create_pipeline**
+    Class Factory :func:`create_pipeline <sam_ml.models.create_pipeline>`
 
     Creates **DynamicPipeline** class dynamically 
     based on input model (:class:`Classifier` or :class:`Regressor`)
