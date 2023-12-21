@@ -26,7 +26,7 @@ def visualise_plz(plz_region_df: pd.DataFrame, plot_col_name: str, plot_path: st
 
     Returns
     -------
-    saves plot at ``plot_path``. If default path, then will the column name of plot column be added
+    saves plot at ``plot_path``. If default path, then the column name of plot column will be added
 
     Notes
     -----
@@ -35,7 +35,7 @@ def visualise_plz(plz_region_df: pd.DataFrame, plot_col_name: str, plot_path: st
     Examples
     --------
 
-    First example with less than 8 different unique values to plot:
+    First example with less than 8 different unique values to plot (label legend):
 
     >>> # load data (replace with own data)
     >>> import pandas as pd
@@ -44,7 +44,7 @@ def visualise_plz(plz_region_df: pd.DataFrame, plot_col_name: str, plot_path: st
     >>> from sam_ml.data.regio import visualise_plz
     >>> visualise_plz(df, plot_col_name="income")
 
-    Second example with more than 8 different unique values to plot:
+    Second example with more than 8 different unique values to plot (colorbar legend):
 
     >>> # load data (replace with own data)
     >>> import pandas as pd
@@ -69,7 +69,7 @@ def visualise_plz(plz_region_df: pd.DataFrame, plot_col_name: str, plot_path: st
 
     fig, ax = plt.subplots()
 
-    # discrete vs continuous data
+    # discrete vs continuous data legend
     discrete_data = len(germany_df[plot_col_name].unique()) < 8
 
     plot = germany_df.plot(

@@ -133,7 +133,7 @@ def main():
     preprocessing_text = "The ``sam_ml.data.preprocessing`` module contains several data preprocessing step wrapper transformers for different tasks, e.g. feature selection or sampling."
     generate_folder(get_all_subclasses(Data), "preprocessing/", "Preprocessing", preprocessing_text)
     # generate auto_ml folder
-    automl_text = "The ``sam_ml.models.automl`` module contains two Auto-ML classes. One for Classifier and one for Regressor."
+    automl_text = "The ``sam_ml.models.automl`` module contains two Auto-ML classes. One for Classifier (``CTest``) and one for Regressor (``RTest``)."
     generate_folder(get_all_subclasses(AutoML), "automl/", "Auto-ML", automl_text)
     # generate abstract_classes folder
     generate_folder([Model, Classifier, Regressor, BasePipeline, Data, AutoML], "abstract_classes/", "Abstract classes", abstract_class=True)

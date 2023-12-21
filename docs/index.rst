@@ -54,7 +54,7 @@ There are two versions of sam_ml - with and without the `SMAC <https://github.co
 with SMAC
 """""""""
 
-If you want to install SMAC, you first have to install ``swig`` (see :doc:`swig_installation`).
+If you want to use SMAC, you first have to install ``swig`` (see :doc:`swig_installation`).
 
 ::
 
