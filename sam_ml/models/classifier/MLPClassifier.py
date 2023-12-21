@@ -14,20 +14,33 @@ class MLPC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            hidden_layer_sizes: the ith element represents the number of neurons in the ith hidden layer
-            activation: activation function for the hidden layer
-            solver: solver for weight optimization
-            alpha: l2 penalty (regularization term) parameter
-            learning_rate: learning rate schedule for weight updates
-            warm_start: work with previous fit and add more estimator
-            tol: Tolerance for stopping criteria
-            max_iter: Maximum number of iterations taken for the solvers to converge
-
-            random_state: random_state for model
-            verbose: logging (True/False)
-            batch_size: Size of minibatches for stochastic optimizers
-            early_stopping: True: tests on 10% of train data and stops if there is for 'n_iter_no_change' no improvement in the metrics
+        Parameters (important one)
+        --------------------------
+        hidden_layer_sizes : tuple[int],
+            the ith element represents the number of neurons in the ith hidden layer
+        activation : str,
+            activation function for the hidden layer
+        solver : str,
+            solver for weight optimization
+        alpha : float,
+            l2 penalty (regularization term) parameter
+        learning_rate : str,
+            learning rate schedule for weight updates
+        tol : float,
+            tolerance for stopping criteria
+        max_iter : int,
+            maximum number of iterations taken for the solvers to converge
+        batch_size : int or str,
+            size of minibatches for stochastic optimizers
+        early_stopping : bool,
+            True: tests on 10% of train data and stops if there is for 'n_iter_no_change' no improvement in the metrics
+        random_state : int, \
+                default=42
+            random_state for model
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "MLPC"
         model = MLPClassifier(

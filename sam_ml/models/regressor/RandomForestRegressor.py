@@ -17,19 +17,29 @@ class RFR(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            n_estimators: Number of trees in random forest
-            max_depth: Maximum number of levels in tree
-            n_jobs: how many cores shall be used (-1 means all)
-            random_state: random_state for model
-            verbose: log level (higher number --> more logs)
-            warm_start: work with previous fit and add more estimator
-
-            max_features: Number of features to consider at every split
-            min_samples_split: Minimum number of samples required to split a node
-            min_samples_leaf: Minimum number of samples required at each leaf node
-            bootstrap: Method of selecting samples for training each tree
-            criterion: function to measure the quality of a split
+        Parameters (important one)
+        --------------------------
+        n_estimator : int
+            number of trees
+        max_depth : int,
+            maximum number of levels in tree
+        max_features : float, int, or str,
+            number of features to consider at every split
+        min_samples_split : float or int,
+            minimum number of samples required to split a node
+        min_samples_leaf : float or int,
+            minimum number of samples required at each leaf node
+        bootstrap : bool,
+            method of selecting samples for training each tree
+        criterion : str,
+            function to measure the quality of a split
+        random_state : int, \
+                default=42
+            random_state for model
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "RFR"
         model = RandomForestRegressor(

@@ -137,6 +137,7 @@ dmypy.json
 mlruns/
 *.pkl
 find_best_model*.csv
+*_old.py
 /examples/ex_*.ipynb
 /examples/*.csv
 /examples/*.png
@@ -145,4 +146,13 @@ smac3_output/*
 
 docs/_build/
 docs/_static/
-docs/_templates
+**/*.rst
+
+!docs/_templates/*.rst
+!docs/index.rst
+!docs/swig_installation.rst
+!docs/scoring.rst
+!docs/global_variables.rst
+!docs/package_graph.rst
+!docs/pipeline_factory.rst
+!docs/regio_data.rst

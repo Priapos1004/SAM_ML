@@ -13,8 +13,14 @@ class LLCV(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            max_iter: maximum number of iterations to perform
+        Parameters (important one)
+        --------------------------
+        max_iter : int
+            maximum number of iterations to perform
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "LLCV"
         model = LassoLarsCV(**kwargs)

@@ -14,19 +14,35 @@ class GBM(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            n_estimator: number of boosting stages to perform
-            criterion: function to measure the quality of a split
-            max_depth: Maximum number of levels in tree
-            min_samples_split: Minimum number of samples required to split a node
-            min_samples_leaf: Minimum number of samples required at each leaf node
-            max_features: number of features to consider when looking for the best split
-            subsample: fraction of samples to be used for fitting the individual base learners
-            loss: The loss function to be optimized. 'deviance' refers to deviance (= logistic regression) for classification with probabilistic outputs. For loss 'exponential' gradient boosting recovers the AdaBoost algorithm
-            learning_rate: shrinks the contribution of each tree by learning rate
-
-            warm_start: work with previous fit and add more estimator
-            random_state: random_state for model
+        Parameters (important one)
+        --------------------------
+        n_estimator : int
+            number of boosting stages to perform
+        max_depth : int,
+            maximum number of levels in tree
+        max_features : float, int, or str,
+            number of features to consider at every split
+        min_samples_split : float or int,
+            minimum number of samples required to split a node
+        min_samples_leaf : float or int,
+            minimum number of samples required at each leaf node
+        bootstrap : bool,
+            method of selecting samples for training each tree
+        criterion : str,
+            function to measure the quality of a split
+        subsample : float,
+            fraction of samples to be used for fitting the individual base learners
+        loss : str,
+            the loss function to be optimized. 'deviance' refers to deviance (= logistic regression) for classification with probabilistic outputs. For loss 'exponential' gradient boosting recovers the AdaBoost algorithm
+        learning_rate : float,
+            shrinks the contribution of each tree by learning rate
+        random_state : int, \
+                default=42
+            random_state for model
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "GBM"
         model = GradientBoostingClassifier(random_state=random_state, **kwargs,)

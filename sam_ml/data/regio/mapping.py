@@ -4,18 +4,45 @@ from pkg_resources import resource_filename
 
 def get_plz_mapping() -> pd.DataFrame:
     """
-    get dataframe with ort-postleitzahl-landkreis-bundesland mapping
+    Function to get dataframe with ort-postleitzahl-landkreis-bundesland mapping
 
-    @soruce: https://www.suche-postleitzahl.org/downloads, 18/07/2023
+    Returns
+    -------
+    df_mapping : pd.Dataframe
+        dataframe with columns "ort", "plz", "landkreis", and "bundesland"
+
+    Notes
+    -----
+    Source: https://www.suche-postleitzahl.org/downloads, "zuordnung_plz_ort.csv", 18/07/2023
+
+    Examples
+    --------
+    >>> from sam_ml.data.regio import get_plz_mapping
+    >>> get_plz_mapping()
+        ort     plz     landkreis                   bundesland
+    0   Aach    78267   Landkreis Konstanz          Baden-Württemberg
+    1   Aach    54298   Landkreis Trier-Saarburg    Rheinland-Pfalz
+    ...
     """
     filepath = resource_filename(__name__, 'zuordnung_plz_ort.csv')
-    df = pd.read_csv(filepath, dtype={'plz': str})
-    df =  df[["ort", "plz", "landkreis", "bundesland"]]
-    return df
+    df_mapping = pd.read_csv(filepath, dtype={'plz': str})
+    df_mapping =  df_mapping[["ort", "plz", "landkreis", "bundesland"]]
+    return df_mapping
 
-def get_coord_main_cities() -> dict:
+def get_coord_main_cities() -> dict[str, tuple[float, float]]:
     """
-    get coordinates of top cities from germany
+    Function to get coordinates of top cities from germany
+
+    Returns
+    -------
+    top_cities : dict[str, tuple[float, float]]
+        dictionary with english names of top german cities and their coordinates as values
+
+    Examples
+    --------
+    >>> from sam_ml.data.regio import get_coord_main_cities
+    >>> get_coord_main_cities()
+    {...}
     """
     top_cities = {
         'Berlin': (13.404954, 52.520008), 

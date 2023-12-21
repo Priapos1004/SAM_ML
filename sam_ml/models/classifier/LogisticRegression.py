@@ -22,17 +22,25 @@ class LR(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            n_jobs: how many cores shall be used (-1 means all) (n_jobs > 1 does not have any effect when 'solver' is set to 'liblinear)
-            random_state: random_state for model
-            verbose: log level (higher number --> more logs)
-            warm_start: work with previous fit and add more estimator
-            tol: Tolerance for stopping criteria
-            C: Inverse of regularization strength
-            max_iter: Maximum number of iterations taken for the solvers to converge
-
-            solver: Algorithm to use in the optimization problem
-            penalty: Specify the norm of the penalty
+        Parameters (important one)
+        --------------------------
+        penalty : str,
+            specifies the norm used in the penalization
+        solver : str,
+            algorithm to use in the optimization problem
+        tol : float,
+            tolerance for stopping criteria
+        C : float,
+            inverse of regularization strength
+        max_iter : int,
+            maximum number of iterations taken for the solvers to converge
+        random_state : int, \
+                default=42
+            random_state for model
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "LR"
         model = LogisticRegression(

@@ -13,13 +13,22 @@ class KNC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            n_neighbors: Number of neighbors to use by default for kneighbors queries
-            weights: Weight function used in prediction
-            algorithm: Algorithm used to compute the nearest neighbors
-            leaf_size: Leaf size passed to BallTree or KDTree
-            p: number of metric that is used (manhattan, euclidean, minkowski)
-            n_jobs: the number of parallel jobs to run for neighbors search [problem with n_jobs = -1 --> kernel dies]
+        Parameters (important one)
+        --------------------------
+        n_neighbors : int,
+            number of neighbors to use by default for kneighbors queries
+        weights : str or callable,
+            weight function used in prediction
+        algorithm : str,
+            algorithm used to compute the nearest neighbors
+        leaf_size : int,
+            leaf size passed to BallTree or KDTree
+        p : int,
+            number of metric that is used (manhattan, euclidean, minkowski)
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "KNC"
         model = KNeighborsClassifier(**kwargs,)

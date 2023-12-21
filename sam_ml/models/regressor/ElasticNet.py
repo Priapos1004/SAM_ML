@@ -13,8 +13,14 @@ class EN(Regressor):
         **kwargs,
     ):
         """
-        @param (important one):
-            selection: if set to 'random', a random coefficient is updated every iteration rather than looping over features sequentially by default. This (setting to 'random') often leads to significantly faster convergence especially when tol is higher than 1e-4
+        Parameters (important one)
+        --------------------------
+        selection : str,
+            if set to 'random', a random coefficient is updated every iteration rather than looping over features sequentially by default. This (setting to 'random') often leads to significantly faster convergence especially when tol is higher than 1e-4
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "EN"
         model = ElasticNet(**kwargs)

@@ -15,12 +15,23 @@ class DTC(Classifier):
         **kwargs,
     ):
         """
-        @param (important one):
-            criterion: function to measure the quality of a split
-            max_depth: Maximum number of levels in tree
-            min_samples_split: Minimum number of samples required to split a node
-            min_samples_leaf: Minimum number of samples required at each leaf node
-            random_state: random_state for model
+        Parameters (important one)
+        --------------------------
+        criterion : str,
+            function to measure the quality of a split
+        max_depth : int,
+            maximum number of levels in tree
+        min_samples_split : float or int,
+            minimum number of samples required to split a node
+        min_samples_leaf : float or int,
+            minimum number of samples required at each leaf node
+        random_state : int, \
+                default=42
+            random_state for model
+        
+        Notes
+        -----
+        You can use all parameters of the wrapped model when initialising the wrapper class.
         """
         model_type = "DTC"
         model = DecisionTreeClassifier(
@@ -41,4 +52,14 @@ class DTC(Classifier):
         super().__init__(model, model_name, model_type, grid)
     
     def plot_tree(self):
+        """
+        Function to plot decision tree structure
+
+        Returns
+        -------
+        plt.show:
+            directly shows the plot
+        annotations : list
+            list containing the artists for the annotation boxes making up the tree.
+        """
         return tree.plot_tree(self.model)

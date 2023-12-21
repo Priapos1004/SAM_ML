@@ -1,31 +1,17 @@
-import inspect
 import os
 import sys
 import warnings
 from datetime import timedelta
 from inspect import isfunction
-from statistics import mean
 from typing import Callable, Literal
 
-import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
-from matplotlib import pyplot as plt
-from sklearn.exceptions import NotFittedError
 from sklearn.metrics import d2_tweedie_score, make_scorer, mean_squared_error, r2_score
-from sklearn.model_selection import cross_validate
-from tqdm.auto import tqdm
 
-from sam_ml.config import get_n_jobs, setup_logger
+from sam_ml.config import setup_logger
 
 from .main_model import Model
-
-SMAC_INSTALLED: bool
-try:
-    from smac import HyperparameterOptimizationFacade, Scenario
-    SMAC_INSTALLED = True
-except:
-    SMAC_INSTALLED = False
 
 logger = setup_logger(__name__)
 
@@ -37,196 +23,45 @@ if not sys.warnoptions:
 class Regressor(Model):
     """ Regressor parent class """
 
-    def __init__(self, model_object = None, model_name: str = "regressor", model_type: str = "Regressor", grid: ConfigurationSpace = ConfigurationSpace()):
+    def __init__(self, model_object, model_name: str, model_type: str, grid: ConfigurationSpace):
         """
-        @params:
-            model_object: model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
-            model_name: name of the model
-            model_type: kind of estimator (e.g. 'RFR' for RandomForestRegressor)
-            grid: hyperparameter grid for the model
+        Parameters
+        ----------
+        model_object : classifier object
+            model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
+        model_name : str
+            name of the model
+        model_type : str
+            kind of estimator (e.g. 'RFR' for RandomForestRegressor)
+        grid : ConfigurationSpace
+            hyperparameter grid for the model
         """
-        super().__init__(model_object, model_name, model_type)
-        self._grid = grid
-        self.cv_scores: dict[str, float] = {}
-        self.rCVsearch_results: pd.DataFrame|None = None
+        super().__init__(model_object, model_name, model_type, grid)
 
-    def __repr__(self) -> str:
-        params: str = ""
-        param_dict = self._changed_parameters()
-        for key in param_dict:
-            if type(param_dict[key]) == str:
-                params+= key+"='"+str(param_dict[key])+"', "
-            else:
-                params+= key+"="+str(param_dict[key])+", "
-        params += f"model_name='{self.model_name}'"
-
-        return f"{self.model_type}({params})"
-    
-    def _changed_parameters(self):
-        params = self.get_params(deep=False)
-        init_params = inspect.signature(self.__init__).parameters
-        init_params = {name: param.default for name, param in init_params.items()}
-
-        init_params_estimator = inspect.signature(self.model.__init__).parameters
-        init_params_estimator = {name: param.default for name, param in init_params_estimator.items()}
-
-        def has_changed(k, v):
-            if k not in init_params:  # happens if k is part of a **kwargs
-                if k not in init_params_estimator: # happens if k is part of a **kwargs
-                    return True
-                else:
-                    if v != init_params_estimator[k]:
-                        return True
-                    else:
-                        return False
-
-            if init_params[k] == inspect._empty:  # k has no default value
-                return True
-            elif init_params[k] != v:
-                return True
-            
-            return False
-
-        return {k: v for k, v in params.items() if has_changed(k, v)}
-
-    @property
-    def grid(self):
-        """
-        @return:
-            hyperparameter tuning grid of the model
-        """
-        return self._grid
-    
-    def get_random_config(self):
-        """
-        @return;
-            set of random parameter from grid
-        """
-        return dict(self.grid.sample_configuration(1))
-    
-    def get_random_configs(self, n_trails: int) -> list:
-        """
-        @return;
-            n_trails elements in list with sets of random parameterd from grid
-
-        NOTE: filter out duplicates -> could be less than n_trails
-        """
-        if n_trails<1:
-            raise ValueError(f"n_trails has to be greater 0, but {n_trails}<1")
-        
-        configs = [self._grid.get_default_configuration()]
-        if n_trails == 2:
-            configs += [self._grid.sample_configuration(n_trails-1)]
-        else:
-            configs += self._grid.sample_configuration(n_trails-1)
-        # remove duplicates
-        configs = list(dict.fromkeys(configs))
-        return configs
-
-    def replace_grid(self, new_grid: ConfigurationSpace):
-        """
-        function to replace self.grid 
-
-        e.g.:
-            ConfigurationSpace(
-                seed=42,
-                space={
-                    "solver": Categorical("solver", ["lsqr", "eigen", "svd"]),
-                    "shrinkage": Float("shrinkage", (0, 1)),
-                })
-        """
-        self._grid = new_grid
-
-    def train(
+    def _get_score(
         self,
-        x_train: pd.DataFrame,
-        y_train: pd.Series, 
-        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
-        console_out: bool = True
-    ) -> tuple[float, str]:
-        """
-        @return:
-            tuple of train score and train time
-        """
-        return super().train(x_train, y_train, console_out, scoring=scoring)
-    
-    def train_warm_start(
-        self,
-        x_train: pd.DataFrame,
-        y_train: pd.Series, 
-        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
-        console_out: bool = True
-    ) -> tuple[float, str]:
-        """
-        @return:
-            tuple of train score and train time
-        """
-        return super().train_warm_start(x_train, y_train, console_out, scoring=scoring)
-
-    def evaluate(
-        self,
-        x_test: pd.DataFrame,
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float],
         y_test: pd.Series,
-        console_out: bool = True,
-        custom_score: Callable[[list[int], list[int]], float] | None = None,
-    ) -> dict[str, float]:
-        """
-        @param:
-            x_test, y_test: Data to evaluate model
-
-            console_out: shall the result be printed into the console
-
-            custom_score: score function with 'y_true' and 'y_pred' as parameter
-
-        @return: dictionary with keys with scores: "r2", "rmse", "d2_tweedie"
-        """
-        pred = self.predict(x_test)
-
-        # Calculate Metrics
-        r2 = r2_score(y_test, pred)
-        rmse = mean_squared_error(y_test, pred, squared=False)
-        if all([y >= 0 for y in y_test]) and all([y > 0 for y in pred]):
-            d2_tweedie = d2_tweedie_score(y_test, pred, power=1)
-        else:
-            d2_tweedie = -1
-
-        if isfunction(custom_score):
-            custom_scores = custom_score(y_test, pred)
-
-        if console_out:
-            print("r2 score: ", r2)
-            print("rmse: ", rmse)
-            print("d2 tweedie score: ", d2_tweedie)
-            if isfunction(custom_score):
-                print("custom score: ", custom_scores)
-
-        scores = {
-            "r2": r2,
-            "rmse": rmse,
-            "d2_tweedie": d2_tweedie,
-        }
-
-        if isfunction(custom_score):
-            scores["custom_score"] = custom_scores
-
-        return scores
-    
-    def evaluate_score(
-        self,
-        x_test: pd.DataFrame,
-        y_test: pd.Series,
-        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
+        pred: list,
     ) -> float:
-        """
-        @param:
-            x_test, y_test: Data to evaluate model
-            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie", score function)
+        """ 
+        Calculate a score for given y true and y prediction values
 
-        @return: score as float
-        """
-        pred = self.predict(x_test)
+        Parameters
+        ----------
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score)
+            metrics to evaluate the models
 
-        # Calculate score
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+        y_test, pred : pd.Series, pd.Series
+            Data to evaluate model
+
+        Returns
+        -------
+        score : float 
+            metrics score value
+        """
         if scoring == "r2":
             score = r2_score(y_test, pred)
         elif scoring == "rmse":
@@ -243,33 +78,92 @@ class Regressor(Model):
             raise ValueError(f"scoring='{scoring}' is not supported -> only  'r2', 'rmse', or 'd2_tweedie'")
 
         return score
-
-    def cross_validation(
+    
+    def _get_all_scores(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        cv_num: int = 10,
-        console_out: bool = True,
-        custom_score: Callable[[list[int], list[int]], float] | None = None,
+        y_test: pd.Series,
+        pred: list,
+        custom_score: Callable[[list[float], list[float]], float] | None,
     ) -> dict[str, float]:
+        """ 
+        Calculate r2, rmse, d2_tweedie, and optional custom_score metrics
+
+        Parameters
+        ----------
+        y_test, pred : pd.Series, pd.Series
+            Data to evaluate model
+        custom_score : callable or None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        scores : dict 
+            dictionary of format:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,}
+
+            or if ``custom_score != None``:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,
+                'custom_score': ...,}
+
+        Notes
+        -----
+        d2_tweedie is only defined for y_test >= 0 and y_pred > 0 values. Otherwise, d2_tweedie is set to -1.
         """
-        @param:
-            X, y: data to cross validate on
-            cv_num: number of different splits
+        r2 = r2_score(y_test, pred)
+        rmse = mean_squared_error(y_test, pred, squared=False)
+        if all([y >= 0 for y in y_test]) and all([y > 0 for y in pred]):
+            d2_tweedie = d2_tweedie_score(y_test, pred, power=1)
+        else:
+            d2_tweedie = -1
 
-            console_out: shall the result be printed into the console
+        scores = {
+            "r2": r2,
+            "rmse": rmse,
+            "d2_tweedie": d2_tweedie,
+        }
 
-            custom_score: score function with 'y_true' and 'y_pred' as parameter
+        if isfunction(custom_score):
+            custom_scores = custom_score(y_test, pred)
+            scores["custom_score"] = custom_scores
 
-        @return:
-            dictionary with "r2", "rmse", "d2_tweedie", "train_score", "train_time"
+        return scores
+    
+    def _make_scorer(
+        self,
+        y_values: pd.Series,
+        custom_score: Callable[[list[float], list[float]], float] | None,
+    ) -> dict[str, Callable]:
         """
-        logger.debug(f"cross validation {self.model_name} - started")
+        Function to create a dictionary with scorer for the crossvalidation
+        
+        Parameters
+        ----------
+        y_values : pd.Series
+            y data for testing if d2_tweedie is allowed
+        custom_score : callable or None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
 
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        scorer : dict[str, Callable]
+            dictionary with scorer functions
+        """
         r2 = make_scorer(r2_score)
         rmse = make_scorer(mean_squared_error, squared=False)
 
-        if all([y_elem >= 0 for y_elem in y]):
+        if all([y_elem >= 0 for y_elem in y_values]):
             d2_tweedie = make_scorer(d2_tweedie_score, power=1)
             scorer = {
                 "r2 score": r2,
@@ -283,165 +177,410 @@ class Regressor(Model):
             }
 
         if isfunction(custom_score):
-            custom_scorer = make_scorer(custom_score)
-            scorer["custom_score"] = custom_scorer
-        elif custom_score is None:
-            custom_scorer = None
-        else:
-            raise ValueError("custom_score has to be a function")
+            scorer["custom_score"] = make_scorer(custom_score)
 
-        cv_scores = cross_validate(
+        return scorer
+    
+    def _make_cv_scores(
             self,
-            X,
-            y,
-            scoring=scorer,
-            cv=cv_num,
-            return_train_score=True,
-            n_jobs=get_n_jobs(),
-        )
-
-        pd_scores = pd.DataFrame(cv_scores).transpose()
-        pd_scores["average"] = pd_scores.mean(numeric_only=True, axis=1)
-
-        score = pd_scores["average"]
+            score: dict,
+            custom_score: Callable[[list[float], list[float]], float] | None,
+    ) -> dict[str, float]:
+        """
+        Function to create from the crossvalidation results a dictionary
         
-        if all([y_elem >= 0 for y_elem in y]):
-            self.cv_scores = {
+        Parameters
+        ----------
+        score : dict
+            crossvalidation average column results
+        custom_score : callable or None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        cv_scores : dict
+            restructured dictionary
+        """
+        if (len(score)==10 and isfunction(custom_score)) or (len(score)==8 and not isfunction(custom_score)):
+            cv_scores = {
                 "r2": score[list(score.keys())[2]],
                 "rmse": score[list(score.keys())[4]],
                 "d2_tweedie": score[list(score.keys())[6]],
-                "train_score": score[list(score.keys())[3]],
                 "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+                "train_score": score[list(score.keys())[3]],
             }
             if isfunction(custom_score):
-                self.cv_scores["custom_score"] = score[list(score.keys())[8]]
+                cv_scores["custom_score"] = score[list(score.keys())[8]]
         else:
-            self.cv_scores = {
+            cv_scores = {
                 "r2": score[list(score.keys())[2]],
                 "rmse": score[list(score.keys())[4]],
                 "d2_tweedie": -1,
-                "train_score": score[list(score.keys())[3]],
                 "train_time": str(timedelta(seconds = round(score[list(score.keys())[0]]))),
+                "train_score": score[list(score.keys())[3]],
             }
             if isfunction(custom_score):
-                self.cv_scores["custom_score"] = score[list(score.keys())[6]]
+                cv_scores["custom_score"] = score[list(score.keys())[6]]
+        
+        return cv_scores
 
-        logger.debug(f"cross validation {self.model_name} - finished")
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series, 
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float] = "r2",
+        console_out: bool = True
+    ) -> tuple[float, str]:
+        """
+        Function to train the model
 
-        if console_out:
-            print()
-            print(pd_scores)
+        Every regressor has a train- and fit-method. They both use the fit-method of the wrapped model, 
+        but the train-method returns the train time and the train score of the model.
 
-        return self.cv_scores
+        Parameters
+        ----------
+        x_train, y_train : pd.DataFrame, pd.Series
+            Data to train model
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
+            metrics to evaluate the models
+
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+        console_out : bool, default=True
+            shall the score and time be printed out
+
+        Returns
+        -------
+        train_score : float 
+            train score value
+        train_time : str
+            train time in format: "0:00:00" (hours:minutes:seconds)
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>>
+        >>> # train model
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> model.train(X, y)
+        Train score: 0.9938023719617127 - Train time: 0:00:01
+        """
+        return super().train(x_train, y_train, console_out, scoring=scoring)
+    
+    def train_warm_start(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.Series, 
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float] = "r2",
+        console_out: bool = True
+    ) -> tuple[float, str]:
+        """
+        Function to warm_start train the model
+
+        This function only differs for pipeline objects (with preprocessing) from the train method.
+        For pipeline objects, it only traines the preprocessing steps the first time and then only uses them to preprocess.
+
+        Parameters
+        ----------
+        x_train, y_train : pd.DataFrame, pd.Series
+            Data to train model
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
+            metrics to evaluate the models
+
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+        console_out : bool, default=True
+            shall the score and time be printed out
+
+        Returns
+        -------
+        train_score : float 
+            train score value
+        train_time : str
+            train time in format: "0:00:00" (hours:minutes:seconds)
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>>
+        >>> # train model
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> model.train_warm_start(X, y)
+        Train score: 0.9938023719617127 - Train time: 0:00:01
+        """
+        return super().train_warm_start(x_train, y_train, console_out, scoring=scoring)
+
+    def evaluate(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        console_out: bool = True,
+        custom_score: Callable[[list[float], list[float]], float] | None = None,
+    ) -> dict[str, float]:
+        """
+        Function to create multiple scores with predict function of model
+
+        Parameters
+        ----------
+        x_test, y_test : pd.DataFrame, pd.Series
+            Data to evaluate model
+        console_out : bool, default=True
+            shall the result of the different scores and a classification_report be printed into the console
+        custom_score : callable or None, default=None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        scores : dict 
+            dictionary of format:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,}
+
+            or if ``custom_score != None``:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,
+                'custom_score': ...,}
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> from sklearn.model_selection import train_test_split
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
+        >>>
+        >>> # train and evaluate model
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> model.train(X, y)
+        >>> scores = model.evaluate(x_test, y_test)
+        Train score: 0.9938023719617127 - Train time: 0:00:01
+        r2: 0.9471767309072388
+        rmse: 11.46914444113609
+        d2_tweedie: 0.9214227488752569
+        """
+        return super().evaluate(x_test, y_test, console_out=console_out, custom_score=custom_score)
+    
+    def evaluate_score(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float] = "r2",
+    ) -> float:
+        """
+        Function to create a score with predict function of model
+
+        Parameters
+        ----------
+        x_test, y_test : pd.DataFrame, pd.Series
+            Data to evaluate model
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
+            metrics to evaluate the models
+
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+        Returns
+        -------
+        score : float 
+            metrics score value
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> from sklearn.model_selection import train_test_split
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>> x_train, x_test, y_train, y_test = train_test_split(X,y, train_size=0.80, random_state=42)
+        >>>
+        >>> # train and evaluate model
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> model.fit(X, y)
+        >>> rmse = model.evaluate_score(x_test, y_test, scoring="rmse")
+        >>> print(f"rmse: {rmse}")
+        rmse: 11.46914444113609
+        """
+        return super().evaluate_score(scoring, x_test, y_test)
+
+    def cross_validation(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        cv_num: int = 10,
+        console_out: bool = True,
+        custom_score: Callable[[list[float], list[float]], float] | None = None,
+    ) -> dict[str, float]:
+        """
+        Random split crossvalidation
+
+        Parameters
+        ----------
+        X, y : pd.DataFrame, pd.Series
+            Data to cross validate on
+        cv_num : int, default=10
+            number of different random splits
+        console_out : bool, default=True
+            shall the result dataframe of the different scores for the different runs be printed
+        custom_score : callable or None, default=None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        scores : dict 
+            dictionary of format:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,}
+
+            or if ``custom_score != None``:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,
+                'custom_score': ...,}
+
+        The scores are also saved in ``self.cv_scores``.
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>>
+        >>> # cross validate model
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> scores = model.cross_validation(X, y, cv_num=3)
+        <BLANKLINE>
+                                    0          1          2         average
+        fit_time                    0.772634   0.903580   0.769893  0.815369
+        score_time                  0.097742   0.126724   0.108220  0.110895
+        test_r2 score               0.930978   0.935554   0.950584  0.939039
+        train_r2 score              0.992086   0.992418   0.991672  0.992059
+        test_rmse                   13.122513  12.076931  10.936810 12.045418
+        train_rmse                  4.306834   4.318027   4.457605  4.360822
+        test_d2 tweedie score       0.916618   0.909032   0.919350  0.915000
+        train_d2 tweedie score      0.982802   0.983685   0.983286  0.983257
+        """
+        return super().cross_validation(X, y, cv_num=cv_num, console_out=console_out, custom_score=custom_score, y_values=y)
 
     def cross_validation_small_data(
         self,
         X: pd.DataFrame,
         y: pd.Series,
         leave_loadbar: bool = True,
-        custom_score: Callable[[list[int], list[int]], float] | None = None,
+        console_out: bool = True,
+        custom_score: Callable[[list[float], list[float]], float] | None = None,
     ) -> dict[str, float]:
         """
-        Cross validation for small datasets (recommended for datasets with less than 150 datapoints)
+        One-vs-all cross validation for small datasets
 
-        @param:
-            X, y: data to cross validate on
+        In the cross_validation_small_data-method, the model will be trained on all datapoints except one and then tested on this last one. 
+        This will be repeated for all datapoints so that we have our predictions for all datapoints.
 
-            leave_loadbar: shall the loading bar of the training be visible after training (True - load bar will still be visible)
+        Advantage: optimal use of information for training
 
-            custom_score: score function with 'y_true' and 'y_pred' as parameter
-            
-        @return:
-            dictionary with "r2", "rmse", "d2_tweedie", "train_score", "train_time"
+        Disadvantage: long train time
+
+        This concept is very useful for small datasets (recommended: datapoints < 150) because the long train time is still not too long and 
+        especially with a small amount of information for the model, it is important to use all the information one has for the training.
+
+        Parameters
+        ----------
+        X, y : pd.DataFrame, pd.Series
+            Data to cross validate on
+        leave_loadbar : bool, default=True
+            shall the loading bar of the training be visible after training (True - load bar will still be visible)
+        console_out : bool, default=True
+            shall the result of the different scores and a classification_report be printed into the console
+        custom_score : callable or None, default=None
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+
+            If ``None``, no custom score will be calculated and also the key "custom_score" does not exist in the returned dictionary.
+
+        Returns
+        -------
+        scores : dict 
+            dictionary of format:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,}
+
+            or if ``custom_score != None``:
+
+                {'r2': ...,
+                'rmse': ...,
+                'd2_tweedie': ...,
+                'train_time': ...,
+                'train_score': ...,
+                'custom_score': ...,}
+
+        The scores are also saved in ``self.cv_scores``.
+
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=150, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>>
+        >>> # cross validate model
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> scores = model.cross_validation_small_data(X, y)
+        r2: 0.5914164661854215
+        rmse: 50.2870203230133
+        d2_tweedie: 0.58636121702529
+        train_time: 0:00:00
+        train_score: 0.9425178468662095
         """
-        logger.debug(f"cross validation {self.model_name} - started")
-
-        predictions = []
-        true_values = []
-        t_scores = []
-        t_times = []
-        
-        for idx in tqdm(X.index, desc=self.model_name, leave=leave_loadbar):
-            x_train = X.drop(idx)
-            y_train = y.drop(idx)
-            x_test = X.loc[[idx]]
-            y_test = y.loc[idx]
-
-            train_score, train_time = self.train(x_train, y_train, console_out=False)
-            prediction = self.predict(x_test)
-
-            predictions.append(prediction)
-            true_values.append(y_test)
-            t_scores.append(train_score)
-            t_times.append(train_time)
-
-        # Calculate Metrics
-        r2 = r2_score(true_values, predictions)
-        rmse = mean_squared_error(true_values, predictions, squared=False)
-
-        if all([y_elem >= 0 for y_elem in y]):
-            d2_tweedie = d2_tweedie_score(true_values, predictions, power=1)
-        else:
-            d2_tweedie = -1
-        
-        avg_train_score = mean(t_scores)
-        avg_train_time = str(timedelta(seconds=round(sum(map(lambda f: int(f[0])*3600 + int(f[1])*60 + int(f[2]), map(lambda f: f.split(':'), t_times)))/len(t_times))))
-
-        self.cv_scores = {
-            "r2": r2,
-            "rmse": rmse,
-            "d2_tweedie": d2_tweedie,
-            "train_score": avg_train_score,
-            "train_time": avg_train_time,
-        }
-
-        if isfunction(custom_score):
-            custom_scores = custom_score(true_values, predictions)
-            self.cv_scores["custom_score"] = custom_scores
-        elif custom_score is not None:
-            raise ValueError("custom_score has to be a function -> results in .cv_scores")
-
-        logger.debug(f"cross validation {self.model_name} - finished")
-
-        return self.cv_scores
-
-    def feature_importance(self) -> plt.show:
-        """
-        feature_importance() generates a matplotlib plot of the top45 feature importance from self.model
-        """
-        if not self.feature_names:
-            raise NotFittedError("You have to first train the regressor before getting the feature importance (with train-method)")
-
-        if self.model_type == "...":
-            importances = [np.mean(i) for i in self.model.coefs_[0]]  # MLP Regressor
-        elif self.model_type in ("RFR", "DTR", "ETR", "XGBR"):
-            importances = self.model.feature_importances_
-        elif self.model_type in ():
-            logger.warning(f"{self.model_type} does not have a feature importance")
-            return
-        else:
-            importances = self.model.coef_[0]  # "normal"
-
-        # top45 features
-        feature_importances = pd.Series(importances, index=self.feature_names).sort_values(ascending=False).head(45)
-
-        fig, ax = plt.subplots()
-        if self.model_type in ("RFR", "ETR"):
-            if self.model_type in ("RFR", "ETR"):
-                std = np.std(
-                    [tree.feature_importances_ for tree in self.model.estimators_], axis=0,
-                )
-            elif self.model_type == "...":
-                std = np.std(
-                    [tree[0].feature_importances_ for tree in self.model.estimators_], axis=0,
-                )
-            feature_importances.plot.bar(yerr=std, ax=ax)
-        else:
-            feature_importances.plot.bar(ax=ax)
-        ax.set_title("Feature importances of " + str(self.model_name))
-        ax.set_ylabel("use of coefficients as importance scores")
-        fig.tight_layout()
-        plt.show()
+        return super().cross_validation_small_data(X,y,leave_loadbar=leave_loadbar, console_out=console_out, custom_score=custom_score)
     
     def smac_search(
         self,
@@ -449,84 +588,78 @@ class Regressor(Model):
         y_train: pd.Series,
         n_trails: int = 50,
         cv_num: int = 5,
-        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float] = "r2",
         small_data_eval: bool = False,
-        walltime_limit: float = 600,
+        walltime_limit: int = 600,
         log_level: int = 20,
     ) -> Configuration:
         """
-        @params:
-            x_train: DataFrame with train features
-            y_train: Series with labels
+        Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig]
 
-            n_trails: max number of parameter sets to test
-            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+        The smac_search-method will more "intelligent" search your hyperparameter space than the randomCVsearch and 
+        returns the best hyperparameter set. Additionally to the n_trails parameter, it also takes a walltime_limit parameter 
+        that defines the maximum time in seconds that the search will take.
 
-            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie", score function)
+        Parameters
+        ----------
+        x_train, y_train : pd.DataFrame, pd.Series
+            Data to cross validate on
+        n_trails : int, default=50
+            max number of parameter sets to test
+        cv_num : int, default=5
+            number of different random splits
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
+            metrics to evaluate the models
 
-            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
-            
-            walltime_limit: the maximum time in seconds that SMAC is allowed to run
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+        small_data_eval : bool, default=False
+            if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+        walltime_limit : int, default=600
+            the maximum time in seconds that SMAC is allowed to run
+        log_level : int, default=20
+            10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
 
-            log_level: 10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - CRITICAL (SMAC3 library log levels)
+        Returns
+        -------
+        incumbent : ConfigSpace.Configuration
+            ConfigSpace.Configuration with best hyperparameters (can be used like dict)
 
-        @return: ConfigSpace.Configuration with best hyperparameters (can be used like dict)
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>>
+        >>> # use smac_search
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> best_hyperparam = model.smac_search(X, y, n_trails=20, cv_num=5, scoring="rmse")
+        >>> print(f"best hyperparameters: {best_hyperparam}")
+        [INFO][abstract_initial_design.py:147] Using 5 initial design configurations and 0 additional configurations.
+        [INFO][abstract_intensifier.py:305] Using only one seed for deterministic scenario.
+        [INFO][abstract_intensifier.py:515] Added config 7373ff as new incumbent because there are no incumbents yet.
+        [INFO][abstract_intensifier.py:590] Added config 06e4dc and rejected config 7373ff as incumbent because it is not better than the incumbents on 1 instances:
+        [INFO][abstract_intensifier.py:590] Added config 162148 and rejected config 06e4dc as incumbent because it is not better than the incumbents on 1 instances:
+        [INFO][abstract_intensifier.py:590] Added config 97eecc and rejected config 162148 as incumbent because it is not better than the incumbents on 1 instances:
+        [INFO][smbo.py:327] Configuration budget is exhausted:
+        [INFO][smbo.py:328] --- Remaining wallclock time: 582.9456326961517
+        [INFO][smbo.py:329] --- Remaining cpu time: inf
+        [INFO][smbo.py:330] --- Remaining trials: 0
+        best hyperparameters: Configuration(values={
+        'bootstrap': False,
+        'criterion': 'friedman_mse',
+        'max_depth': 10,
+        'min_samples_leaf': 3,
+        'min_samples_split': 9,
+        'min_weight_fraction_leaf': 0.22684614269623157,
+        'n_estimators': 28,
+        })
         """
-        if not SMAC_INSTALLED:
-            raise ImportError("SMAC3 library is not installed -> follow instructions in Repo to install SMAC3 (https://github.com/Priapos1004/SAM_ML)")
-
-        logger.debug("starting smac_search")
-        # NormalInteger in grid is not supported (using workaround for now) (04/07/2023)
-        if self.model_type in ("RFR", "ETR", "XGBR"):
-            grid = self.smac_grid
-        else:
-            grid = self.grid
-
-        scenario = Scenario(
-            grid,
-            n_trials=n_trails,
-            deterministic=True,
-            walltime_limit=walltime_limit,
-        )
-
-        initial_design = HyperparameterOptimizationFacade.get_initial_design(scenario, n_configs=5)
-        logger.debug(f"initial_design: {initial_design.select_configurations()}")
-
-        # custom scoring
-        if isfunction(scoring):
-            custom_score = scoring
-            scoring = "custom_score"
-        else:
-            custom_score = None
-
-        # define target function
-        def grid_train(config: Configuration, seed: int) -> float:
-            logger.debug(f"config: {config}")
-            model = self.get_deepcopy()
-            model.set_params(**config)
-            if small_data_eval:
-                score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False, custom_score=custom_score)
-            else:
-                score = model.cross_validation(x_train, y_train, console_out=False, cv_num=cv_num, custom_score=custom_score)
-            
-            # SMAC always minimizes (the smaller the better)
-            if scoring == "rmse":
-                return score[scoring]
-            
-            return 1 - score[scoring]
-
-        # use SMAC to find the best hyperparameters
-        smac = HyperparameterOptimizationFacade(
-            scenario,
-            grid_train,
-            initial_design=initial_design,
-            overwrite=True,  # If the run exists, we overwrite it; alternatively, we can continue from last state
-            logging_level=log_level,
-        )
-
-        incumbent = smac.optimize()
-        logger.debug("finished smac_search")
-        return incumbent
+        return super().smac_search(x_train, y_train, scoring=scoring, n_trails=n_trails, cv_num=cv_num, small_data_eval=small_data_eval, walltime_limit=walltime_limit, log_level=log_level)
 
     def randomCVsearch(
         self,
@@ -534,70 +667,56 @@ class Regressor(Model):
         y_train: pd.Series,
         n_trails: int = 10,
         cv_num: int = 5,
-        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[int], list[int]], float] = "r2",
+        scoring: Literal["r2", "rmse", "d2_tweedie"] | Callable[[list[float], list[float]], float] = "r2",
         small_data_eval: bool = False,
         leave_loadbar: bool = True,
     ) -> tuple[dict, float]:
         """
-        @params:
-            x_train: DataFrame with train features
-            y_train: Series with labels
+        Hyperparametertuning with randomCVsearch
 
-            n_trails: number of parameter sets to test
+        Parameters
+        ----------
+        x_train, y_train : pd.DataFrame, pd.Series
+            Data to cross validate on
+        n_trails : int, default=10
+            max number of parameter sets to test
+        cv_num : int, default=5
+            number of different random splits
+        scoring : {"r2", "rmse", "d2_tweedie"} or callable (custom score), default="r2"
+            metrics to evaluate the models
 
-            scoring: metrics to evaluate the models ("r2", "rmse", "d2_tweedie", score function)
+            custom score function (or loss function) with signature
+            `score_func(y, y_pred, **kwargs)`
+        small_data_eval : bool, default=False
+            if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+        leave_loadbar : bool, default=True
+            shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
 
-            small_data_eval: if True: trains model on all datapoints except one and does this for all datapoints (recommended for datasets with less than 150 datapoints)
+        Returns
+        -------
+        best_hyperparameters : dict
+            best hyperparameter set
+        best_score : float
+            the score of the best hyperparameter set
 
-            cv_num: number of different splits per crossvalidation (only used when small_data_eval=False)
+        Notes
+        -----
+        if you interrupt the keyboard during the run of randomCVsearch, the interim result will be returned
 
-            leave_loadbar: shall the loading bar of the different parameter sets be visible after training (True - load bar will still be visible)
-
-        @return: dictionary with best hyperparameters and float of best_score
+        Examples
+        --------
+        >>> # load data (replace with own data)
+        >>> import pandas as pd
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=3000, n_features=4, noise=1, random_state=42)
+        >>> X, y = pd.DataFrame(X, columns=["col1", "col2", "col3", "col4"]), pd.Series(abs(y))
+        >>>
+        >>> # use randomCVsearch
+        >>> from sam_ml.models.regressor import RFR
+        >>> 
+        >>> model = RFR()
+        >>> best_hyperparam, best_score = model.randomCVsearch(X, y, n_trails=20, cv_num=5, scoring="r2")
+        >>> print(f"best hyperparameters: {best_hyperparam}, best score: {best_score}")
+        best hyperparameters: {'bootstrap': True, 'criterion': 'friedman_mse', 'max_depth': 9, 'min_samples_leaf': 4, 'min_samples_split': 7, 'min_weight_fraction_leaf': 0.015714592843367126, 'n_estimators': 117}, best score: 0.6880857784416011
         """
-        logger.debug("starting randomCVsearch")
-        results = []
-        configs = self.get_random_configs(n_trails)
-
-        # custom scoring
-        if isfunction(scoring):
-            custom_score = scoring
-            scoring = "custom_score"
-        else:
-            custom_score = None
-
-        at_least_one_run: bool = False
-        try:
-            for config in tqdm(configs, desc=f"randomCVsearch ({self.model_name})", leave=leave_loadbar):
-                logger.debug(f"config: {config}")
-                model = self.get_deepcopy()
-                model.set_params(**config)
-                if small_data_eval:
-                    score = model.cross_validation_small_data(x_train, y_train, leave_loadbar=False, custom_score=custom_score)
-                else:
-                    score = model.cross_validation(x_train, y_train, cv_num=cv_num, console_out=False, custom_score=custom_score)
-                config_dict = dict(config)
-                config_dict[scoring] = score[scoring]
-                results.append(config_dict)
-                at_least_one_run = True
-        except KeyboardInterrupt:
-            logger.info("KeyboardInterrupt - output interim result")
-            if not at_least_one_run:
-                return {}, -1
-            
-
-        self.rCVsearch_results = pd.DataFrame(results, dtype=object).sort_values(by=scoring, ascending=False)
-
-        # for-loop to keep dtypes of columns
-        best_hyperparameters = {} 
-        for col in self.rCVsearch_results.columns:
-            value = self.rCVsearch_results[col].iloc[0]
-            if str(value) != "nan":
-                best_hyperparameters[col] = value
-
-        best_score = best_hyperparameters[scoring]
-        best_hyperparameters.pop(scoring)
-
-        logger.debug("finished randomCVsearch")
-        
-        return best_hyperparameters, best_score
+        return super().randomCVsearch(x_train, y_train, n_trails=n_trails, cv_num=cv_num, scoring=scoring, small_data_eval=small_data_eval, leave_loadbar=leave_loadbar)

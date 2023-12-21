@@ -6,11 +6,11 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 
 from sam_ml.data.preprocessing import Sampler, Scaler, Selector
-from sam_ml.models.main_classifier import SMAC_INSTALLED
+from sam_ml.models.main_model import SMAC_INSTALLED
 
 os.environ["SAM_ML_SOUND_ON"] = "False"
 os.environ["SAM_ML_LOG_LEVEL"] = "debug"
-from sam_ml.models.regressor import RTest
+from sam_ml.models.automl import RTest
 
 X, Y = make_regression(n_samples = 50,
                         n_features = 5,
@@ -27,7 +27,7 @@ def test_eval_models_selectors():
     rtest.eval_models(x_train, y_train, x_test, y_test)
 
 def test_eval_models_scalers():
-    scalers = Scaler.params()["scaler"]
+    scalers = Scaler.params()["algorithm"]
     rtest = RTest(models="all", scaler=scalers)
     rtest.eval_models(x_train, y_train, x_test, y_test)
 
