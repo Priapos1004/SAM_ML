@@ -1,0 +1,127 @@
+CTest
+=====
+
+.. class:: CTest(self, models: Union[Literal['all', 'big_data', 'basic', 'basic2'], list[sam_ml.models.main_classifier.Classifier]] = 'all', vectorizer: str | sam_ml.data.preprocessing.embeddings.Embeddings_builder | None | list[str | sam_ml.data.preprocessing.embeddings.Embeddings_builder | None] = None, scaler: str | sam_ml.data.preprocessing.scaler.Scaler | None | list[str | sam_ml.data.preprocessing.scaler.Scaler | None] = None, selector: str | tuple[str, int] | sam_ml.data.preprocessing.feature_selection.Selector | None | list[str | tuple[str, int] | sam_ml.data.preprocessing.feature_selection.Selector | None] = None, sampler: str | sam_ml.data.preprocessing.sampling.Sampler | sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline | None | list[str | sam_ml.data.preprocessing.sampling.Sampler | sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline | None] = None)
+
+AutoML class for classifier  - parent class :class:`AutoML`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        models : {"all", "big_data", "basic", "basic2"} or list, default="all"
+            - 'all':
+                use all Wrapperclass models (18+ models)
+            - 'big_data':
+                use all Wrapperclass models except the ones that take too much space or 
+                time on big data (>200.000 data points)
+            - 'basic':
+                use basic Wrapperclass models (8 models) which includes:
+                LogisticRegression, MLP Classifier, LinearSVC, DecisionTreeClassifier,
+                RandomForestClassifier, SVC, Gradientboostingmachine, KNeighborsClassifier
+            - 'basic2':
+                use basic (mostly tree-based) Wrapperclass models
+            - list of Wrapperclass models from sam_ml library
+
+        vectorizer : str, Embeddings_builder, or None
+            object or algorithm of :class:`Embeddings_builder` class which will be used for automatic string column vectorizing (None for no vectorizing)
+        scaler : str, Scaler, or None
+            object or algorithm of :class:`Scaler` class for scaling the data (None for no scaling)
+        selector : str, Selector, or None
+            object, tuple of algorithm and feature number, or algorithm of :class:`Selector` class for feature selection (None for no selecting)
+        sampler : str, Sampler, SamplerPipeline, or None
+            object or algorithm of :class:`Sampler` / :class:`SamplerPipeline` class for sampling the train data (None for no sampling)
+
+
+
+   * - Attributes
+     - 
+         
+        models : dict
+            dictionary with model names as keys and model instances as values
+        
+       
+         
+        scores : dict[str, float]
+            dictionary with scores for every model as dictionary
+        
+       
+
+.. note::
+
+   If a list is provided for one or multiple of the preprocessing steps, all model with preprocessing steps combination will be added as pipelines.
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.models.automl import CTest
+>>>
+>>> model = CTest()
+>>> print(model)
+CTest(models='all', vectorizer=[None], scaler=[None], selector=[None], sampler=[None])
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.add_model`
+     - Function for adding model in self.models
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.eval_models`
+     - Function to train and evaluate every model
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.eval_models_cv`
+     - Function to run a cross validation on every model
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.find_best_model_mass_search`
+     - Function to run a successive halving hyperparameter search for every model
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.find_best_model_randomCV`
+     - Function to run a random cross validation hyperparameter search for every model
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.find_best_model_smac`
+     - Function to run a Hyperparametertuning with SMAC library HyperparameterOptimizationFacade for every model [can only be used in the sam_ml version with swig]
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.model_combs`
+     - Function for mapping string to set of models
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.output_scores_as_pd`
+     - Function to output self.scores as pd.DataFrame
+   
+   * - :meth:`~sam_ml.models.automl.ClassifierTest.CTest.remove_model`
+     - Function for deleting model in self.models
+   
+
+.. note::
+
+   A lot of methods use parameters for advanced scoring. For additional information on advanced scoring, see :ref:`scoring documentation <classifier-scoring-section>`
+
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.add_model
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.eval_models
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.eval_models_cv
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.find_best_model_mass_search
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.find_best_model_randomCV
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.find_best_model_smac
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.model_combs
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.output_scores_as_pd
+
+.. automethod:: sam_ml.models.automl.ClassifierTest.CTest.remove_model

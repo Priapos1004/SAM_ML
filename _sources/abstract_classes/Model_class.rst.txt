@@ -1,0 +1,224 @@
+Model class
+===========
+
+.. class:: Model(self, model_object, model_name: str, model_type: str, grid: ConfigSpace.configuration_space.ConfigurationSpace)
+
+Model parent class {abstract}  - parent class :class:`object`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        model_object : model object
+            model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
+        model_name : str
+            name of the model
+        model_type : str
+            kind of estimator (e.g. 'RFC' for RandomForestClassifier)
+        grid : ConfigurationSpace
+            hyperparameter grid for the model
+        
+
+   * - Attributes
+     - 
+         
+        cv_scores : dict[str, float]
+            dictionary with cross validation results
+        
+       
+         
+        feature_names : list[str]
+            names of all the features that the model saw during training. Is empty if model was not fitted yet.
+        
+       
+         
+        grid : ConfigurationSpace
+            hyperparameter tuning grid of the model
+        
+       
+         
+        model : model object
+            model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
+        
+       
+         
+        model_name : str
+            name of the model. Used in loading bars and dictionaries as identifier of the model
+        
+       
+         
+        model_type : str
+            kind of estimator (e.g. 'RFC' for RandomForestClassifier)
+        
+       
+         
+        rCVsearch_results : pd.DataFrame or None
+            results from randomCV hyperparameter tuning. Is ``None`` if randomCVsearch was not used yet.
+        
+       
+         
+        train_score : float
+            train score value
+        
+       
+         
+        train_time : str
+            train time in format: "0:00:00" (hours:minutes:seconds)
+        
+       
+
+
+
+
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.models.main_model.Model._changed_parameters`
+     - Function to get parameters that differ from the default ones
+   
+   * - :meth:`~sam_ml.models.main_model.Model._get_all_scores`
+     - Function to create multiple scores for given y_true-y_pred pairs
+   
+   * - :meth:`~sam_ml.models.main_model.Model._get_score`
+     - Calculate a score for given y true and y prediction values
+   
+   * - :meth:`~sam_ml.models.main_model.Model._make_cv_scores`
+     - Function to create from the crossvalidation results a dictionary
+   
+   * - :meth:`~sam_ml.models.main_model.Model._make_scorer`
+     - Function to create a dictionary with scorer for the crossvalidation
+   
+   * - :meth:`~sam_ml.models.main_model.Model._print_scores`
+     - Function to print out the values of a dictionary
+   
+   * - :meth:`~sam_ml.models.main_model.Model.cross_validation`
+     - Random split crossvalidation
+   
+   * - :meth:`~sam_ml.models.main_model.Model.cross_validation_small_data`
+     - One-vs-all cross validation for small datasets
+   
+   * - :meth:`~sam_ml.models.main_model.Model.evaluate`
+     - Function to create multiple scores with predict function of model
+   
+   * - :meth:`~sam_ml.models.main_model.Model.evaluate_score`
+     - Function to create a score with self.__get_score of model
+   
+   * - :meth:`~sam_ml.models.main_model.Model.feature_importance`
+     - Function to generate a matplotlib plot of the top45 feature importance from the model.
+   
+   * - :meth:`~sam_ml.models.main_model.Model.fit`
+     - Function to fit the model
+   
+   * - :meth:`~sam_ml.models.main_model.Model.fit_warm_start`
+     - Function to warm_start fit the model
+   
+   * - :meth:`~sam_ml.models.main_model.Model.get_deepcopy`
+     - Function to create a deepcopy of object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.get_params`
+     - Function to get the parameter from the model object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.get_random_config`
+     - Function to generate one grid configuration
+   
+   * - :meth:`~sam_ml.models.main_model.Model.get_random_configs`
+     - Function to generate grid configurations
+   
+   * - :meth:`~sam_ml.models.main_model.Model.load_model`
+     - Function to load a pickled model class object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.predict`
+     - Function to predict with predict-method from model object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.predict_proba`
+     - Function to predict with predict_proba-method from model object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.randomCVsearch`
+     - Hyperparametertuning with randomCVsearch
+   
+   * - :meth:`~sam_ml.models.main_model.Model.replace_grid`
+     - Function to replace self.grid
+   
+   * - :meth:`~sam_ml.models.main_model.Model.save_model`
+     - Function to pickle and save the class object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.set_params`
+     - Function to set the parameter of the model object
+   
+   * - :meth:`~sam_ml.models.main_model.Model.smac_search`
+     - Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig]
+   
+   * - :meth:`~sam_ml.models.main_model.Model.train`
+     - Function to train the model
+   
+   * - :meth:`~sam_ml.models.main_model.Model.train_warm_start`
+     - Function to warm_start train the model
+   
+
+
+
+
+.. automethod:: sam_ml.models.main_model.Model._changed_parameters
+
+.. automethod:: sam_ml.models.main_model.Model._get_all_scores
+
+.. automethod:: sam_ml.models.main_model.Model._get_score
+
+.. automethod:: sam_ml.models.main_model.Model._make_cv_scores
+
+.. automethod:: sam_ml.models.main_model.Model._make_scorer
+
+.. automethod:: sam_ml.models.main_model.Model._print_scores
+
+.. automethod:: sam_ml.models.main_model.Model.cross_validation
+
+.. automethod:: sam_ml.models.main_model.Model.cross_validation_small_data
+
+.. automethod:: sam_ml.models.main_model.Model.evaluate
+
+.. automethod:: sam_ml.models.main_model.Model.evaluate_score
+
+.. automethod:: sam_ml.models.main_model.Model.feature_importance
+
+.. automethod:: sam_ml.models.main_model.Model.fit
+
+.. automethod:: sam_ml.models.main_model.Model.fit_warm_start
+
+.. automethod:: sam_ml.models.main_model.Model.get_deepcopy
+
+.. automethod:: sam_ml.models.main_model.Model.get_params
+
+.. automethod:: sam_ml.models.main_model.Model.get_random_config
+
+.. automethod:: sam_ml.models.main_model.Model.get_random_configs
+
+.. automethod:: sam_ml.models.main_model.Model.load_model
+
+.. automethod:: sam_ml.models.main_model.Model.predict
+
+.. automethod:: sam_ml.models.main_model.Model.predict_proba
+
+.. automethod:: sam_ml.models.main_model.Model.randomCVsearch
+
+.. automethod:: sam_ml.models.main_model.Model.replace_grid
+
+.. automethod:: sam_ml.models.main_model.Model.save_model
+
+.. automethod:: sam_ml.models.main_model.Model.set_params
+
+.. automethod:: sam_ml.models.main_model.Model.smac_search
+
+.. automethod:: sam_ml.models.main_model.Model.train
+
+.. automethod:: sam_ml.models.main_model.Model.train_warm_start

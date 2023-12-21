@@ -1,0 +1,226 @@
+RandomForestClassifier (RFC)
+============================
+
+.. class:: RFC(self, model_name: str = 'RandomForestClassifier', n_jobs: int = -1, random_state: int = 42, **kwargs)
+
+RandomForestClassifier Wrapper class  - parent class :class:`Classifier`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        n_estimator : int
+            number of trees
+        max_depth : int,
+            maximum number of levels in tree
+        max_features : float, int, or str,
+            number of features to consider at every split
+        min_samples_split : float or int,
+            minimum number of samples required to split a node
+        min_samples_leaf : float or int,
+            minimum number of samples required at each leaf node
+        bootstrap : bool,
+            method of selecting samples for training each tree
+        criterion : str,
+            function to measure the quality of a split
+        random_state : int,                 default=42
+            random_state for model
+        
+
+
+   * - Attributes
+     - 
+         
+        cv_scores : dict[str, float]
+            dictionary with cross validation results
+        
+       
+         
+        feature_names : list[str]
+            names of all the features that the model saw during training. Is empty if model was not fitted yet.
+        
+       
+         
+        grid : ConfigurationSpace
+            hyperparameter tuning grid of the model
+        
+       
+         
+        model : model object
+            model with 'fit', 'predict', 'set_params', and 'get_params' method (see sklearn API)
+        
+       
+         
+        model_name : str
+            name of the model. Used in loading bars and dictionaries as identifier of the model
+        
+       
+         
+        model_type : str
+            kind of estimator (e.g. 'RFC' for RandomForestClassifier)
+        
+       
+         
+        rCVsearch_results : pd.DataFrame or None
+            results from randomCV hyperparameter tuning. Is ``None`` if randomCVsearch was not used yet.
+        
+       
+         
+        train_score : float
+            train score value
+        
+       
+         
+        train_time : str
+            train time in format: "0:00:00" (hours:minutes:seconds)
+        
+       
+
+.. note::
+
+   You can use all parameters of the wrapped model when initialising the wrapper class.
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.models.classifier import RFC
+>>>
+>>> model = RFC()
+>>> print(model)
+RFC(model_name='RandomForestClassifier')
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.cross_validation`
+     - Random split crossvalidation
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.cross_validation_small_data`
+     - One-vs-all cross validation for small datasets
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate`
+     - Function to create multiple scores with predict function of model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate_proba`
+     - Function to create multiple scores for binary classification with predict_proba function of model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate_score`
+     - Function to create a score with predict function of model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate_score_proba`
+     - Function to create a score for binary classification with predict_proba function of model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.feature_importance`
+     - Function to generate a matplotlib plot of the top45 feature importance from the model.
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.fit`
+     - Function to fit the model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.fit_warm_start`
+     - Function to warm_start fit the model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.get_deepcopy`
+     - Function to create a deepcopy of object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.get_params`
+     - Function to get the parameter from the model object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.get_random_config`
+     - Function to generate one grid configuration
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.get_random_configs`
+     - Function to generate grid configurations
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.load_model`
+     - Function to load a pickled model class object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.predict`
+     - Function to predict with predict-method from model object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.predict_proba`
+     - Function to predict with predict_proba-method from model object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.randomCVsearch`
+     - Hyperparametertuning with randomCVsearch
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.replace_grid`
+     - Function to replace self.grid
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.save_model`
+     - Function to pickle and save the class object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.set_params`
+     - Function to set the parameter of the model object
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.smac_search`
+     - Hyperparametertuning with SMAC library HyperparameterOptimizationFacade [can only be used in the sam_ml version with swig]
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.train`
+     - Function to train the model
+   
+   * - :meth:`~sam_ml.models.classifier.RandomForestClassifier.RFC.train_warm_start`
+     - Function to warm_start train the model
+   
+
+.. note::
+
+   A lot of methods use parameters for advanced scoring. For additional information on advanced scoring, see :ref:`scoring documentation <classifier-scoring-section>`
+
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.cross_validation
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.cross_validation_small_data
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate_proba
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate_score
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.evaluate_score_proba
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.feature_importance
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.fit
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.fit_warm_start
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.get_deepcopy
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.get_params
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.get_random_config
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.get_random_configs
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.load_model
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.predict
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.predict_proba
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.randomCVsearch
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.replace_grid
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.save_model
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.set_params
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.smac_search
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.train
+
+.. automethod:: sam_ml.models.classifier.RandomForestClassifier.RFC.train_warm_start

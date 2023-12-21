@@ -1,0 +1,92 @@
+SamplerPipeline
+===============
+
+.. class:: SamplerPipeline(self, algorithm: str | list[sam_ml.data.preprocessing.sampling.Sampler] = 'SMOTE_rus_20_50')
+
+Class uses multplie up- and down-sampling algorithms instead of only one  - parent class :class:`Data`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        algorithm : str or list[Sampler],                 default="SMOTE_rus_20_50"
+            algorithm format:
+            
+            - "A1\_A2\_..._An_x1_x2_..._xn" with A1, A2, ... Sampler algorithm and x1, x2, ... their sampling_strategy
+            
+              first, use Sampler A1 with sampling_strategy x1% on data, then Sampler A2 with sampling_strategy x2% until Sampler An with sampling_strategy xn on data (ONLY works for binary data!!!)
+              
+              Note:
+              sampling_strategy is the percentage of class size of minority in relation to the class size of the majority
+
+              Examples (for binary classification):
+
+              1) ros_rus_10_50: RandomOverSampler for minority class to 10% of majority class and then RandomUnderSampler for majority class to 2*minority class
+
+              2) SMOTE_rus_20_50: SMOTE for minority class to 20% of majority class and then RandomUnderSampler for majority class to 2*minority class
+
+            - list[Sampler]: use each Sampler in list one after the other on data
+        
+
+   * - Attributes
+     - 
+         
+        algorithm : str
+            name of the used algorithm
+        
+       
+         
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+       
+
+
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.data.preprocessing import SamplerPipeline
+>>>
+>>> model = SamplerPipeline()
+>>> print(model)
+SamplerPipeline(Sampler(algorithm='SMOTE', sampling_strategy=0.2, ), Sampler(algorithm='rus', sampling_strategy=0.5, ))
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.get_params`
+     - Function to get the parameter from the transformer instance
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.params`
+     - Function to get the recommended parameter values for the class
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.sample`
+     - Function for up- and downsampling
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.set_params`
+     - Function to set the parameter of the transformer instance
+   
+
+
+
+
+.. automethod:: sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.get_params
+
+.. automethod:: sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.params
+
+.. automethod:: sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.sample
+
+.. automethod:: sam_ml.data.preprocessing.sampling_pipeline.SamplerPipeline.set_params

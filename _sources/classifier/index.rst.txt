@@ -1,0 +1,25 @@
+Classifier
+==========
+
+The ``sam_ml.models.classifier`` module contains several classifier wrapper models.
+
+.. toctree::
+   :maxdepth: 1
+
+   AdaBoostClassifier_(ABC)
+   BaggingClassifier_(BC)
+   BernoulliNB_(BNB)
+   DecisionTreeClassifier_(DTC)
+   ExtraTreesClassifier_(ETC)
+   GaussianNB_(GNB)
+   GaussianProcessClassifier_(GPC)
+   GradientBoostingMachine_(GBM)
+   KNeighborsClassifier_(KNC)
+   LinearDiscriminantAnalysis_(LDA)
+   LinearSupportVectorClassifier_(LSVC)
+   LogisticRegression_(LR)
+   MLP_Classifier_(MLPC)
+   QuadraticDiscriminantAnalysis_(QDA)
+   RandomForestClassifier_(RFC)
+   SupportVectorClassifier_(SVC)
+   XGBClassifier_(XGBC)

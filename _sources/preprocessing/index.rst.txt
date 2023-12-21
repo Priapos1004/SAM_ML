@@ -1,0 +1,13 @@
+Preprocessing
+=============
+
+The ``sam_ml.data.preprocessing`` module contains several data preprocessing step wrapper transformers for different tasks, e.g. feature selection or sampling.
+
+.. toctree::
+   :maxdepth: 1
+
+   Embeddings_builder
+   Sampler
+   SamplerPipeline
+   Scaler
+   Selector

@@ -1,0 +1,88 @@
+Scaler
+======
+
+.. class:: Scaler(self, algorithm: Literal['standard', 'minmax', 'maxabs', 'robust', 'normalizer', 'power', 'quantile', 'quantile_normal'] = 'standard', **kwargs)
+
+Scaler Wrapper class  - parent class :class:`Data`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        algorithm : {"standard", "minmax", "maxabs", "robust", "normalizer", "power", "quantile", "quantile_normal"},                 default="standard"
+            which scaling algorithm to use:
+            - 'standard': StandardScaler
+            - 'minmax': MinMaxScaler
+            - 'maxabs': MaxAbsScaler
+            - 'robust': RobustScaler
+            - 'normalizer': Normalizer
+            - 'power': PowerTransformer with method="yeo-johnson"
+            - 'quantile': QuantileTransformer (default of QuantileTransformer)
+            - 'quantile_normal': QuantileTransformer with output_distribution="normal" (gaussian pdf)
+
+        \*\*kwargs:
+            additional parameters for scaler
+        
+
+   * - Attributes
+     - 
+         
+        algorithm : str
+            name of the used algorithm
+        
+       
+         
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+       
+
+
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.data.preprocessing import Scaler
+>>>
+>>> model = Scaler()
+>>> print(model)
+Scaler()
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.data.preprocessing.scaler.Scaler.get_params`
+     - Function to get the parameter from the transformer instance
+   
+   * - :meth:`~sam_ml.data.preprocessing.scaler.Scaler.params`
+     - Function to get the possible parameter values for the class
+   
+   * - :meth:`~sam_ml.data.preprocessing.scaler.Scaler.scale`
+     - Function to scale/normalise data
+   
+   * - :meth:`~sam_ml.data.preprocessing.scaler.Scaler.set_params`
+     - Function to set the parameter of the transformer instance
+   
+
+
+
+
+.. automethod:: sam_ml.data.preprocessing.scaler.Scaler.get_params
+
+.. automethod:: sam_ml.data.preprocessing.scaler.Scaler.params
+
+.. automethod:: sam_ml.data.preprocessing.scaler.Scaler.scale
+
+.. automethod:: sam_ml.data.preprocessing.scaler.Scaler.set_params

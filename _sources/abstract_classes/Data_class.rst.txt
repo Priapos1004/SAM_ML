@@ -1,0 +1,70 @@
+Data class
+==========
+
+.. class:: Data(self, algorithm: str, transformer: <built-in function any>)
+
+Data preprocessing parent class {abstract}  - parent class :class:`object`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        algorithm : str
+            name of the used algorithm
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+
+   * - Attributes
+     - 
+         
+        algorithm : str
+            name of the used algorithm
+        
+       
+         
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+       
+
+
+
+
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.data.main_data.Data._changed_parameters`
+     - Returns
+   
+   * - :meth:`~sam_ml.data.main_data.Data.get_params`
+     - Function to get the parameter from the transformer instance
+   
+   * - :meth:`~sam_ml.data.main_data.Data.params`
+     - Function to get the possible/recommended parameter values for the class
+   
+   * - :meth:`~sam_ml.data.main_data.Data.set_params`
+     - Function to set the parameter of the transformer instance
+   
+
+
+
+
+.. automethod:: sam_ml.data.main_data.Data._changed_parameters
+
+.. automethod:: sam_ml.data.main_data.Data.get_params
+
+.. automethod:: sam_ml.data.main_data.Data.params
+
+.. automethod:: sam_ml.data.main_data.Data.set_params

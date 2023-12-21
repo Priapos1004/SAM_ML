@@ -1,0 +1,102 @@
+Selector
+========
+
+.. class:: Selector(self, algorithm: Literal['kbest', 'kbest_chi2', 'pca', 'wrapper', 'sequential', 'select_model', 'rfe', 'rfecv'] = 'kbest', num_features: int = 10, estimator=LinearSVC(dual=False, penalty='l1'), **kwargs)
+
+feature selection algorithm Wrapper class  - parent class :class:`Data`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        algorithm : {"kbest", "kbest_chi2", "pca", "wrapper", "sequential", "select_model", "rfe", "rfecv"},                 default="kbest"
+            which selecting algorithm to use:
+            - 'kbest': SelectKBest
+            - 'kbest_chi2': SelectKBest with score_func=chi2 (only non-negative values)
+            - 'pca': PCA (new column names after transformation)
+            - 'wrapper': uses p-values of Ordinary Linear Model from statsmodels library (no num_features parameter -> problems with too many features)
+            - 'sequential': SequentialFeatureSelector
+            - 'select_model': SelectFromModel (meta-transformer for selecting features based on importance weights)
+            - 'rfe': RFE (recursive feature elimination)
+            - 'rfecv': RFECV (recursive feature elimination with cross-validation)
+
+        num_features : int,                 default=10
+            number of features to select
+        estimator : estimator instance
+            parameter is needed for SequentialFeatureSelector, SelectFromModel, RFE, RFECV (default: LinearSVC)
+        \*\*kwargs:
+            additional parameters for selector
+        
+
+   * - Attributes
+     - 
+         
+        algorithm : str
+            name of the used algorithm
+        
+       
+         
+        num_features : int
+            number of features to select
+        
+       
+         
+        selected_features : list[str]
+            list with selected feature names
+        
+       
+         
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+       
+
+
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.data.preprocessing import Selector
+>>>
+>>> model = Selector()
+>>> print(model)
+Selector()
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.data.preprocessing.feature_selection.Selector.get_params`
+     - Function to get the parameter from the transformer instance
+   
+   * - :meth:`~sam_ml.data.preprocessing.feature_selection.Selector.params`
+     - Function to get the possible/recommended parameter values for the class
+   
+   * - :meth:`~sam_ml.data.preprocessing.feature_selection.Selector.select`
+     - Select the best features from data
+   
+   * - :meth:`~sam_ml.data.preprocessing.feature_selection.Selector.set_params`
+     - Function to set the parameter of the transformer instance
+   
+
+
+
+
+.. automethod:: sam_ml.data.preprocessing.feature_selection.Selector.get_params
+
+.. automethod:: sam_ml.data.preprocessing.feature_selection.Selector.params
+
+.. automethod:: sam_ml.data.preprocessing.feature_selection.Selector.select
+
+.. automethod:: sam_ml.data.preprocessing.feature_selection.Selector.set_params

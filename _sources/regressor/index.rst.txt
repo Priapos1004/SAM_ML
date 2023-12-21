@@ -1,0 +1,16 @@
+Regressor
+=========
+
+The ``sam_ml.models.regressor`` module contains several regressor wrapper models.
+
+.. toctree::
+   :maxdepth: 1
+
+   BayesianRidge_(BYR)
+   DecisionTreeRegressor_(DTR)
+   ElasticNet_(EN)
+   ExtraTreesRegressor_(ETR)
+   LassoLarsCV_(LLCV)
+   RandomForestRegressor_(RFR)
+   SGDRegressor_(SGDR)
+   XGBRegressor_(XGBR)

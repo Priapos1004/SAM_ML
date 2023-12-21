@@ -1,0 +1,92 @@
+Sampler
+=======
+
+.. class:: Sampler(self, algorithm: Literal['SMOTE', 'BSMOTE', 'rus', 'ros', 'tl', 'nm', 'cc', 'oss'] = 'ros', random_state: int = 42, sampling_strategy: str | float = 'auto', **kwargs)
+
+sample algorithm Wrapper class  - parent class :class:`Data`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        algorithm : {"SMOTE", "BSMOTE", "rus", "ros", "tl", "nm", "cc", "oss"},                 defautl="ros
+            which sampling algorithm to use:
+            - SMOTE: Synthetic Minority Oversampling Technique (upsampling)
+            - BSMOTE: BorderlineSMOTE (upsampling)
+            - ros: RandomOverSampler (upsampling) (default)
+            - rus: RandomUnderSampler (downsampling)
+            - tl: TomekLinks (cleaning downsampling)
+            - nm: NearMiss (downsampling)
+            - cc: ClusterCentroids (downsampling)
+            - oss: OneSidedSelection (cleaning downsampling)
+
+        random_state : int,                 default=42
+            seed for random sampling
+        sampling_strategy : str or float,                 default="auto"
+            percentage of class size of minority in relation to the class size of the majority
+        \*\*kwargs:
+            additional parameters for sampler
+        
+
+   * - Attributes
+     - 
+         
+        algorithm : str
+            name of the used algorithm
+        
+       
+         
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+       
+
+
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.data.preprocessing import Sampler
+>>>
+>>> model = Sampler()
+>>> print(model)
+Sampler()
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling.Sampler.get_params`
+     - Function to get the parameter from the transformer instance
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling.Sampler.params`
+     - Function to get the possible parameter values for the class
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling.Sampler.sample`
+     - Function for up- and downsampling
+   
+   * - :meth:`~sam_ml.data.preprocessing.sampling.Sampler.set_params`
+     - Function to set the parameter of the transformer instance
+   
+
+
+
+
+.. automethod:: sam_ml.data.preprocessing.sampling.Sampler.get_params
+
+.. automethod:: sam_ml.data.preprocessing.sampling.Sampler.params
+
+.. automethod:: sam_ml.data.preprocessing.sampling.Sampler.sample
+
+.. automethod:: sam_ml.data.preprocessing.sampling.Sampler.set_params

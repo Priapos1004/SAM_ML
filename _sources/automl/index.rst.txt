@@ -1,0 +1,10 @@
+Auto-ML
+=======
+
+The ``sam_ml.models.automl`` module contains two Auto-ML classes. One for Classifier (``CTest``) and one for Regressor (``RTest``).
+
+.. toctree::
+   :maxdepth: 1
+
+   CTest
+   RTest

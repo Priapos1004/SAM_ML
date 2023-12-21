@@ -1,0 +1,88 @@
+Embeddings_builder
+==================
+
+.. class:: Embeddings_builder(self, algorithm: Literal['bert', 'count', 'tfidf'] = 'tfidf', **kwargs)
+
+Vectorizer Wrapper class  - parent class :class:`Data`
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 0
+
+   * - Parameters
+     - 
+        algorithm : {"bert", "count", "tfidf"},                 default="tfidf
+            which vectorizing algorithm to use:
+            - 'count': CountVectorizer (default)
+            - 'tfidf': TfidfVectorizer
+            - 'bert': SentenceTransformer("quora-distilbert-multilingual")
+
+        \*\*kwargs:
+            additional parameters for CountVectorizer or TfidfVectorizer
+        
+
+   * - Attributes
+     - 
+         
+        algorithm : str
+            name of the used algorithm
+        
+       
+         
+        transformer : transformer instance
+            transformer instance (e.g. StandardScaler)
+        
+       
+
+
+
+.. raw:: html
+
+   <h2>Example</h2>
+
+>>> from sam_ml.data.preprocessing import Embeddings_builder
+>>>
+>>> model = Embeddings_builder()
+>>> print(model)
+Embeddings_builder()
+        
+
+.. raw:: html
+
+   <h2>Methods</h2>
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+   
+   * - :meth:`~sam_ml.data.preprocessing.embeddings.Embeddings_builder.create_parallel_bert_embeddings`
+     - Function to create in parallel embeddings of given strings with bert model
+   
+   * - :meth:`~sam_ml.data.preprocessing.embeddings.Embeddings_builder.get_params`
+     - Function to get the parameter from the transformer instance
+   
+   * - :meth:`~sam_ml.data.preprocessing.embeddings.Embeddings_builder.params`
+     - Function to get the possible parameter values for the class
+   
+   * - :meth:`~sam_ml.data.preprocessing.embeddings.Embeddings_builder.set_params`
+     - Function to set the parameter of the transformer instance
+   
+   * - :meth:`~sam_ml.data.preprocessing.embeddings.Embeddings_builder.vectorize`
+     - Function to vectorize text data column
+   
+
+
+
+
+.. automethod:: sam_ml.data.preprocessing.embeddings.Embeddings_builder.create_parallel_bert_embeddings
+
+.. automethod:: sam_ml.data.preprocessing.embeddings.Embeddings_builder.get_params
+
+.. automethod:: sam_ml.data.preprocessing.embeddings.Embeddings_builder.params
+
+.. automethod:: sam_ml.data.preprocessing.embeddings.Embeddings_builder.set_params
+
+.. automethod:: sam_ml.data.preprocessing.embeddings.Embeddings_builder.vectorize
