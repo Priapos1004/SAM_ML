@@ -155,3 +155,4 @@ docs/_static/
 !docs/global_variables.rst
 !docs/package_graph.rst
 !docs/pipeline_factory.rst
+!docs/regio_data.rst
