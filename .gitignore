@@ -141,6 +141,7 @@ find_best_model*.csv
 /examples/ex_*.ipynb
 /examples/*.csv
 /examples/*.png
+/examples/*.svg
 */smac3_output/*
 smac3_output/*
 
