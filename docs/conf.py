@@ -34,7 +34,7 @@ extensions = [
 ]
 
 # Path to plantuml (executable or jar file)
-pplantuml = 'plantuml'
+# pplantuml = 'plantuml'
 
 graphviz_output_format = 'svg'  # For scalable vector graphics
 
