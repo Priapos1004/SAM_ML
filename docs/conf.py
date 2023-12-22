@@ -29,8 +29,6 @@ extensions = [
     "sphinx.ext.autodoc",
     'sphinx_copybutton',
     "sphinx.ext.mathjax",
-    "sphinx.ext.graphviz",
-    "sphinxcontrib.plantuml", # brew install plantuml
 ]
 
 # Path to plantuml (executable or jar file)
