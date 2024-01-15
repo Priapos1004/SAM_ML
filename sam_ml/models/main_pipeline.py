@@ -234,6 +234,15 @@ class BasePipeline(Model):
 
     def get_params(self, deep: bool = True) -> dict[str, any]:
         return dict(self.steps) | {"model_name": self.model_name}
+    
+
+class ClassifierPipeline(BasePipeline, Classifier):
+    """ Pipeline class for classifier models """
+    pass
+
+class RegressorPipeline(BasePipeline, Regressor):
+    """ Pipeline class for regressor models """
+    pass
 
 
 # class factory 
@@ -256,7 +265,7 @@ def create_pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings
 
     Returns
     -------
-    DynamicPipeline object which inherits from the model parent class and BasePipeline
+    ClassifierPipeline or RegressorPipeline object which inherits from the model parent class and BasePipeline
 
     Examples
     --------
@@ -292,15 +301,14 @@ def create_pipeline(model: Classifier | Regressor,  vectorizer: str | Embeddings
     macro avg       0.86        0.94    0.89        600
     weighted avg    0.97        0.96    0.96        600
     <BLANKLINE>
-    """
-    if not issubclass(model.__class__, (Classifier, Regressor)):
-        raise ValueError(f"wrong input '{model}' (type: {type(Model)}) for model")
-
-    class DynamicPipeline(BasePipeline, model.__class__.__base__):
-        pass
-
+    """    
     # quick solution: discrete vs continuous values
     if type(model).__base__ == Regressor:
         sampler = None
 
-    return DynamicPipeline(model=model, vectorizer=vectorizer, scaler=scaler, selector=selector, sampler=sampler, model_name=model_name)
+    if model.__class__.__base__ == Classifier:
+        return ClassifierPipeline(model=model, vectorizer=vectorizer, scaler=scaler, selector=selector, sampler=sampler, model_name=model_name)
+    elif model.__class__.__base__ == Regressor:
+        return RegressorPipeline(model=model, vectorizer=vectorizer, scaler=scaler, selector=selector, sampler=sampler, model_name=model_name)
+    else:
+        raise ValueError(f"wrong input '{model}' (type: {type(Model)}) for model")

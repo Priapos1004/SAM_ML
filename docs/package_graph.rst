@@ -10,5 +10,5 @@ Package Graph
 
     Class Factory :func:`create_pipeline <sam_ml.models.create_pipeline>`
 
-    Creates **DynamicPipeline** class dynamically 
+    Creates **ClassifierPipeline** / **RegressorPipeline** class dynamically 
     based on input model (:class:`Classifier` or :class:`Regressor`)

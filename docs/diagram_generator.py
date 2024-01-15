@@ -35,7 +35,8 @@ def generate_uml_diagram():
                 abstract class Regressor
                 abstract class BasePipeline
                 protocol create_pipeline
-                class DynamicPipeline
+                class ClassifierPipeline
+                class RegressorPipeline
                 package "sam_ml.models.classifier" {
                     circle "  "
                 }
@@ -56,11 +57,13 @@ def generate_uml_diagram():
         Model <|-- Regressor
         Model <|-- BasePipeline
         Classifier <|-- "  "
-        Classifier <|-- DynamicPipeline
-        Regressor <|-- DynamicPipeline
+        Classifier <|-- ClassifierPipeline
+        Regressor <|-- RegressorPipeline
         Regressor <|-- "   "
-        DynamicPipeline <-- create_pipeline
-        BasePipeline <|-- DynamicPipeline
+        ClassifierPipeline <-- create_pipeline
+        RegressorPipeline <-- create_pipeline
+        BasePipeline <|-- ClassifierPipeline
+        BasePipeline <|-- RegressorPipeline
 
     @enduml
     """

@@ -236,6 +236,8 @@ class AutoML:
         # Sort the DataFrame by the existing columns, if there are any
         if existing_sort_columns:
             scores_df = scores_df.sort_values(by=existing_sort_columns, ascending=False)
+        else:
+            logger.warning(f"Could not find columns {sort_by} in dataframe -> dataframe is not sorted")
 
         return scores_df
 
@@ -259,6 +261,9 @@ class AutoML:
             if sort_by == "index":
                 scores = pd.DataFrame.from_dict(self._scores, orient="index").sort_index(ascending=True)
             else:
+                if type(sort_by) == str:
+                    sort_by = [sort_by]
+
                 scores = self.__sort_dict(self._scores, sort_by=sort_by)
 
             if console_out:

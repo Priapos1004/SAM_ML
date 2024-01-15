@@ -89,7 +89,7 @@ As already mentioned, another big advantage of this library are the two auto-ml 
 >>> from sam_ml.models.automl import CTest
 >>> 
 >>> # initialise auot-ml class
->>> ctest = CTest(models = "all", scaler = "standard", selector = None, sampler = "ros")
+>>> ctest = CTest(models = "all", scaler = "standard", sampler = "ros")
 >>> 
 >>> # start randomCVsearch with 5 configurations per model type and evaluate the best parameters
 >>> ctest.find_best_model_randomCV(x_train,y_train,x_test,y_test, scoring="s_score", avg="binary", pos_label=1, secondary_scoring="precision", strength=3, n_trails=5, cv_num=3)
